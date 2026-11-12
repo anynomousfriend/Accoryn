@@ -1,6 +1,6 @@
 # Shared treasury experience system
 
-Status: approved by the user on 2026-11-12; application implementation has not started. Implementation plan review is pending.
+Status: design and implementation plan approved on 2026-11-12. UI implementation is present; physical-device/manual acceptance is pending.
 Date: 2026-11-12
 Working product label: Team Treasury. This is not a final brand-name decision.
 

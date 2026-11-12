@@ -8,6 +8,15 @@ Development proceeds in tested feature checkpoints. Each release includes automa
 
 Feature 01 implements a real camera preview and in-memory frame capture, measured microphone input, and a speaker test requiring explicit audibility confirmation. Reset/stop releases device access. Physical-device acceptance is pending.
 
+The approved experience-system release adds a responsive landing page, original SVG artwork, local licensed fonts and reusable Tailwind foundations. The [editable reference](docs/design/experience-system.md) documents components and source. Follow the [UI acceptance checklist](docs/testing/feature-ui-experience.md).
+
+| Route | What it does |
+| --- | --- |
+| `/` | Introduces the prototype and planned workflow |
+| `/device-check/` | Runs real device checks |
+| `/design/` | Labelled component/status/motion specimens; no transaction |
+| `/design/?content=long` | Reference with long labels/identifiers |
+
 Approved first checkpoint: [device readiness](docs/superpowers/specs/2026-11-12-device-readiness-design.md). Follow the [manual acceptance checklist](docs/testing/feature-01-device-readiness.md). No wallet, object recognition, acoustic proximity verification, or payment execution is included yet.
 
 ## Local development
@@ -31,6 +40,10 @@ npm run build --prefix web
 The [GitHub Actions template](docs/testing/github-actions.example.yml) installs Playwright Chromium and uses it instead of the local Chrome channel. It is not active: the current GitHub token lacks permission to create workflow files. Local checks are available through `npm run check --prefix web`. Tests never enable fake capture devices or inject successful sensor responses. Physical capture and audibility remain manual checks.
 
 Styling uses Tailwind CSS. Installed project design skills are pinned in `skills-lock.json`; their local instruction files are excluded from application source.
+
+The native tab-visibility test opens an isolated temporary Chrome profile. Linux runners need `xvfb-run -a npm run test:browser --prefix web`. Production builds emit actual HTML entries for deep routes. Fonts and artwork are local to the build.
+
+The [track-evidence roadmap](docs/hackathon/track-alignment.md) targets Social Money, Open Innovation alongside it and Real-World Money after a complete business payout. The UI alone is not a completed NEAR integration. [DINOv2-small and ggwave are recommended baselines](docs/research/vision-audio-baselines.md); neither is integrated in this release.
 
 ## Engineering rules
 

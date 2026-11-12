@@ -137,44 +137,46 @@
     outline-color: white;
   }
   .eyebrow {
-    @apply font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400;
+    @apply font-mono text-xs font-medium uppercase tracking-[0.13em] text-muted;
   }
   .check-card {
-    @apply flex min-w-0 flex-col rounded-2xl border border-stone-200/90 bg-white p-5 shadow-[0_2px_3px_-2px_#00000008] sm:p-6;
+    @apply flex min-w-0 flex-col rounded-[20px] border border-line bg-surface p-5 shadow-[0_2px_3px_-2px_#14263d08] sm:p-6;
   }
   .card-icon {
-    @apply flex size-11 items-center justify-center rounded-xl border border-stone-200 bg-stone-50 text-stone-600;
+    @apply flex size-11 items-center justify-center rounded-xl border border-line bg-canvas text-cobalt;
   }
   .status {
-    @apply inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-medium text-stone-400;
+    @apply inline-flex items-center gap-1.5 rounded-full bg-canvas px-2 py-1 text-xs font-medium text-muted;
   }
-  .status-done,
+  .status-done {
+    @apply bg-success-tint text-success;
+  }
   .status-live {
-    @apply bg-emerald-50 text-emerald-800;
+    @apply bg-sky text-cobalt-strong;
   }
   .status-error {
-    @apply bg-amber-50 text-amber-800;
+    @apply bg-warning-tint text-warning;
   }
   .primary-button,
   .secondary-button,
   .text-button,
   .icon-button {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium;
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium;
     transition:
       background-color 150ms ease,
       transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   .primary-button {
-    @apply bg-emerald-950 text-white;
+    @apply bg-cobalt text-white;
   }
   .secondary-button {
-    @apply border border-stone-200 bg-white text-stone-600;
+    @apply border border-muted bg-surface text-ink;
   }
   .text-button {
-    @apply px-1 text-stone-500;
+    @apply px-1 text-muted;
   }
   .icon-button {
-    @apply min-w-11 px-2 text-stone-500;
+    @apply min-w-11 px-2 text-muted;
   }
   .camera-frame {
     @apply flex h-16 w-20 items-center justify-center;
@@ -202,14 +204,14 @@
     @apply text-cobalt;
   }
   .primary-button:hover:not(:disabled) {
-    @apply bg-emerald-900;
+    @apply bg-cobalt-strong;
   }
   .secondary-button:hover,
   .icon-button:hover {
-    @apply bg-stone-100;
+    @apply bg-sky;
   }
   .text-button:hover {
-    @apply text-emerald-900;
+    @apply text-cobalt-strong;
   }
 }
 @media (prefers-reduced-motion: no-preference) {

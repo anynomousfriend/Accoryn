@@ -6,7 +6,7 @@ This release tests device access. It does not create a wallet, recognize an obje
 
 ## Run or open
 
-Use the private HTTPS preview supplied with the release. On the development laptop, `npm ci --prefix web` and `npm run dev --prefix web` serve `http://127.0.0.1:5173/`.
+Use the private HTTPS preview and choose “Check your device,” or open `/device-check/` directly. Locally, `npm ci --prefix web` and `npm run dev --prefix web` serve `http://127.0.0.1:5173/device-check/`. The root now contains the approved landing page.
 
 Phones need the HTTPS preview. A plain HTTP LAN address does not provide a secure camera/microphone context. Keep the private preview in a full browser tab and sign in if its access gate requests it.
 

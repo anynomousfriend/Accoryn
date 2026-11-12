@@ -190,3 +190,44 @@ test("keyboard state selection updates immediately without motion", async ({
     ),
   ).toBe(0);
 });
+
+test("illustration uses the shared motion token", async ({ page }) => {
+  await page.goto("/design/");
+  // Production CSS may normalize milliseconds into seconds.
+  for (const value of ["200ms", "0.2s"]) {
+    await page.evaluate(
+      (value) =>
+        document.documentElement.style.setProperty("--motion-explain", value),
+      value,
+    );
+    await page.getByRole("button", { name: "Replay illustration" }).click();
+    const durations = await page
+      .locator("[data-frame-layer]")
+      .evaluateAll((elements) =>
+        elements
+          .flatMap((element) => element.getAnimations())
+          .map((animation) => animation.effect?.getTiming().duration),
+      );
+    expect(durations).toEqual([200, 200]);
+  }
+});
+
+test("leaving the artwork viewport stops playback", async ({ page }) => {
+  await page.goto("/design/");
+  await page.getByRole("button", { name: "Replay illustration" }).click();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect
+    .poll(
+      () =>
+        page
+          .locator("[data-frame-layer]")
+          .evaluateAll(
+            (elements) =>
+              elements
+                .flatMap((element) => element.getAnimations())
+                .filter((a) => a.playState === "running").length,
+          ),
+      { timeout: 150, intervals: [10] },
+    )
+    .toBe(0);
+});

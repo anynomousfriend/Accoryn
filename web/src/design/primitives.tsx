@@ -93,7 +93,7 @@ export function SiteHeader({ section }: { section?: string }) {
         >
           <BrandLink />
           <div className="flex items-center gap-1 sm:gap-5">
-            <a className="nav-link" href="/#how-it-works">
+            <a className="nav-link hidden md:inline-flex" href="/#how-it-works">
               How it works
             </a>
             <ActionLink href="/device-check/" variant="secondary">

@@ -31,6 +31,14 @@ export function SharedFrame({
       (element) => getComputedStyle(element).transform,
     );
     stop();
+    const theme = getComputedStyle(document.documentElement);
+    const durationToken = theme.getPropertyValue("--motion-explain").trim();
+    const time = durationToken.match(/^(\d*\.?\d+)(ms|s)$/);
+    const duration = time
+      ? Number(time[1]) * (time[2] === "s" ? 1000 : 1)
+      : NaN;
+    const easing = theme.getPropertyValue("--ease-in-out").trim();
+    if (!Number.isFinite(duration) || duration <= 0 || !easing) return;
     animations.current = elements.flatMap((element, index) => {
       if (!element.animate) return [];
       const from =
@@ -39,8 +47,8 @@ export function SharedFrame({
           : current[index];
       return [
         element.animate([{ transform: from }, { transform: "translateX(0)" }], {
-          duration: 560,
-          easing: "cubic-bezier(0.77, 0, 0.175, 1)",
+          duration,
+          easing,
         }),
       ];
     });
@@ -57,12 +65,17 @@ export function SharedFrame({
     document.addEventListener("visibilitychange", onHide);
     preference.addEventListener("change", onPreference);
     let observer: IntersectionObserver | undefined;
-    if (!interactive && scene.current) {
+    let hasPlayed = false;
+    if (scene.current) {
       observer = new IntersectionObserver(
         (entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) {
+          const visible = entries.some(
+            (entry) => entry.isIntersecting && entry.intersectionRatio >= 0.35,
+          );
+          if (!visible) stop();
+          else if (!interactive && !hasPlayed) {
+            hasPlayed = true;
             play();
-            observer?.disconnect();
           }
         },
         { threshold: 0.35 },
