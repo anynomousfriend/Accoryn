@@ -127,10 +127,11 @@ For static routes, use a real temporary directory containing an entry document r
 
 ## Release and human acceptance
 
-- [ ] Read verification-before-completion and the applicable Emil/React review guidance. Have one fresh independent reviewer inspect the whole branch against the approved spec, this plan and media lifecycle constraints. Resolve material findings with test-first changes and rerun relevant checks.
+- [x] Read verification-before-completion and the applicable Emil/React review guidance. Have one fresh independent reviewer inspect the whole branch against the approved spec, this plan and media lifecycle constraints. Resolve material findings with test-first changes and rerun relevant checks. No blocking findings; two minor follow-ups are recorded in the release review.
 - [ ] Keep cohesive phase commits local for now. The user will select a name and provide a new shared repository after testing; push a feature branch there when provided. Do not push/update the previous GitHub repository or merge the readiness PR. No workflow permission expansion is necessary.
-- [ ] Package the verified web source/build for the existing private Sites project; deploy privately, verify success, then check the three hosted routes and real navigation. Do not create a second site or make the repository public.
-- [ ] Give the user the working preview and manual checklist. Pause further functional features for their physical-device results. Do not claim phone touch feel, sensor reliability, object matching, acoustic security or NEAR payment behavior from desktop browser tests.
+- [x] Package the verified web source/build for the existing private Sites project; deploy privately and verify success. Do not create a second site or make the repository public. Hosted route verification is recorded in the release evidence.
+- [ ] Verify the three hosted routes in the owner's authenticated browser. The isolated automated browser received the private access gate (HTTP 401); all three routes passed direct entry/reload on the local static build. This check joins manual acceptance.
+- [x] Give the user the working preview and manual checklist. Pause further functional features for their physical-device results. Do not claim phone touch feel, sensor reliability, object matching, acoustic security or NEAR payment behavior from desktop browser tests.
 
 ## Track acceptance is a later functional milestone
 
