@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1430" viewBox="0 0 1600 1430" role="img" aria-labelledby="title desc">
+  <title id="title">Proposed Team Treasury experience direction</title>
+  <desc id="desc">An editable design board with cobalt, ink, pale blue and coral colors, desktop and mobile landing-page sketches, an original shared-frame illustration and payment-status design rules. This is a static design sketch, not a functioning payment interface.</desc>
+  <defs>
+    <linearGradient id="cobaltMaterial" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#A4CAFF"/><stop offset=".24" stop-color="#5085F2"/><stop offset=".55" stop-color="#245BDB"/><stop offset="1" stop-color="#123B94"/>
+    </linearGradient>
+    <linearGradient id="iceMaterial" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFFFFF"/><stop offset=".4" stop-color="#DDEBFF"/><stop offset="1" stop-color="#99BDF6"/>
+    </linearGradient>
+    <radialGradient id="atmosphere"><stop stop-color="#4D78C8" stop-opacity=".6"/><stop offset="1" stop-color="#14263D" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-.5" y="-.5" width="2" height="2"><feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#081B36" flood-opacity=".25"/></filter>
+    <g id="frameStudy">
+      <circle cx="210" cy="185" r="185" fill="url(#atmosphere)"/>
+      <g filter="url(#shadow)">
+        <rect x="93" y="82" width="178" height="210" rx="62" fill="none" stroke="url(#cobaltMaterial)" stroke-width="36" transform="rotate(-25 182 187)"/>
+        <rect x="187" y="105" width="145" height="170" rx="48" fill="none" stroke="url(#iceMaterial)" stroke-width="25" transform="rotate(25 259 190)"/>
+        <path d="M223 107 Q245 123 249 151" fill="none" stroke="#F58E7A" stroke-width="10" stroke-linecap="round"/>
+      </g>
+      <circle cx="210" cy="188" r="7" fill="#FFFFFF"/>
+      <circle cx="210" cy="188" r="16" fill="none" stroke="#FFFFFF" stroke-opacity=".4"/>
+    </g>
+    <style>
+      text{font-family:Inter,'Avenir Next','Segoe UI',sans-serif;fill:#14263D}
+      .label{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:1.3px;fill:#53657B}
+      .muted{fill:#53657B}
+      .serif{font-family:Newsreader,Georgia,serif}
+      .white{fill:#FFFFFF}
+    </style>
+  </defs>
+  <rect width="1600" height="1430" fill="#EAF0F8"/>
+  <text x="48" y="51" class="label">EXPERIENCE DIRECTION / 01</text>
+  <text x="48" y="92" font-size="30" font-weight="600">Clear decisions. A shared center.</text>
+  <text x="1552" y="49" text-anchor="end" class="label">PROPOSED · 12 NOV 2026</text>
+  <text x="1552" y="83" text-anchor="end" font-size="14" class="muted">Static design board — no transaction</text>
+
+  <g transform="translate(48 124)">
+    <rect width="172" height="53" rx="10" fill="#14263D"/><text x="14" y="32" font-size="14" class="white">Ink · #14263D</text>
+    <rect x="184" width="190" height="53" rx="10" fill="#245BDB"/><text x="198" y="32" font-size="14" class="white">Cobalt · #245BDB</text>
+    <rect x="386" width="172" height="53" rx="10" fill="#DDEBFF"/><text x="400" y="32" font-size="14">Sky · #DDEBFF</text>
+    <rect x="570" width="186" height="53" rx="10" fill="#F58E7A"/><text x="584" y="32" font-size="14">Coral · #F58E7A</text>
+    <rect x="768" width="192" height="53" rx="10" fill="#F7F9FC"/><text x="782" y="32" font-size="14">Canvas · #F7F9FC</text>
+    <rect x="972" width="208" height="53" rx="10" fill="#E8F6EE"/><text x="986" y="32" font-size="14" fill="#126847">Green = confirmed</text>
+    <text x="1210" y="23" font-size="13" class="muted">Inter + Newsreader</text>
+    <text x="1210" y="44" font-size="13" class="muted">44px+ touch targets</text>
+  </g>
+
+  <text x="48" y="223" class="label">LAPTOP / MESSAGE BEFORE MECHANISM</text>
+  <text x="1160" y="223" class="label">MOBILE / ONE CLEAR READING ORDER</text>
+
+  <g transform="translate(48 245)">
+    <rect width="1072" height="741" rx="24" fill="#F7F9FC" stroke="#D1DCEB"/>
+    <rect x="28" y="25" width="30" height="30" rx="9" fill="#245BDB"/>
+    <path d="M35 40 h16 M43 32 v16" stroke="#FFFFFF" stroke-width="2"/>
+    <text x="69" y="46" font-size="17" font-weight="600">Team Treasury</text>
+    <text x="703" y="44" font-size="13" class="muted">How it works</text>
+    <rect x="827" y="22" width="216" height="38" rx="11" fill="#245BDB"/>
+    <text x="935" y="46" text-anchor="middle" font-size="13" font-weight="500" class="white">Check your device →</text>
+    <path d="M28 79 H1044" stroke="#D1DCEB"/>
+
+    <text x="43" y="151" class="label">TEAM TREASURY / RESEARCH PROTOTYPE</text>
+    <text x="40" y="229" font-size="66" font-weight="600" letter-spacing="-3">One decision.</text>
+    <text x="40" y="307" font-size="69" class="serif" letter-spacing="-2">Made together.</text>
+    <text x="43" y="356" font-size="17" class="muted">A shared treasury for teams that want to</text>
+    <text x="43" y="383" font-size="17" class="muted">review payments together.</text>
+    <text x="43" y="419" font-size="14" class="muted">Exploring personal-object access and acoustic</text>
+    <text x="43" y="442" font-size="14" class="muted">participation on NEAR.</text>
+    <rect x="43" y="474" width="216" height="48" rx="12" fill="#245BDB"/>
+    <text x="151" y="504" text-anchor="middle" font-size="14" font-weight="500" class="white">Check your device →</text>
+    <text x="289" y="503" font-size="14">How it works ↗</text>
+
+    <g transform="translate(593 115)">
+      <rect width="435" height="413" rx="28" fill="#14263D"/>
+      <use href="#frameStudy" x="4" y="3"/>
+      <text x="28" y="36" font-size="11" letter-spacing="1.8" fill="#DDEBFF" class="white">INDEPENDENT PEOPLE</text>
+      <path d="M28 351 H407" stroke="#DDEBFF" stroke-opacity=".25"/>
+      <text x="28" y="383" font-size="15" class="white">One proposal. A shared moment.</text>
+    </g>
+
+    <path d="M43 570 H1028" stroke="#D1DCEB"/>
+    <text x="43" y="606" class="label">THE PLANNED WORKFLOW</text>
+    <g transform="translate(43 632)">
+      <text y="0" font-size="12" fill="#245BDB">01 / FAMILIAR</text>
+      <text y="31" font-size="24" class="serif">Your object.</text>
+      <text y="58" font-size="13" class="muted">A personal way to begin.</text>
+    </g>
+    <g transform="translate(384 632)">
+      <text y="0" font-size="12" fill="#245BDB">02 / CLEAR</text>
+      <text y="31" font-size="24" class="serif">One proposal.</text>
+      <text y="58" font-size="13" class="muted">The same details for everyone.</text>
+    </g>
+    <g transform="translate(725 632)">
+      <text y="0" font-size="12" fill="#245BDB">03 / SHARED</text>
+      <text y="31" font-size="24" class="serif">Team approval.</text>
+      <text y="58" font-size="13" class="muted">Know who approved and what follows.</text>
+    </g>
+  </g>
+
+  <g transform="translate(1160 245)">
+    <rect width="392" height="741" rx="24" fill="#F7F9FC" stroke="#D1DCEB"/>
+    <rect x="20" y="24" width="28" height="28" rx="8" fill="#245BDB"/>
+    <path d="M27 38 h14 M34 31 v14" stroke="#FFFFFF" stroke-width="2"/>
+    <text x="58" y="43" font-size="15" font-weight="600">Team Treasury</text>
+    <text x="372" y="43" text-anchor="end" font-size="12" fill="#245BDB">Check device ↗</text>
+    <path d="M20 76 H372" stroke="#D1DCEB"/>
+    <text x="20" y="117" class="label">RESEARCH PROTOTYPE</text>
+    <text x="19" y="176" font-size="47" font-weight="600" letter-spacing="-2">One decision.</text>
+    <text x="19" y="231" font-size="49" class="serif" letter-spacing="-1.8">Made together.</text>
+    <text x="20" y="270" font-size="16" class="muted">A shared treasury for teams that want</text>
+    <text x="20" y="296" font-size="16" class="muted">to review payments together.</text>
+    <text x="20" y="331" font-size="14" class="muted">Exploring personal-object access and</text>
+    <text x="20" y="353" font-size="14" class="muted">acoustic participation on NEAR.</text>
+    <rect x="20" y="380" width="352" height="48" rx="12" fill="#245BDB"/>
+    <text x="196" y="410" text-anchor="middle" font-size="15" class="white">Check your device →</text>
+    <text x="196" y="462" text-anchor="middle" font-size="14">How it works ↓</text>
+    <g transform="translate(20 493)">
+      <rect width="352" height="220" rx="22" fill="#14263D"/>
+      <use href="#frameStudy" transform="translate(44 -17) scale(.63)"/>
+      <text x="20" y="196" font-size="13" class="white">One proposal. A shared moment.</text>
+    </g>
+  </g>
+
+  <text x="48" y="1031" class="label">MONEY UI / STILL DETAILS, PRECISE STATUS</text>
+  <g transform="translate(48 1054)">
+    <rect width="1504" height="216" rx="22" fill="#FFFFFF"/>
+    <text x="28" y="42" font-size="26" font-weight="600">Same details. Clear outcomes.</text>
+    <text x="28" y="74" font-size="15" class="muted">Amount, asset and recipient remain anchored. Status changes follow evidence.</text>
+    <g transform="translate(28 102)">
+      <rect width="326" height="82" rx="14" fill="#F7F9FC"/>
+      <text x="16" y="28" font-size="12" class="muted">APPROVAL</text>
+      <text x="16" y="55" font-size="18" font-weight="500">Your approval recorded</text>
+      <text x="352" y="45" font-size="20" class="muted">→</text>
+      <rect x="391" width="326" height="82" rx="14" fill="#DDEBFF"/>
+      <text x="407" y="28" font-size="12" class="muted">SUBMISSION</text>
+      <text x="407" y="55" font-size="18" font-weight="500">Submitted to NEAR</text>
+      <text x="745" y="45" font-size="20" class="muted">→</text>
+      <rect x="785" width="326" height="82" rx="14" fill="#E8F6EE"/>
+      <text x="801" y="28" font-size="12" fill="#126847">VERIFIED RESULT</text>
+      <text x="801" y="55" font-size="18" font-weight="500" fill="#126847">Payment confirmed ✓</text>
+      <text x="1148" y="29" font-size="13" class="muted">State study only.</text>
+      <text x="1148" y="52" font-size="13" class="muted">No live payment.</text>
+    </g>
+  </g>
+  <text x="48" y="1310" class="label">PRESS 120ms · STATE FADE 160ms · EXPLANATORY SCENE 560ms</text>
+  <text x="48" y="1342" font-size="15" class="muted">No rolling amounts. No premature success. Reduced motion and keyboard access from the start.</text>
+  <text x="48" y="1384" font-size="13" class="muted">Original shared-frame study · Final brand name undecided · Editable SVG + implementation specification</text>
+  <text x="1552" y="1384" text-anchor="end" font-size="13" class="muted">Design proposal, not shipped UI</text>
+</svg>
