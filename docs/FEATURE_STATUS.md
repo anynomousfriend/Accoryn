@@ -8,7 +8,7 @@ Open `/` or `/device-check/`. This feature provides native camera preview/frame 
 
 Automated verification passed: 10 unit tests, 17 real-browser tests, TypeScript and production build. The new home-entry test was observed failing before implementation. Tests use actual browser APIs and actual filesystem route output, without fake media or injected successful responses.
 
-**User testing is pending.** Follow the [manual checklist](testing/feature-01-device-readiness.md) on a phone and laptop. Report device/browser, pass/fail per step and exact errors. Actual camera/mic quality, speaker audibility, OS indicators and mobile permission behavior require this evidence; automated success does not certify perfect operation on every device.
+**User confirmed the three device checks on 2026-11-12:** “yes the three device is checked.” Record this as happy-path acceptance of camera, microphone and speaker. No failures were reported. Device/browser versions, coverage on both phone and laptop, and the additional denial/cancellation/lifecycle checks remain unverified. See the [manual checklist](testing/feature-01-device-readiness.md). This feedback permits preparing the next functional feature; it does not certify perfect operation on every device.
 
 ## User navigation: current and planned
 
@@ -28,6 +28,6 @@ Build each milestone as an extension of the preceding journey. Its browser/integ
 4. Wait for the user's results; fix failures before the next feature.
 5. Return to visuals after the functional milestones are accepted.
 
-Upcoming work includes object enrollment/verification, actual NEAR accounts/treasury integration, acoustic challenge exchange and policy-bound payment/receipt flows. These are not implemented. The next functional milestone does not begin until Feature 1's manual test results arrive.
+Upcoming work includes object enrollment/verification, actual NEAR accounts/treasury integration, acoustic challenge exchange and policy-bound payment/receipt flows. These are not implemented. Feature 1's happy-path feedback has arrived; the next proposed slice is guided object registration and fresh-scan comparison, with its design awaiting approval.
 
-The final project name/shared repository are still pending. Keep phase commits local until the user provides the new repository; do not push to the prior repository.
+The user supplied the shared repository: [Accoryn](https://github.com/anynomousfriend/Accoryn). Existing history was preserved and pushed to `origin/main`. Use feature branches and reviewed pull requests for subsequent changes. App-wide branding remains a separate decision; visual work is paused.
