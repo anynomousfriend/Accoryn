@@ -6,7 +6,9 @@
 
 **Architecture:** React renders independent camera, microphone, and speaker check cards. A browser-media controller owns all streams/audio resources, handles cancellation, and publishes observable state. Pure error and level helpers are tested without mocks; integration tests run against a real browser without fake media or injected successful API responses.
 
-**Tech Stack:** Vite, TypeScript, React, Node test runner, Playwright, native MediaDevices/Web Audio. Pin resolved package versions and commit the lockfile.
+**Tech Stack:** Vite, TypeScript, React, Tailwind CSS (user-selected), Node test runner, Playwright, native MediaDevices/Web Audio. Pin resolved package versions and commit the lockfile.
+
+**Approval:** The user approved this plan and native execution on November 12, 2026. The subsequent explicit Tailwind/design-skill instruction refines the styling choice.
 
 **Spec:** [Approved design](../specs/2026-11-12-device-readiness-design.md).
 

@@ -10,6 +10,8 @@ playwright-report/
 test-results/
 *.log
 .DS_Store
+.agents/skills/
+.superpowers/
 
 # Editable conversation/research notes are not application source.
 /PROJECT_CONTEXT.md

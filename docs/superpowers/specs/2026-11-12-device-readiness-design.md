@@ -53,6 +53,6 @@ Run the complete test suite, typecheck, and production build before committing t
 
 ## Implementation choices
 
-Proposed stack: Vite, TypeScript, React, browser MediaDevices/Web Audio APIs, Node's test runner for pure behavior, and Playwright for browser integration. Exact dependency versions will be resolved and locked only after design approval. Use a private GitHub repository with a neutral technical name until branding is selected.
+Approved stack: Vite, TypeScript, React, browser MediaDevices/Web Audio APIs, Node's test runner for pure behavior, and Playwright for browser integration. The user subsequently selected Tailwind CSS and the Emil design-engineering skill for styling. Exact dependency versions will be resolved and locked after design approval. Use a private GitHub repository with a neutral technical name until branding is selected.
 
 The six requested Superpowers skills are installed. The design approval step is being followed before scaffolding or dependency installation.
