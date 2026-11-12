@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.local/
+.certs/
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+
+# Editable conversation/research notes are not application source.
+/PROJECT_CONTEXT.md
+/RESEARCH_AND_RECOMMENDATIONS.md
+/SECURITY_BRAINSTORM.md
+/BRAND_NAMES.md
