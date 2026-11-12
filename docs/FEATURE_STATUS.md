@@ -10,6 +10,16 @@ Automated verification passed: 10 unit tests, 17 real-browser tests, TypeScript 
 
 **User testing is pending.** Follow the [manual checklist](testing/feature-01-device-readiness.md) on a phone and laptop. Report device/browser, pass/fail per step and exact errors. Actual camera/mic quality, speaker audibility, OS indicators and mobile permission behavior require this evidence; automated success does not certify perfect operation on every device.
 
+## User navigation: current and planned
+
+**Current app:** open `/` → one readiness screen with three independent checks → capture/confirm, retry, stop or reset. Checks can be run in any order. Reaching 3 of 3 ends the current checkpoint; there is no object-registration or account-creation continuation yet.
+
+**Intended connected journey:** device readiness → guided object enrollment → fresh-scan verification → real NEAR testnet account setup → create/join team treasury → propose payment → all required members review the exact proposal → acoustic exchange → explicit independent approvals → actual settlement and receipt.
+
+The sequence beyond readiness is a proposed product flow, not implemented navigation. Object matching must not be described as deriving a safe private key from a photograph. The object-only research access, key custody and recovery design must be explicit before account signing is implemented.
+
+Build each milestone as an extension of the preceding journey. Its browser/integration tests should start from the working app entry and reach the newly completed step, alongside focused failure tests. Do not build disconnected mock screens and call them completed features. Progress updates should say what the user can now navigate from and to.
+
 ## Delivery rule
 
 1. Implement one functional slice using the basic skeleton.
