@@ -1,6 +1,6 @@
 # Feature 02: local object registration and scan comparison
 
-Date: 2026-11-12. Status: approved by the user on 2026-11-12; implementation plan review pending. Independent builder check: no important unresolved questions. No model or object-registration code is implemented by this document.
+Date: 2026-11-12. Status: approved by the user on 2026-11-12; implementation plan approved; release candidate in final review. Independent builder check: no important unresolved questions. No model or object-registration code is implemented by this document.
 
 ## Intent and scope
 

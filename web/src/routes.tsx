@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import App from "./App.tsx";
+import ObjectRegistrationPage from "./object-registration/ObjectRegistrationPage.tsx";
 import ExperienceReference from "./design/ExperienceReference.tsx";
 import LandingPage from "./landing/LandingPage.tsx";
 import { ActionLink, SiteHeader } from "./design/primitives.tsx";
@@ -7,6 +8,7 @@ import { ActionLink, SiteHeader } from "./design/primitives.tsx";
 export function renderRoute(pathname: string): ReactNode {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (path === "/" || path === "/device-check") return <App />;
+  if (path === "/object-registration") return <ObjectRegistrationPage />;
   if (path === "/landing") return <LandingPage />;
   if (path === "/design") return <ExperienceReference />;
   return (
