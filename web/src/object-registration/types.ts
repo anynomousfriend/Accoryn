@@ -4,3 +4,8 @@ export type ObjectTemplate = { schemaVersion:1; id:string; label:string; created
 export type Comparison = { scores:[number,number,number]; topTwoMean:number; inferenceMs:number };
 export type QualityResult = {ok:boolean; reason:'invalid'|'dark'|'bright'|'blur'|null};
 export type EmbeddingResult = { vector:Embedding; inferenceMs:number; model:ModelIdentity };
+export type RegistrationSnapshot = {
+ phase:'idle'|'loading'|'requesting'|'capture'|'review'|'processing'|'saving'|'saved'|'comparing'|'result'|'error'|'stopped';
+ mode:'enrollment'|'comparison'|null;detail:string;viewIndex:number;previews:string[];reviewUrl:string|null;
+ template:ObjectTemplate|null;comparison:Comparison|null;progress:{loaded:number;total:number|null}|null;
+};
