@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+}
+
+@layer base {
+  body { @apply m-0 bg-[#f5f5f0] font-sans text-stone-800 antialiased; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button { @apply cursor-pointer; }
+  button:disabled { @apply cursor-not-allowed opacity-50; }
+  :focus-visible { @apply outline-2 outline-offset-4 outline-emerald-700; }
+  ::selection { @apply bg-emerald-100; }
+}
+
+@layer components {
+  .eyebrow { @apply font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400; }
+  .check-card { @apply flex min-w-0 flex-col rounded-2xl border border-stone-200/90 bg-white p-5 shadow-[0_2px_3px_-2px_#00000008] sm:p-6; }
+  .card-icon { @apply flex size-11 items-center justify-center rounded-xl border border-stone-200 bg-stone-50 text-stone-600; }
+  .status { @apply inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-medium text-stone-400; }
+  .status-done, .status-live { @apply bg-emerald-50 text-emerald-800; }
+  .status-error { @apply bg-amber-50 text-amber-800; }
+  .primary-button, .secondary-button, .text-button, .icon-button { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium; transition: background-color 150ms ease, transform 120ms cubic-bezier(0.23,1,0.32,1); }
+  .primary-button { @apply bg-emerald-950 text-white; }
+  .secondary-button { @apply border border-stone-200 bg-white text-stone-600; }
+  .text-button { @apply px-1 text-stone-500; }
+  .icon-button { @apply min-w-11 px-2 text-stone-500; }
+  .camera-frame { @apply flex h-16 w-20 items-center justify-center; background: linear-gradient(#bfc4b9,#bfc4b9) left top/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) left top/1px 12px,linear-gradient(#bfc4b9,#bfc4b9) right top/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) right top/1px 12px,linear-gradient(#bfc4b9,#bfc4b9) left bottom/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) left bottom/1px 12px,linear-gradient(#bfc4b9,#bfc4b9) right bottom/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) right bottom/1px 12px; background-repeat: no-repeat; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary-button:hover:not(:disabled) { @apply bg-emerald-900; }
+  .secondary-button:hover, .icon-button:hover { @apply bg-stone-100; }
+  .text-button:hover { @apply text-emerald-900; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  button:active:not(:disabled):not(:focus-visible) { transform: scale(0.97); }
+}
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none !important; }
+}

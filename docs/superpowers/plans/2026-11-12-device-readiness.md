@@ -41,7 +41,7 @@
 - `web/tests/media-utils.test.ts`: real helper behavior using literal errors and sample arrays.
 - `web/tests/device-check.spec.ts`, `web/playwright.config.ts`: running-browser checks and layout/denial/reset tests.
 - `docs/testing/feature-01-device-readiness.md`: manual device checklist and verified/unverified results.
-- `.github/workflows/checks.yml`: clean install, typecheck, tests, and production build.
+- `docs/testing/github-actions.example.yml`: clean install, typecheck, tests, and production build template. GitHub rejected workflow creation with the current token; keep this inactive until an appropriately authorized credential is available.
 - `README.md`: setup commands, current checkpoint, and manual-test link.
 
 ## Task 1: Foundation and tested media behavior

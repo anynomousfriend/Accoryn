@@ -1,3 +1,5 @@
 import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './styles.css';
 
-createRoot(document.getElementById('root')!).render(<main>Feature 01 is being implemented.</main>);
+createRoot(document.getElementById('root')!).render(<App />);

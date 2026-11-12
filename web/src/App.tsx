@@ -1,0 +1,104 @@
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { ArrowDownLeft, ArrowRight, AudioLines, Camera, Check, CheckCheck, CircleHelp, Fingerprint, LockKeyhole, Mic, RefreshCcw, RotateCcw, ShieldCheck, Square, UsersRound, Volume2, X } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { DeviceChecks } from './device-check.ts';
+import type { CheckState } from './device-check.ts';
+
+function Status({ state }: { state: CheckState }) {
+  const text = state.confirmed ? 'Confirmed' : state.phase === 'active' ? 'Live' : state.phase === 'requesting' ? 'Waiting' : ['error', 'unsupported'].includes(state.phase) ? 'Needs attention' : state.phase === 'played' ? 'Your turn' : 'Not checked';
+  return <span className={`status ${state.confirmed ? 'status-done' : ['error', 'unsupported'].includes(state.phase) ? 'status-error' : state.phase === 'active' ? 'status-live' : ''}`}><span className="size-1.5 rounded-full bg-current" />{text}</span>;
+}
+
+function CardHeading({ icon: Icon, number, title, subtitle, state }: { icon: LucideIcon; number: string; title: string; subtitle: string; state: CheckState }) {
+  return <><div className="mb-6 flex items-center justify-between"><span className="card-icon"><Icon size={21} strokeWidth={1.65} /></span><span className="font-mono text-xs text-stone-400">{number} / 03</span></div><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold tracking-tight">{title}</h2><Status state={state} /></div><p className="mb-5 min-h-10 text-sm leading-relaxed text-stone-500">{subtitle}</p></>;
+}
+
+function Detail({ state }: { state: CheckState }) {
+  return <p role={['error', 'unsupported'].includes(state.phase) ? 'alert' : 'status'} className={`my-4 min-h-10 text-xs leading-relaxed ${['error', 'unsupported'].includes(state.phase) ? 'text-red-700' : 'text-stone-500'}`}>{state.detail}</p>;
+}
+
+export default function App() {
+  const [checks] = useState(() => new DeviceChecks());
+  const state = useSyncExternalStore(checks.subscribe, checks.getSnapshot);
+  const video = useRef<HTMLVideoElement>(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const confirmed = [state.camera, state.microphone, state.speaker].filter(check => check.confirmed).length;
+  const cameraRunning = ['active', 'requesting'].includes(state.camera.phase);
+  const micRunning = ['active', 'requesting'].includes(state.microphone.phase);
+  const speakerRunning = ['active', 'requesting'].includes(state.speaker.phase);
+
+  useEffect(() => {
+    const stopWhenHidden = () => { if (document.visibilityState === 'hidden') checks.reset(); };
+    window.addEventListener('pagehide', checks.reset);
+    document.addEventListener('visibilitychange', stopWhenHidden);
+    return () => {
+      window.removeEventListener('pagehide', checks.reset);
+      document.removeEventListener('visibilitychange', stopWhenHidden);
+      checks.reset();
+    };
+  }, [checks]);
+
+  return <div className="min-h-screen">
+    <header className="border-b border-black/7 bg-white/70">
+      <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-3 px-5 sm:px-9">
+        <a href="#main" className="flex items-center gap-3 text-sm font-semibold tracking-tight"><span className="flex size-9 items-center justify-center rounded-xl bg-emerald-950 text-white"><UsersRound size={18} /></span>Team Treasury<span className="hidden rounded-md border border-stone-200 px-1.5 py-0.5 font-mono text-[9px] font-normal tracking-wider text-stone-400 sm:inline">BUILD 01</span></a>
+        <div className="flex items-center gap-5"><span className="hidden items-center gap-1.5 text-xs text-stone-500 sm:flex"><span className="size-1.5 rounded-full bg-emerald-600" />Private device check</span><button className="icon-button" aria-label="Device check help" aria-expanded={showHelp} onClick={() => setShowHelp(!showHelp)}>{showHelp ? <X size={19} /> : <CircleHelp size={19} />}</button></div>
+      </div>
+    </header>
+
+    <main id="main" className="mx-auto max-w-7xl px-5 pb-12 pt-9 sm:px-9 sm:pt-14">
+      <div className="mb-9 flex flex-wrap items-center gap-2 text-xs text-stone-400"><span className="text-emerald-900">Getting started</span><span>/</span><span>Device readiness</span></div>
+      <div className="mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+        <div><div className="eyebrow mb-4">A good start, together.</div><h1 className="font-serif text-[2.75rem] leading-[1.1] tracking-[-0.035em] sm:text-6xl">Check your device<span className="text-emerald-800">.</span></h1><p className="mt-5 max-w-xl text-[15px] leading-7 text-stone-500">A quick check of the essentials. Make sure you can see, hear, and be heard before your first shared approval.</p></div>
+        <div className="flex items-center gap-3 self-start rounded-full border border-stone-200 bg-white px-4 py-2.5 lg:self-auto"><span className={`flex size-7 items-center justify-center rounded-full ${confirmed === 3 ? 'bg-emerald-900 text-white' : 'bg-stone-100 text-stone-500'}`}><CheckCheck size={15} /></span><span className="text-xs font-medium tabular-nums">{confirmed} of 3 checks confirmed</span></div>
+      </div>
+
+      {showHelp && <aside className="mb-6 rounded-2xl border border-stone-200 bg-white p-5 text-sm leading-7 text-stone-600"><strong className="text-stone-900">A few things to know.</strong> Use HTTPS or localhost, allow camera and microphone when you choose to start, and use your device speakers. If a permission is blocked, change it in your browser's site settings and retry. Switching away from this page resets the checks and releases access. This checks hardware access; it does not recognize an object or prove proximity.</aside>}
+
+      <section aria-label="Device checks" className="grid items-stretch gap-4 lg:grid-cols-3">
+        <article aria-label="Camera check" className="check-card">
+          <CardHeading icon={Camera} number="01" title="Camera" subtitle="A clear view of the things that matter." state={state.camera} />
+          <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-stone-200 bg-[#f0f0eb]">
+            <video ref={video} muted playsInline aria-label="Live camera preview" className={`size-full object-cover ${state.camera.phase === 'active' ? '' : 'invisible'}`} />
+            {state.camera.phase !== 'active' && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-stone-400"><div className="camera-frame"><Camera size={25} strokeWidth={1.2} /></div><span className="text-[11px]">Your preview appears here</span></div>}
+            {state.camera.phase === 'active' && <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2 py-1 font-mono text-[9px] tracking-wider text-white">LIVE · CAMERA ON</span>}
+          </div>
+          <Detail state={state.camera} />
+          <div className="mt-auto flex flex-wrap gap-2">
+            {cameraRunning ? <><button className="primary-button flex-1" disabled={state.camera.phase !== 'active'} onClick={() => checks.captureFrame()}><Camera size={15} />Capture frame</button><button className="secondary-button" onClick={() => checks.stopCamera()} aria-label="Stop camera"><Square size={14} />Stop</button></> : <button className="primary-button w-full" onClick={() => { if (video.current) void checks.startCamera(video.current); }}><Camera size={15} />{['error', 'unsupported'].includes(state.camera.phase) ? 'Retry camera' : 'Start camera'}<ArrowRight size={14} className="ml-auto" /></button>}
+          </div>
+          {state.capture && <div className="mt-4 flex items-center gap-3 rounded-xl bg-stone-50 p-2"><img src={state.capture} alt="Your captured camera frame, kept in memory only" className="size-14 rounded-lg object-cover" /><span className="flex-1 text-xs text-stone-500">Frame captured.<br />Nothing uploaded.</span><button className="icon-button" aria-label="Discard captured frame" onClick={() => checks.clearCapture()}><X size={16} /></button></div>}
+        </article>
+
+        <article aria-label="Microphone check" className="check-card">
+          <CardHeading icon={Mic} number="02" title="Microphone" subtitle="Make sure your device can pick up sound." state={state.microphone} />
+          <div className="flex aspect-[16/10] flex-col items-center justify-center rounded-xl border border-stone-200 bg-[#f7f7f3] px-7">
+            <Mic size={28} strokeWidth={1.25} className={micRunning ? 'text-emerald-800' : 'text-stone-400'} />
+            <div role="meter" aria-label="Microphone input level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(state.level * 100)} className="my-6 h-3 w-full overflow-hidden rounded-full bg-stone-200/70"><div className="h-full rounded-full bg-emerald-700" style={{ width: `${Math.min(100, state.level * 500)}%` }} /></div>
+            <span className="text-[11px] text-stone-400">{state.microphone.phase === 'active' ? 'Measured live input' : 'Waiting for microphone access'}</span>
+          </div>
+          <Detail state={state.microphone} />
+          {micRunning ? <button className="secondary-button mt-auto w-full" onClick={() => checks.stopMicrophone()}><Square size={14} />Stop microphone</button> : <button className="primary-button mt-auto w-full" onClick={() => void checks.startMicrophone()}><Mic size={15} />{['error', 'unsupported'].includes(state.microphone.phase) ? 'Retry microphone' : 'Start microphone'}<ArrowRight size={14} className="ml-auto" /></button>}
+        </article>
+
+        <article aria-label="Speaker check" className="check-card">
+          <CardHeading icon={Volume2} number="03" title="Speaker" subtitle="A little sound, so you know you're ready." state={state.speaker} />
+          <div className="flex aspect-[16/10] flex-col items-center justify-center gap-5 rounded-xl border border-stone-200 bg-[#f7f7f3]">
+            <div className="relative flex size-20 items-center justify-center rounded-full border border-stone-200"><div className="absolute inset-2 rounded-full border border-stone-200" /><Volume2 size={29} strokeWidth={1.3} className={speakerRunning ? 'text-emerald-800' : 'text-stone-400'} /></div><span className="text-[11px] text-stone-400">Short audible tone · 660 Hz</span>
+          </div>
+          <Detail state={state.speaker} />
+          {state.speaker.phase === 'played' ? <div className="mt-auto flex flex-wrap gap-2"><button className="primary-button flex-1" onClick={() => checks.confirmSpeaker()}><Check size={15} />I heard the tone</button><button className="secondary-button" aria-label="Play tone again" onClick={() => void checks.playTone()}><RotateCcw size={15} /></button></div> : <button className="primary-button mt-auto w-full" disabled={speakerRunning} onClick={() => void checks.playTone()}><Volume2 size={15} />{speakerRunning ? 'Playing tone…' : state.speaker.confirmed ? 'Play tone again' : 'Play test tone'}<ArrowRight size={14} className="ml-auto" /></button>}
+        </article>
+      </section>
+
+      <div className="mt-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><p className="flex items-center gap-2 text-xs text-stone-500"><LockKeyhole size={13} />Live inputs stay on this device. Nothing is uploaded or saved.</p><button className="text-button self-start" onClick={checks.reset}><RefreshCcw size={13} />Reset checks</button></div>
+
+      <section className="mt-10 grid overflow-hidden rounded-2xl border border-emerald-950/10 bg-[#e9eee6] md:grid-cols-[1.1fr_1fr]">
+        <div className="p-6 sm:p-8"><span className="eyebrow text-emerald-900/60">Built on the essentials</span><h2 className="mt-3 font-serif text-2xl tracking-tight text-emerald-950">Just your device. And your people.</h2><p className="mt-3 max-w-md text-sm leading-6 text-emerald-950/65">No extra hardware. No location tracking. A familiar way to get your team ready for shared decisions.</p></div>
+        <div className="flex flex-col justify-center gap-5 border-t border-emerald-950/10 p-6 sm:p-8 md:border-l md:border-t-0"><div className="flex gap-3"><ShieldCheck size={19} className="shrink-0 text-emerald-800" /><p className="text-xs leading-5 text-emerald-950/70"><strong className="block font-medium text-emerald-950">You're in control</strong>Access begins when you start a check. Stop anytime, or switch away to release access.</p></div><div className="flex gap-3"><Fingerprint size={19} className="shrink-0 text-emerald-800" /><p className="text-xs leading-5 text-emerald-950/70"><strong className="block font-medium text-emerald-950">One step at a time</strong>This release checks device access. Object enrollment and acoustic approvals come next.</p></div></div>
+      </section>
+
+      <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-stone-200 pt-6 text-[11px] text-stone-400"><span className="flex items-center gap-2"><AudioLines size={14} />Built for a shared moment of approval.</span><span className="flex items-center gap-2 font-mono">FEATURE 01 <ArrowDownLeft size={12} /> DEVICE READINESS</span></footer>
+    </main>
+  </div>;
+}
