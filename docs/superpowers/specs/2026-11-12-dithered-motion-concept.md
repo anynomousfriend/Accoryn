@@ -1,6 +1,6 @@
 # Dithered motion concept
 
-Status: proposed response to the user's rejection of the first visual direction. This supersedes the smooth-frame/soft-object artwork direction, not the software-only product constraints. No new concept code has been built yet.
+Status: paused at the user's request. Functional features and their automated/manual acceptance come first. No concept code has been built. The proposal is retained for the later visual phase.
 
 ## Intent
 

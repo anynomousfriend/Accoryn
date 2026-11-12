@@ -6,10 +6,13 @@ The approved direction uses cobalt actions, ink text, pale-blue surfaces and sma
 
 | Route | Purpose | Source |
 | --- | --- | --- |
-| `/` | Landing page and planned workflow | `web/src/landing/LandingPage.tsx` |
+| `/` | First functional checkpoint: real device checks | `web/src/App.tsx` |
+| `/landing/` | Earlier landing preview, retained for later | `web/src/landing/LandingPage.tsx` |
 | `/device-check/` | Real camera, microphone and speaker checks | `web/src/App.tsx` |
 | `/design/` | Editable component, status and motion reference | `web/src/design/ExperienceReference.tsx` |
 | `/design/?content=long` | Labelled long-content reference | Same reference component |
+
+Visual redesign is paused. Use [functional checkpoint status](../FEATURE_STATUS.md) for current development priority and manual acceptance.
 
 Production builds emit actual HTML entries for the supported deep routes. They do not depend on a development-server rewrite. Navigation uses ordinary links; leaving readiness clears its media state.
 

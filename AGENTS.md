@@ -8,6 +8,7 @@ The approved direction is object-only research sign-in and acoustic team approva
 
 ## Feature checkpoints
 
+- Functional features take priority. Visual redesign and the dithered motion concept are paused until the user returns to them. Use the existing straightforward screens for feature releases.
 - Implement one feature at a time, with a written acceptance checklist.
 - Add meaningful failing tests before application behavior; run the full relevant suite after implementation.
 - Use real APIs and integrations. Do not represent mocks, fake media, dry quotes, or placeholder states as completed functionality.

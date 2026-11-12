@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 export async function writeRoutePages(distDirectory) {
   const html = await readFile(join(distDirectory, "index.html"), "utf8");
   await Promise.all(
-    ["device-check", "design"].map(async (route) => {
+    ["device-check", "design", "landing"].map(async (route) => {
       const directory = join(distDirectory, route);
       await mkdir(directory, { recursive: true });
       await writeFile(join(directory, "index.html"), html);

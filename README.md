@@ -6,14 +6,19 @@ Development proceeds in tested feature checkpoints. Each release includes automa
 
 ## Current status
 
+Development is now **features first**. Visual redesign is paused. The app opens directly on the first functional checkpoint; each subsequent feature waits for the user's manual acceptance of the previous one.
+
+See [functional checkpoint status](docs/FEATURE_STATUS.md) for what is implemented, what automation verified, and the current manual test gate.
+
 Feature 01 implements a real camera preview and in-memory frame capture, measured microphone input, and a speaker test requiring explicit audibility confirmation. Reset/stop releases device access. Physical-device acceptance is pending.
 
-The approved experience-system release adds a responsive landing page, original SVG artwork, local licensed fonts and reusable Tailwind foundations. The [editable reference](docs/design/experience-system.md) documents components and source. Follow the [UI acceptance checklist](docs/testing/feature-ui-experience.md).
+Previous visual work is retained at `/landing/` and `/design/` for later. The [editable reference](docs/design/experience-system.md) documents those components; it is not the current development priority.
 
 | Route | What it does |
 | --- | --- |
-| `/` | Introduces the prototype and planned workflow |
+| `/` | Opens Feature 1: real device-readiness checks |
 | `/device-check/` | Runs real device checks |
+| `/landing/` | Previous visual preview, retained for later |
 | `/design/` | Labelled component/status/motion specimens; no transaction |
 | `/design/?content=long` | Reference with long labels/identifiers |
 

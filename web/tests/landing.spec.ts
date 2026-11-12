@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 // Catch a marketing CTA that does not reach the actual hardware checks.
 test("landing links to real readiness", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/landing/");
   await expect(
     page.getByRole("heading", { name: "One decision. Made together." }),
   ).toBeVisible();

@@ -6,7 +6,7 @@ This release tests device access. It does not create a wallet, recognize an obje
 
 ## Run or open
 
-Use the private HTTPS preview and choose “Check your device,” or open `/device-check/` directly. Locally, `npm ci --prefix web` and `npm run dev --prefix web` serve `http://127.0.0.1:5173/device-check/`. The root now contains the approved landing page.
+Open the private HTTPS preview: the root now opens this feature directly. `/device-check/` is an equivalent direct link. Locally, `npm ci --prefix web` and `npm run dev --prefix web` serve `http://127.0.0.1:5173/`. Visual work is paused; the earlier landing page is retained at `/landing/`.
 
 Phones need the HTTPS preview. A plain HTTP LAN address does not provide a secure camera/microphone context. Keep the private preview in a full browser tab and sign in if its access gate requests it.
 
@@ -26,11 +26,10 @@ Record browser/device versions, pass/fail per step, and the exact error wording.
 
 ## Automated evidence
 
-- 8 pure-behavior tests passed after an observed failing run for error classification and RMS measurement.
-- 4 running-Chrome integration tests passed after an observed missing-feature failing run.
-- Browser checks cover idle/permission-free startup, native permission denial, native Web Audio plus explicit confirmation, reset, and phone-width layout.
-- TypeScript check and production build passed.
-- Independent read-only reviewer found no critical or important implementation defect. It independently reran unit tests/typecheck, without invoking sensors.
+- Current release: `npm run check --prefix web` passed 10 unit tests and 17 real-browser tests, plus TypeScript and production build.
+- A new home-entry flow test failed before the routing change, then passed: open app, verify no camera/mic access, play real Web Audio, require explicit audibility confirmation, reset to zero.
+- Existing device checks cover idle startup, native browser permission denial/retry, native Web Audio, explicit confirmation/reset and phone-width layout. Additional regression checks cover navigation/history cleanup, static routes and retained visual references.
+- The device controller and media helpers are unchanged from the independently reviewed implementation. Physical capture and hearing were not established by that review or by automated confirmation.
 
 No fake media flags, injected streams, mocked getUserMedia, mocked responses, or simulated success states were used. Native browser permission controls were used to exercise denial. Automated confirmation exercises the button behavior; it does not establish that a human physically heard the tone.
 
@@ -39,6 +38,8 @@ No fake media flags, injected streams, mocked getUserMedia, mocked responses, or
 Successful physical camera/microphone capture, phone Safari/Chrome behavior, speaker audibility, canceled permission prompts, tab suspension, and OS privacy indicators require the manual steps above. They are not covered by a generic “all tests passed” claim.
 
 Feature 02 waits for the user's feedback on this checklist.
+
+For a quick happy-path check, capture a frame and stop the camera without discarding it, detect microphone input and stop it, then confirm the speaker only if heard. The count should reach 3 of 3. Reset should return it to 0 and remove the capture. Discarding a capture intentionally clears camera confirmation.
 
 ## GitHub automation status
 
