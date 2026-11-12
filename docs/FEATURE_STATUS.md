@@ -28,6 +28,6 @@ Build each milestone as an extension of the preceding journey. Its browser/integ
 4. Wait for the user's results; fix failures before the next feature.
 5. Return to visuals after the functional milestones are accepted.
 
-Upcoming work includes object enrollment/verification, actual NEAR accounts/treasury integration, acoustic challenge exchange and policy-bound payment/receipt flows. These are not implemented. Feature 1's happy-path feedback has arrived; the next proposed slice is guided object registration and fresh-scan comparison, with its design awaiting approval.
+Upcoming work includes object enrollment/verification, actual NEAR accounts/treasury integration, acoustic challenge exchange and policy-bound payment/receipt flows. These are not implemented. Feature 1's happy-path feedback has arrived. The user approved guided local object registration and fresh-scan comparison on 2026-11-12; its [three-task implementation plan](superpowers/plans/2026-11-12-object-registration.md) awaits review before native execution. It reports measured similarity scores and does not unlock an account.
 
 The user supplied the shared repository: [Accoryn](https://github.com/anynomousfriend/Accoryn). Existing history was preserved and pushed to `origin/main`. Use feature branches and reviewed pull requests for subsequent changes. App-wide branding remains a separate decision; visual work is paused.

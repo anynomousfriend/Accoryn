@@ -1,6 +1,6 @@
 # Feature 02: local object registration and scan comparison
 
-Date: 2026-11-12. Status: proposed; awaiting user approval. Independent builder check: no important unresolved questions. No model or object-registration code is implemented by this document.
+Date: 2026-11-12. Status: approved by the user on 2026-11-12; implementation plan review pending. Independent builder check: no important unresolved questions. No model or object-registration code is implemented by this document.
 
 ## Intent and scope
 
@@ -12,7 +12,7 @@ This slice does not create an account, derive a private key, sign, transfer fund
 
 ## Approaches and builder calls
 
-The user handed implementation choices to the builder; the following are proposals, not previously approved decisions.
+The user handed implementation choices to the builder and approved the local-inference/local-template approach below on 2026-11-12.
 
 - **Local inference and local templates (recommended):** photos remain on the device, no image-service credential or backend is required, and each capture uses a real model. Costs: initial model download, browser-dependent latency and no automatic cross-device enrollment.
 - **Remote image inference:** easier to use a larger server model, but introduces photo upload, backend availability, retention policy and network latency. Defer because this first functional slice can operate locally.
