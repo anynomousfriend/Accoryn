@@ -1,6 +1,6 @@
 # Shared treasury experience system
 
-Status: proposed for design approval; application implementation has not started.
+Status: approved by the user on 2026-11-12; application implementation has not started. Implementation plan review is pending.
 Date: 2026-11-12
 Working product label: Team Treasury. This is not a final brand-name decision.
 
@@ -35,7 +35,7 @@ Inspection: the video was downloaded to ignored local research storage, decoded 
 1. **Editorial banking — recommended builder call.** Light canvas, deep ink, cobalt actions, pale blue planes, small coral accents, spacious editorial headlines and a tactile shared-frame illustration. Readable enough for money decisions and distinctive enough for a landing page.
 2. **Technical control room.** Dark surfaces, denser grids, luminous status panels and particles. Stronger connection to the research poster and video, but makes experimental technology more prominent than the team's decision.
 
-The user delegated design execution and specified the desired character. The builder recommends approach 1, already described in conversation. Approval of this document approves that selection; it has not yet been approved.
+The user delegated design execution and specified the desired character. The user approved approach 1 and this document on 2026-11-12.
 
 ## Goals, boundaries, and anti-goals
 
@@ -207,3 +207,7 @@ This is a staged UI foundation release. It does not count as shipping object aut
 ## Decisions still intentionally deferred
 
 Final brand name/wordmark, object matcher/enrollment, acoustic protocol, wallet/contract policy, real proposal data and real settlement integration. These do not block building the UI foundation. Builder may settle exact SVG geometry, section copy length, responsive spacing within the scale, and component file splits. Changes to payment security assumptions require a separate functional design.
+
+## Track review after approval
+
+The user additionally requested comparison with the Social Money, Open Innovation and Real-World Money starter prompts. See [track alignment and implementation evidence](../../hackathon/track-alignment.md). This review does not expand the approved UI phase into a wallet, invoice processor or new multisig. The UI must accommodate an existing treasury's real approval policy, including automatic execution on a decisive vote, and must distinguish an illustrative design specimen from live NEAR integration.
