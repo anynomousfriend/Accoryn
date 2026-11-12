@@ -18,3 +18,7 @@ test-results/
 /RESEARCH_AND_RECOMMENDATIONS.md
 /SECURITY_BRAINSTORM.md
 /BRAND_NAMES.md
+
+# Reproducibly prepared public model/runtime assets (never personal captures).
+web/public/models/
+web/public/runtime/
