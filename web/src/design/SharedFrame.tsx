@@ -1,0 +1,125 @@
+import { useCallback, useEffect, useRef } from "react";
+import { RotateCcw } from "lucide-react";
+import { Button } from "./primitives.tsx";
+
+export function SharedFrame({
+  interactive = false,
+}: {
+  interactive?: boolean;
+}) {
+  const scene = useRef<HTMLDivElement>(null);
+  const left = useRef<HTMLDivElement>(null);
+  const right = useRef<HTMLDivElement>(null);
+  const animations = useRef<Animation[]>([]);
+  const stop = useCallback(() => {
+    animations.current.forEach((animation) => animation.cancel());
+    animations.current = [];
+  }, []);
+  const play = useCallback(() => {
+    if (
+      document.hidden ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      stop();
+      return;
+    }
+    const elements = [left.current, right.current].filter(
+      (element): element is HTMLDivElement => element !== null,
+    );
+    // Read the in-flight presentation before cancelling so repeated replays retarget smoothly.
+    const current = elements.map(
+      (element) => getComputedStyle(element).transform,
+    );
+    stop();
+    animations.current = elements.flatMap((element, index) => {
+      if (!element.animate) return [];
+      const from =
+        current[index] === "none"
+          ? `translateX(${index === 0 ? -12 : 12}px)`
+          : current[index];
+      return [
+        element.animate([{ transform: from }, { transform: "translateX(0)" }], {
+          duration: 560,
+          easing: "cubic-bezier(0.77, 0, 0.175, 1)",
+        }),
+      ];
+    });
+  }, [stop]);
+
+  useEffect(() => {
+    const preference = matchMedia("(prefers-reduced-motion: reduce)");
+    const onHide = () => {
+      if (document.hidden) stop();
+    };
+    const onPreference = () => {
+      if (preference.matches) stop();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    preference.addEventListener("change", onPreference);
+    let observer: IntersectionObserver | undefined;
+    if (!interactive && scene.current) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            play();
+            observer?.disconnect();
+          }
+        },
+        { threshold: 0.35 },
+      );
+      observer.observe(scene.current);
+    }
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", onHide);
+      preference.removeEventListener("change", onPreference);
+      stop();
+    };
+  }, [interactive, play, stop]);
+
+  return (
+    <figure className="m-0">
+      <div
+        ref={scene}
+        className="shared-frame"
+        role="img"
+        aria-label="Independent frames meeting at a shared center"
+      >
+        <div className="frame-atmosphere" />
+        <div ref={left} data-frame-layer className="frame-layer">
+          <img
+            src="/assets/experience/frame-cobalt.svg"
+            width="440"
+            height="380"
+            alt=""
+          />
+        </div>
+        <div ref={right} data-frame-layer className="frame-layer">
+          <img
+            src="/assets/experience/frame-ice.svg"
+            width="440"
+            height="380"
+            alt=""
+          />
+        </div>
+        <span className="frame-center" />
+      </div>
+      <figcaption className="flex flex-wrap items-center justify-between gap-3 border-t border-white/20 pt-5 text-sm text-white">
+        <span>One proposal. A shared moment.</span>
+        {interactive && (
+          <Button
+            variant="quiet"
+            className="frame-replay"
+            onClick={(event) => {
+              if (event.detail === 0) stop();
+              else play();
+            }}
+          >
+            <RotateCcw size={14} aria-hidden="true" />
+            Replay illustration
+          </Button>
+        )}
+      </figcaption>
+    </figure>
+  );
+}

@@ -12,7 +12,7 @@
 
 **Track context:** [Track alignment and implementation evidence](../../hackathon/track-alignment.md). This plan implements UI gate 1 only; later functional gates are not silently included here.
 
-**Approval:** Visual design approved on 2026-11-12. This implementation plan awaits review. Native execution is already selected.
+**Approval:** Visual design and this implementation plan approved on 2026-11-12. Native execution is already selected. The user's model/audio question is recorded in [baseline experiments](../../research/vision-audio-baselines.md); it does not add those integrations to the UI phase.
 
 ## Global Constraints
 
@@ -72,7 +72,7 @@ Leave `web/src/device-check.ts` and `web/src/media-utils.ts` unchanged unless an
 - `renderRoute(pathname: string): ReactNode` normalizes trailing slashes. At this task boundary only `/design` is new; the existing root remains usable.
 - `manifest.json` records each original SVG's file, role, recommended alt text, background and movable layers. Reusable primitives and artwork are consumed by Task 2.
 
-- [ ] **Step 1: Write failing real-browser checks for the reference page.** Name the tests `reference is explicit and never requests device access`, `state inspection preserves proposal details`, `semantic controls remain readable`, and `motion respects interruption and input preferences`. The tests must establish these observable assertions:
+- [x] **Step 1: Write failing real-browser checks for the reference page.** Name the tests `reference is explicit and never requests device access`, `state inspection preserves proposal details`, `semantic controls remain readable`, and `motion respects interruption and input preferences`. The tests must establish these observable assertions:
 
 ```ts
 await page.goto('/design/');
@@ -89,13 +89,13 @@ Also assert camera/microphone permissions remain `prompt`, no write requests occ
 
 For artwork, click Replay twice 80ms apart and assert at most one animation per moving layer, the control remains enabled, and all motion finishes within 800ms after the final click. Under `page.emulateMedia({ reducedMotion: 'reduce' })`, assert no running transform animation and complete artwork. Bring a second real browser page to the foreground to exercise the hidden-tab cleanup, then return; no old animation may resume. Do not replace visibility APIs or media APIs with stubs.
 
-- [ ] **Step 2: Observe the missing-feature failures.** Run `npm run test:browser --prefix web -- --grep "reference|state inspection|semantic controls|motion respects"`. Expected: failures on the absent reference heading/controls, not a broken server or missing browser.
+- [x] **Step 2: Observe the missing-feature failures.** Run `npm run test:browser --prefix web -- --grep "reference|state inspection|semantic controls|motion respects"`. Expected: failures on the absent reference heading/controls, not a broken server or missing browser.
 
-- [ ] **Step 3: Implement the foundations and reference page.** Add the exact spec tokens, CSS primitives and typed components. Keep CSS canonical and export the same approved values as JSON for tools. Download Inter and Newsreader from their official sources, preserve their license files, and serve local files with swap and fallbacks. Export original SVG artwork and usage metadata; do not redistribute reference screenshots/video. Animate at most two artwork layers through CSS/WAAPI using the spec's 560ms explanation and 220ms annotation timing; cancel in-flight handles on replay, page hide, preference change and unmount. Use transform/opacity, not animated layout/shadows/blur; avoid a React render each frame. Keep keyboard-triggered changes immediate. The reference's state selector must never run a timed payment story or request media. Use ordinary visible fields and native controls instead of new overlay/gesture infrastructure.
+- [x] **Step 3: Implement the foundations and reference page.** Add the exact spec tokens, CSS primitives and typed components. Keep CSS canonical and export the same approved values as JSON for tools. Download Inter and Newsreader from their official sources, preserve their license files, and serve local files with swap and fallbacks. Export original SVG artwork and usage metadata; do not redistribute reference screenshots/video. Animate at most two artwork layers through CSS/WAAPI using the spec's 560ms explanation and 220ms annotation timing; cancel in-flight handles on replay, page hide, preference change and unmount. Use transform/opacity, not animated layout/shadows/blur; avoid a React render each frame. Keep keyboard-triggered changes immediate. The reference's state selector must never run a timed payment story or request media. Use ordinary visible fields and native controls instead of new overlay/gesture infrastructure.
 
-- [ ] **Step 4: Verify the actual deliverable.** Rerun the new browser checks plus `npm test --prefix web`, `npm run typecheck --prefix web`, and `npm run build --prefix web`. Inspect the reference on mobile/laptop, status changes, replay interruption and reduced motion. Confirm the existing root readiness still works. If checks fail, diagnose before changing behavior; add a failing regression before a fix.
+- [x] **Step 4: Verify the actual deliverable.** Rerun the new browser checks plus `npm test --prefix web`, `npm run typecheck --prefix web`, and `npm run build --prefix web`. Inspect the reference on mobile/laptop, status changes, replay interruption and reduced motion. Confirm the existing root readiness still works. If checks fail, diagnose before changing behavior; add a failing regression before a fix.
 
-- [ ] **Step 5: Commit the coherent foundation.** Stage the new design sources, tests, original assets, font licenses and touched entry/styles; commit `feat: add accessible treasury design system and reference`. Do not commit captured media, browser reports or generated build output.
+- [x] **Step 5: Commit the coherent foundation.** Stage the new design sources, tests, original assets, font licenses and touched entry/styles; commit `feat: add accessible treasury design system and reference`. Do not commit captured media, browser reports or generated build output.
 
 ## Task 2: Responsive landing and real readiness integration
 

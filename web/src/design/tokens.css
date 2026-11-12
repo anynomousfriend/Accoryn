@@ -1,0 +1,43 @@
+@font-face {
+  font-family: Inter;
+  src: url("/fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: Newsreader;
+  src: url("/fonts/Newsreader.ttf") format("truetype");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: Inter, "Avenir Next", "Segoe UI", sans-serif;
+  --font-serif: Newsreader, Georgia, serif;
+  --color-canvas: #f7f9fc;
+  --color-surface: #ffffff;
+  --color-ink: #14263d;
+  --color-muted: #53657b;
+  --color-line: #d1dceb;
+  --color-cobalt: #245bdb;
+  --color-cobalt-strong: #1947b5;
+  --color-sky: #ddebff;
+  --color-coral: #f58e7a;
+  --color-coral-tint: #fff0e9;
+  --color-success: #126847;
+  --color-success-tint: #e8f6ee;
+  --color-warning: #805400;
+  --color-warning-tint: #fff3d6;
+  --color-danger: #b4333d;
+  --color-danger-tint: #fdecef;
+}
+
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-press: 120ms;
+  --motion-state: 160ms;
+  --motion-enter: 220ms;
+  --motion-explain: 560ms;
+}

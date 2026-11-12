@@ -1,42 +1,228 @@
 @import "tailwindcss";
-
-@theme {
-  --font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
-  --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-}
+@import "./design/tokens.css";
 
 @layer base {
-  body { @apply m-0 bg-[#f5f5f0] font-sans text-stone-800 antialiased; }
-  button, a { -webkit-tap-highlight-color: transparent; }
-  button { @apply cursor-pointer; }
-  button:disabled { @apply cursor-not-allowed opacity-50; }
-  :focus-visible { @apply outline-2 outline-offset-4 outline-emerald-700; }
-  ::selection { @apply bg-emerald-100; }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    color-scheme: light;
+  }
+  body {
+    @apply m-0 bg-canvas font-sans text-ink antialiased;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+  button,
+  a,
+  select {
+    touch-action: manipulation;
+  }
+  button {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button {
+    @apply cursor-pointer;
+  }
+  button:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 4px;
+  }
+  ::selection {
+    @apply bg-sky text-ink;
+  }
 }
 
 @layer components {
-  .eyebrow { @apply font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400; }
-  .check-card { @apply flex min-w-0 flex-col rounded-2xl border border-stone-200/90 bg-white p-5 shadow-[0_2px_3px_-2px_#00000008] sm:p-6; }
-  .card-icon { @apply flex size-11 items-center justify-center rounded-xl border border-stone-200 bg-stone-50 text-stone-600; }
-  .status { @apply inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-medium text-stone-400; }
-  .status-done, .status-live { @apply bg-emerald-50 text-emerald-800; }
-  .status-error { @apply bg-amber-50 text-amber-800; }
-  .primary-button, .secondary-button, .text-button, .icon-button { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium; transition: background-color 150ms ease, transform 120ms cubic-bezier(0.23,1,0.32,1); }
-  .primary-button { @apply bg-emerald-950 text-white; }
-  .secondary-button { @apply border border-stone-200 bg-white text-stone-600; }
-  .text-button { @apply px-1 text-stone-500; }
-  .icon-button { @apply min-w-11 px-2 text-stone-500; }
-  .camera-frame { @apply flex h-16 w-20 items-center justify-center; background: linear-gradient(#bfc4b9,#bfc4b9) left top/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) left top/1px 12px,linear-gradient(#bfc4b9,#bfc4b9) right top/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) right top/1px 12px,linear-gradient(#bfc4b9,#bfc4b9) left bottom/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) left bottom/1px 12px,linear-gradient(#bfc4b9,#bfc4b9) right bottom/12px 1px,linear-gradient(#bfc4b9,#bfc4b9) right bottom/1px 12px; background-repeat: no-repeat; }
+  .page-shell {
+    @apply mx-auto w-full max-w-[1312px] px-5 sm:px-8;
+  }
+  .site-header {
+    @apply border-b border-line bg-canvas;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .brand-link {
+    @apply inline-flex min-h-11 items-center gap-3 text-cobalt;
+  }
+  .nav-link {
+    @apply inline-flex min-h-11 items-center text-sm text-muted;
+  }
+  .skip-link {
+    @apply absolute -top-20 left-5 z-50 rounded-xl bg-cobalt px-4 py-3 text-white focus:top-3;
+  }
+  .eyebrow-label {
+    @apply font-mono text-xs font-medium uppercase leading-5 tracking-[.13em] text-muted;
+  }
+  .section-heading {
+    @apply mb-7;
+  }
+  .section-heading h2 {
+    @apply mt-3 text-3xl font-semibold tracking-tight;
+  }
+  .ui-button {
+    @apply inline-flex min-h-12 min-w-11 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium;
+    transition:
+      transform var(--motion-press) var(--ease-out),
+      background-color var(--motion-state) ease;
+  }
+  .ui-button-primary {
+    @apply bg-cobalt text-white;
+  }
+  .ui-button-secondary {
+    @apply border border-muted bg-surface text-ink;
+  }
+  .ui-button-quiet {
+    @apply text-ink;
+  }
+  .ui-status {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium;
+  }
+  .ui-status-neutral {
+    @apply bg-canvas text-muted;
+  }
+  .ui-status-active {
+    @apply bg-sky text-cobalt-strong;
+  }
+  .ui-status-success {
+    @apply bg-success-tint text-success;
+  }
+  .ui-status-warning {
+    @apply bg-warning-tint text-warning;
+  }
+  .ui-status-danger {
+    @apply bg-danger-tint text-danger;
+  }
+  .field-control {
+    @apply min-h-12 rounded-xl border border-muted bg-surface p-3 text-base text-ink;
+  }
+  .shared-frame {
+    position: relative;
+    aspect-ratio: 440/380;
+    isolation: isolate;
+  }
+  .frame-atmosphere {
+    @apply absolute inset-0;
+    background: radial-gradient(ellipse at center, #4974c35c, transparent 65%);
+  }
+  .frame-layer {
+    @apply absolute inset-0;
+  }
+  .frame-layer img {
+    @apply size-full;
+  }
+  .frame-center {
+    position: absolute;
+    left: calc(50% - 6px);
+    top: calc(50% - 6px);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 0 0 10px #ffffff1f;
+  }
+  .frame-replay {
+    @apply min-h-11 px-2 text-white;
+  }
+  .frame-replay:focus-visible {
+    outline-color: white;
+  }
+  .eyebrow {
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400;
+  }
+  .check-card {
+    @apply flex min-w-0 flex-col rounded-2xl border border-stone-200/90 bg-white p-5 shadow-[0_2px_3px_-2px_#00000008] sm:p-6;
+  }
+  .card-icon {
+    @apply flex size-11 items-center justify-center rounded-xl border border-stone-200 bg-stone-50 text-stone-600;
+  }
+  .status {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-medium text-stone-400;
+  }
+  .status-done,
+  .status-live {
+    @apply bg-emerald-50 text-emerald-800;
+  }
+  .status-error {
+    @apply bg-amber-50 text-amber-800;
+  }
+  .primary-button,
+  .secondary-button,
+  .text-button,
+  .icon-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium;
+    transition:
+      background-color 150ms ease,
+      transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .primary-button {
+    @apply bg-emerald-950 text-white;
+  }
+  .secondary-button {
+    @apply border border-stone-200 bg-white text-stone-600;
+  }
+  .text-button {
+    @apply px-1 text-stone-500;
+  }
+  .icon-button {
+    @apply min-w-11 px-2 text-stone-500;
+  }
+  .camera-frame {
+    @apply flex h-16 w-20 items-center justify-center;
+    background:
+      linear-gradient(#bfc4b9, #bfc4b9) left top/12px 1px,
+      linear-gradient(#bfc4b9, #bfc4b9) left top/1px 12px,
+      linear-gradient(#bfc4b9, #bfc4b9) right top/12px 1px,
+      linear-gradient(#bfc4b9, #bfc4b9) right top/1px 12px,
+      linear-gradient(#bfc4b9, #bfc4b9) left bottom/12px 1px,
+      linear-gradient(#bfc4b9, #bfc4b9) left bottom/1px 12px,
+      linear-gradient(#bfc4b9, #bfc4b9) right bottom/12px 1px,
+      linear-gradient(#bfc4b9, #bfc4b9) right bottom/1px 12px;
+    background-repeat: no-repeat;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .primary-button:hover:not(:disabled) { @apply bg-emerald-900; }
-  .secondary-button:hover, .icon-button:hover { @apply bg-stone-100; }
-  .text-button:hover { @apply text-emerald-900; }
+  .ui-button-primary:hover:not(:disabled) {
+    @apply bg-cobalt-strong;
+  }
+  .ui-button-secondary:hover {
+    @apply bg-sky;
+  }
+  .nav-link:hover {
+    @apply text-cobalt;
+  }
+  .primary-button:hover:not(:disabled) {
+    @apply bg-emerald-900;
+  }
+  .secondary-button:hover,
+  .icon-button:hover {
+    @apply bg-stone-100;
+  }
+  .text-button:hover {
+    @apply text-emerald-900;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
-  button:active:not(:disabled):not(:focus-visible) { transform: scale(0.97); }
+  button:active:not(:disabled):not(:focus-visible) {
+    transform: scale(0.97);
+  }
+  .ui-button:active:not(:disabled):not(:focus-visible) {
+    transform: scale(0.98);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  button { transition: none !important; }
+  button,
+  .ui-button {
+    transition: none !important;
+  }
 }

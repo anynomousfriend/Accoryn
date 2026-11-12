@@ -1,0 +1,43 @@
+{
+  "origin": "Original code-native artwork for Team Treasury, 2026-11-12. Not enrolled objects or proximity evidence.",
+  "assets": [
+    {
+      "file": "shared-frame.svg",
+      "role": "Shared proposal explanation",
+      "alt": "Independent frames meeting at a shared center",
+      "background": "ink",
+      "movableLayers": [
+        "frame-cobalt.svg",
+        "frame-ice.svg"
+      ]
+    },
+    {
+      "file": "frame-cobalt.svg",
+      "role": "Composition layer",
+      "alt": "",
+      "background": "ink",
+      "movement": "At most 12px; paired with ice layer"
+    },
+    {
+      "file": "frame-ice.svg",
+      "role": "Composition layer",
+      "alt": "",
+      "background": "ink",
+      "movement": "At most 12px; paired with cobalt layer"
+    },
+    {
+      "file": "object-study.svg",
+      "role": "Object enrollment explanation",
+      "alt": "Abstract personal object inside camera framing marks",
+      "background": "light",
+      "movement": "Static"
+    },
+    {
+      "file": "signal-bridge.svg",
+      "role": "Acoustic exchange explanation",
+      "alt": "Sender and listener exchanging a challenge",
+      "background": "light",
+      "movement": "Static; not a live audio meter"
+    }
+  ]
+}
