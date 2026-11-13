@@ -18,13 +18,13 @@ import {
   parseDescription,
   type SputnikPolicy,
 } from "../near/sputnik.ts";
-import { verifySettlement } from "../near/settlement.ts";
+import { verifyProposalSettlement } from "./settlement-binding.ts";
 import { parseSession, type Session } from "./protocol.ts";
 import type { Proposal } from "../../integration/services.ts";
 import type { ReceiptExportRow } from "../../payments/receipt-csv.ts";
 export const GATE = "ceremony-gate-v1.accoryn.testnet";
 export const GATE_HASH = "6RyhWz4BnSszxQg88ysQnECuFm2KWUXLUrdqVKtTcfBm";
-export const SPUTNIK_HASH="AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH";
+export const SPUTNIK_HASH = "AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH";
 export const NEAR = 10n ** 24n,
   TGAS = 10n ** 12n;
 export type Tiers = {
@@ -46,7 +46,7 @@ export type TreasuryView = {
   factoryInfo: unknown;
 };
 export type PaymentView = {
-  currentMembers:string[];
+  currentMembers: string[];
   proposal: Proposal;
   session: Session | null;
   transactionIds: string[];
@@ -167,7 +167,10 @@ export class TreasuryEngine {
       rpc.viewFunction<Tiers>(GATE, "get_tiers", { dao_id: id }, { signal }),
       rpc.viewFunction(id, "get_factory_info", {}, { signal }),
     ]);
-    if(account.codeHash!==SPUTNIK_HASH)throw new Error("Treasury code hash changed or is unsupported. Writes require review.");
+    if (account.codeHash !== SPUTNIK_HASH)
+      throw new Error(
+        "Treasury code hash changed or is unsupported. Writes require review.",
+      );
     const check = checkPolicyConformance(policy, { gateId: GATE });
     if (!check.ok)
       throw new Error(
@@ -265,7 +268,10 @@ export class TreasuryEngine {
           { signal, receipts: true },
         );
         if (
-          verifySettlement(tx, {
+          verifyProposalSettlement(tx, {
+            gateId: GATE,
+            proposalId: id,
+            sessionId: session?.session_id ?? "",
             daoId: dao,
             receiverId: parsed.kind.receiverId,
             amountAtomic: parsed.kind.amount,
@@ -287,7 +293,7 @@ export class TreasuryEngine {
       settlementVerified: verified.length > 0,
     });
     return {
-      currentMembers:t.members,
+      currentMembers: t.members,
       proposal,
       session,
       transactionIds: verified,

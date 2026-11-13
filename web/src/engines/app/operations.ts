@@ -46,16 +46,33 @@ export class Operations {
   constructor(store: OperationStore) {
     this.store = store;
   }
-  async isCancelled(id:string):Promise<boolean>{return (await this.get('!cancelled!'+id))?.kind==='cancelled';}
-  async cancelBeforeSigning(id:string):Promise<void>{
-    const original=await this.get(id);if(!original)throw new Error('Missing operation intent.');
-    if(await this.isCancelled(id))return;
-    const marker:Operation={requestId:'!cancelled!'+id,kind:'cancelled',actor:original.actor,receiver:original.receiver,args:{requestId:id},deposit:'0'};
-    try{await this.store.add(marker);}catch(e){if(!await this.isCancelled(id))throw e;}
+  async isCancelled(id: string): Promise<boolean> {
+    return (await this.get("!cancelled!" + id))?.kind === "cancelled";
+  }
+  async cancelBeforeSigning(id: string): Promise<void> {
+    const original = await this.get(id);
+    if (!original) throw new Error("Missing operation intent.");
+    if (await this.isCancelled(id)) return;
+    const marker: Operation = {
+      requestId: "!cancelled!" + id,
+      kind: "cancelled",
+      actor: original.actor,
+      receiver: original.receiver,
+      args: { requestId: id },
+      deposit: "0",
+    };
+    try {
+      await this.store.add(marker);
+    } catch (e) {
+      if (!(await this.isCancelled(id))) throw e;
+    }
   }
   async begin(op: Operation): Promise<void> {
-    if(op.requestId.startsWith('!'))throw new Error('Reserved operation ID.');
-    if(await this.isCancelled(op.requestId))throw new Error('This intent was cancelled before signing. Review again using a new request.');
+    if (op.requestId.startsWith("!")) throw new Error("Reserved operation ID.");
+    if (await this.isCancelled(op.requestId))
+      throw new Error(
+        "This intent was cancelled before signing. Review again using a new request.",
+      );
     const previous = await this.get(op.requestId);
     if (previous) {
       if (JSON.stringify(previous) !== JSON.stringify(op))

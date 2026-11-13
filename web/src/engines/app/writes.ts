@@ -19,7 +19,11 @@ import {
   totalAtomic,
   type PaymentDraft,
 } from "../../workspace/drafts.ts";
-import { assertSessionFor, assertCurrentMembership, type Session } from "./protocol.ts";
+import {
+  assertSessionFor,
+  assertCurrentMembership,
+  type Session,
+} from "./protocol.ts";
 import {
   generateChallenge,
   ceremonySeed,
@@ -274,7 +278,7 @@ export class TreasuryFlow extends TreasuryEngine {
         throw new Error("Payment changed or session unavailable.");
       const s = latest.session;
       assertSessionFor(s, p.proposal, this.accountId);
-      assertCurrentMembership(s,latest.currentMembers);
+      assertCurrentMembership(s, latest.currentMembers);
       if (role === "host") {
         if (
           !this.secret?.host ||
@@ -415,7 +419,10 @@ export class TreasuryFlow extends TreasuryEngine {
     op: Operation,
     signal: AbortSignal,
   ): Promise<BusinessResult> {
-    if(await this.deps.operations.isCancelled(op.requestId))throw new Error("This intent was cancelled before signing. Review again using a new request.");
+    if (await this.deps.operations.isCancelled(op.requestId))
+      throw new Error(
+        "This intent was cancelled before signing. Review again using a new request.",
+      );
     validateWriteIntent(op);
     await this.authorize(signal);
     const method = String(op.args.method),
@@ -426,7 +433,7 @@ export class TreasuryFlow extends TreasuryEngine {
         : op.receiver.endsWith(".sputnikv2.testnet")
           ? op.receiver
           : null;
-    if (dao && op.kind !== "fund") {
+    if (dao) {
       const t = await this.treasury(dao, signal);
       if (!t.members.includes(op.actor) && op.kind !== "fund")
         throw new Error("Signing account is not a vault member.");
@@ -451,7 +458,7 @@ export class TreasuryFlow extends TreasuryEngine {
         if (method !== "open_session") {
           if (!p.session) throw new Error("No session.");
           assertSessionFor(p.session, p.proposal, op.actor);
-          assertCurrentMembership(p.session,p.currentMembers);
+          assertCurrentMembership(p.session, p.currentMembers);
           if (p.session.session_id !== op.expected.sessionId)
             throw new Error("Session changed.");
         }
@@ -631,14 +638,20 @@ export class TreasuryFlow extends TreasuryEngine {
     const p = await this.payment(dao, id, signal);
     if (op.kind.startsWith("execute:")) {
       return {
+        message:
+          p.proposal.status === "failed"
+            ? "The on-chain payout failed. No payment was retried; inspect its retained proposal and transaction."
+            : undefined,
         status:
           p.proposal.status === "settled"
             ? "confirmed"
-            : p.session?.status === "Executing"
-              ? "pending"
-              : p.proposal.status === "pending"
-                ? "rejected"
-                : "unknown",
+            : ["failed", "rejected"].includes(p.proposal.status)
+              ? "rejected"
+              : p.session?.status === "Executing"
+                ? "pending"
+                : p.proposal.status === "pending"
+                  ? "rejected"
+                  : "unknown",
         treasuryId: dao,
         proposalId: id,
       };

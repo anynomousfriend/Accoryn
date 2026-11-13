@@ -97,4 +97,12 @@ export function membershipPolicy(
     proposalPeriodNs: policy.proposal_period,
   });
 }
-export function assertCurrentMembership(s:Session,members:string[]):void{if(JSON.stringify([...s.eligible].sort())!==JSON.stringify([...members].sort()))throw new Error('Vault membership changed. Cancel or expire the old session, then open a new one.');}
+export function assertCurrentMembership(s: Session, members: string[]): void {
+  if (
+    JSON.stringify([...s.eligible].sort()) !==
+    JSON.stringify([...members].sort())
+  )
+    throw new Error(
+      "Vault membership changed. Cancel or expire the old session, then open a new one.",
+    );
+}

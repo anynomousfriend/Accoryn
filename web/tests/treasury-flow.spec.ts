@@ -187,3 +187,68 @@ test("an invoice can be prepared and saved inside the connected flow without nav
     /.+/,
   );
 });
+test("a delayed second tab cannot acquire submission after the first tab recorded the same draft", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/treasury/");
+  const second = await context.newPage();
+  await second.goto("/treasury/");
+  // Model the real race: B prepares its immutable intent before A finishes;
+  // its later admission must recheck the reference inside the shared lock.
+  const intent = {
+    requestId: "delayed-second-tab",
+    kind: "propose",
+    treasuryId: "team.sputnikv2.testnet",
+    draftId: "same-draft",
+    proposalId: null,
+    startedAt: new Date().toISOString(),
+  };
+  await page.evaluate(async () => {
+    const journal = await import(String("/src/workspace/action-journal.ts"));
+    const storage = await import(String("/src/workspace/storage.ts"));
+    await journal.beginAction({
+      requestId: "first-tab",
+      kind: "propose",
+      treasuryId: "team.sputnikv2.testnet",
+      draftId: "same-draft",
+      proposalId: null,
+      startedAt: new Date().toISOString(),
+    });
+    await storage.rememberProposalReference({
+      draftId: "same-draft",
+      treasuryId: "team.sputnikv2.testnet",
+      proposalId: "0",
+      contentHash: "hash",
+    });
+    await journal.finishAction("first-tab");
+  });
+  const result = await second.evaluate(async (intent) => {
+    const journal = await import(String("/src/workspace/action-journal.ts"));
+    try {
+      await journal.beginAction(intent);
+      return "admitted";
+    } catch (e) {
+      return e instanceof Error ? e.message : "rejected";
+    }
+  }, intent);
+  expect(result).toMatch(/already.*submitted|submitted.*proposal/i);
+});
+test("Load board retries the same account after a failed read", async ({
+  page,
+}) => {
+  let fail = true;
+  await page.route(/https:\/\/.*(fastnear|near\.org|near\.page).*/, (route) =>
+    fail ? route.abort() : route.continue(),
+  );
+  await page.goto("/board/?dao=accoryn-spike.sputnikv2.testnet");
+  await expect(page.getByRole("status")).not.toContainText(
+    "Loading chain state",
+    { timeout: 30000 },
+  );
+  fail = false;
+  await page.getByRole("button", { name: "Load board", exact: true }).click();
+  await expect(
+    page.getByText("accoryn-alice.testnet", { exact: true }),
+  ).toBeVisible({ timeout: 30000 });
+});

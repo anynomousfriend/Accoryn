@@ -406,16 +406,42 @@ test("account retry never generates a replacement after the original local key i
   );
   assert.equal(await keys.get("alice.testnet"), null);
 });
-import {assertCurrentMembership} from '../src/engines/app/protocol.ts';
-test('a sound session cannot be used after governance changes its eligible members',()=>{
- const s=parseSession(fixture);
- assert.doesNotThrow(()=>assertCurrentMembership(s,['bob.testnet','alice.testnet']));
- assert.throws(()=>assertCurrentMembership(s,['alice.testnet','carol.testnet']),/membership changed/i);
+import { assertCurrentMembership } from "../src/engines/app/protocol.ts";
+test("a sound session cannot be used after governance changes its eligible members", () => {
+  const s = parseSession(fixture);
+  assert.doesNotThrow(() =>
+    assertCurrentMembership(s, ["bob.testnet", "alice.testnet"]),
+  );
+  assert.throws(
+    () => assertCurrentMembership(s, ["alice.testnet", "carol.testnet"]),
+    /membership changed/i,
+  );
 });
-test('reconciliation tombstones an unsigned intent before a delayed submit can acquire its lock',async()=>{
- const operations=new Operations(memoryOperationStore());const op={requestId:'delayed',kind:'fund',actor:'alice.testnet',receiver:'team.sputnikv2.testnet',deposit:'1',args:{}};await operations.begin(op);
- const flow=new TreasuryFlow({keys:new Keystore(createMemoryKeyRecordStore()),journal:new TxJournal(createMemoryTxRecordStore(),{locks:null}),operations,rpc:new NearRpcClient(),authorize:async()=>true});
- assert.equal((await flow.reconcile(op.requestId,new AbortController().signal)).status,'rejected');
- await assert.rejects(()=>flow.perform(op,new AbortController().signal),/cancelled before signing/);
- await assert.rejects(()=>operations.begin(op),/cancelled before signing/);
+test("reconciliation tombstones an unsigned intent before a delayed submit can acquire its lock", async () => {
+  const operations = new Operations(memoryOperationStore());
+  const op = {
+    requestId: "delayed",
+    kind: "fund",
+    actor: "alice.testnet",
+    receiver: "team.sputnikv2.testnet",
+    deposit: "1",
+    args: {},
+  };
+  await operations.begin(op);
+  const flow = new TreasuryFlow({
+    keys: new Keystore(createMemoryKeyRecordStore()),
+    journal: new TxJournal(createMemoryTxRecordStore(), { locks: null }),
+    operations,
+    rpc: new NearRpcClient(),
+    authorize: async () => true,
+  });
+  assert.equal(
+    (await flow.reconcile(op.requestId, new AbortController().signal)).status,
+    "rejected",
+  );
+  await assert.rejects(
+    () => flow.perform(op, new AbortController().signal),
+    /cancelled before signing/,
+  );
+  await assert.rejects(() => operations.begin(op), /cancelled before signing/);
 });

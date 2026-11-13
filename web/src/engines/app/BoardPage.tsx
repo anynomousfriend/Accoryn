@@ -15,6 +15,7 @@ export default function BoardPage() {
   const [dao, setDao] = useState(
     () => new URLSearchParams(location.search).get("dao") ?? "",
   );
+  const [refresh, setRefresh] = useState(0);
   const [requested, setRequested] = useState(dao),
     [treasury, setTreasury] = useState<TreasuryView | null>(null),
     [rows, setRows] = useState<ReceiptExportRow[]>([]),
@@ -61,7 +62,7 @@ export default function BoardPage() {
       active = false;
       controller.abort();
     };
-  }, [requested, engine]);
+  }, [requested, engine, refresh]);
   return (
     <>
       <SiteHeader />
@@ -78,6 +79,7 @@ export default function BoardPage() {
           onSubmit={(e) => {
             e.preventDefault();
             setRequested(dao);
+            setRefresh((n) => n + 1);
             history.replaceState(
               null,
               "",

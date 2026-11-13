@@ -350,7 +350,13 @@ export default function TreasuryPage() {
         requestId: op.requestId,
         kind: op.kind,
         treasuryId: op.receiver,
-        draftId: null,
+        draftId:
+          op.kind === "propose"
+            ? (parseDescription(
+                (op.args.input as { proposal: { description: string } })
+                  .proposal.description,
+              ).tag?.draft ?? null)
+            : null,
         proposalId: null,
         startedAt: new Date().toISOString(),
       },

@@ -432,7 +432,7 @@ export default function App() {
                   One step at a time
                 </strong>
                 Continue into local object registration and scan comparison.
-                Acoustic approvals come in a later feature.
+                Then continue to the connected testnet treasury.
               </p>
             </div>
           </div>

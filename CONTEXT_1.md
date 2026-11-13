@@ -41,6 +41,7 @@ Branch: `feat/end-to-end-integration`, isolated from main `9b7c2f8`. This supers
 - [x] Real native Chrome payment journey completed with actual same-laptop microphone/speakers: two new accounts → funded vault → invoice → two attestations → exact 0.05 testnet NEAR payout → verified published receipt. Public tx: `EA1nmm93YpiqBKy731Rc5Tba87nzrgZgpsqKUf8nCR5A`.
 - [ ] Manual live camera/object discrimination and phone/laptop acoustic matrix. Automated fixture inference and physical laptop loopback do not prove these.
 - [ ] Additional live governance-write exercise: a subsequent fresh-account setup was refused by the testnet helper with HTTP 429 before governance writes. Do not claim that exercise passed.
+- [x] Final independent review fixes: terminal payout failures, atomic duplicate-draft admission, exact proposal/receipt ancestry, same-DAO board retry and current funding code pin. Final check: 195 unit + 66 browser passed, plus type/build/production smoke; opt-in live skips remain explicit.
 - [ ] User accepts the connected manual journey. Follow [the exact checklist](docs/testing/end-to-end-integration.md); pause further features for results.
 
 No gate-key deletion, mainnet spending, public publication or automatic main merge is included. GitHub currently reports the existing origin as PUBLIC; this branch stays local under the private-development agreement.
