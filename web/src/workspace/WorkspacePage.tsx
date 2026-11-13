@@ -334,6 +334,11 @@ export default function WorkspacePage() {
   return (
     <>
       <SiteHeader />
+      <div className="page-shell pt-5">
+        <ActionLink href="/treasury/">
+          Open connected testnet treasury
+        </ActionLink>
+      </div>
       <main id="main" className="page-shell max-w-5xl py-8 sm:py-12">
         <p className="eyebrow-label">Testnet · team payments</p>
         <h1 className="mt-3 font-serif text-4xl">Team workspace</h1>

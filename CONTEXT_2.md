@@ -143,3 +143,15 @@ These hold throughout:
   - captures
   - generated reports
   - the fetched `tests/res/*.wasm`
+
+## Integration handoff update — 2026-11-13
+
+Context 1 integrated the delivered engines on local branch `feat/end-to-end-integration` in `engines/app/`, `/treasury/` and `/board/`. A complete real testnet payout with actual laptop audio passed; see [acceptance/evidence](docs/testing/end-to-end-integration.md). The new adapter keeps gate tiers and host/listener roles explicit instead of coercing them into the old v1 fixed-threshold workspace stubs.
+
+- [x] Account/treasury/acoustic/invoice/settlement/CSV wiring and read-only board implemented.
+- [x] Atomic membership replacement and factory-hardening governance controls implemented.
+- [ ] Additional live governance votes: the fresh-account test was stopped by helper HTTP 429, before votes.
+- [ ] Recognition calibration, spoof resistance, secure custody and two-device manual acceptance remain unproven/pending. The shipped handoff is manually acknowledged research continuation, not automated object authentication.
+- [ ] Gate developer-key deletion still needs its own authorization; untouched here.
+
+Coordinate source edits with this integration branch before further engine/UI changes. No public push or main merge is included in this handoff.

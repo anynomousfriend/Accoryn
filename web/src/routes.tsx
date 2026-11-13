@@ -1,3 +1,5 @@
+import BoardPage from "./engines/app/BoardPage.tsx";
+import TreasuryPage from "./engines/app/TreasuryPage.tsx";
 import WorkspacePage from "./workspace/WorkspacePage.tsx";
 import AcousticCheckPage from "./acoustic-check/AcousticCheckPage.tsx";
 import type { ReactNode } from "react";
@@ -11,6 +13,8 @@ export function renderRoute(pathname: string): ReactNode {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (path === "/" || path === "/device-check") return <App />;
   if (path === "/object-registration") return <ObjectRegistrationPage />;
+  if (path === "/board") return <BoardPage />;
+  if (path === "/treasury") return <TreasuryPage />;
   if (path === "/workspace") return <WorkspacePage />;
   if (path === "/acoustic-check") return <AcousticCheckPage />;
   if (path === "/landing") return <LandingPage />;

@@ -1,7 +1,12 @@
+import {
+  RESEARCH_HANDOFF,
+  researchGrant,
+} from "../engines/app/research-session.ts";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { SiteHeader, Button, ActionLink } from "../design/primitives.tsx";
 import { ObjectRegistrationController } from "./controller.ts";
 import { CapturePanel } from "./CapturePanel.tsx";
+import type { Comparison } from "./types.ts";
 import { ComparisonResult } from "./ComparisonResult.tsx";
 export default function ObjectRegistrationPage() {
   const [controller] = useState(() => new ObjectRegistrationController());
@@ -9,6 +14,10 @@ export default function ObjectRegistrationPage() {
     controller.subscribe,
     controller.getSnapshot,
   );
+  const [consentedComparison, setConsentedComparison] =
+    useState<Comparison | null>(null);
+  const researchConsent =
+    !!state.comparison && consentedComparison === state.comparison;
   const [label, setLabel] = useState("");
   const [replaceConfirmed, setReplaceConfirmed] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -30,6 +39,7 @@ export default function ObjectRegistrationPage() {
     };
   }, [controller]);
   useEffect(() => {
+    setConsentedComparison(null);
     setReplaceConfirmed(false);
     setConfirmDelete(false);
     setLabel("");
@@ -257,6 +267,41 @@ export default function ObjectRegistrationPage() {
         {state.comparison && (
           <div className="mt-6">
             <ComparisonResult comparison={state.comparison} />
+            <div className="my-4 rounded-xl border border-line p-4">
+              <p className="text-sm">
+                Research continuation: there is no calibrated match/reject
+                threshold. You must judge this comparison yourself. This does
+                not authenticate you or protect the unencrypted browser wallet
+                keys.
+              </p>
+              <label className="my-3 flex gap-3">
+                <input
+                  type="checkbox"
+                  checked={researchConsent}
+                  onChange={(e) =>
+                    setConsentedComparison(
+                      e.target.checked ? state.comparison : null,
+                    )
+                  }
+                />
+                I reviewed the fresh scan and accept a manual research
+                continuation.
+              </label>
+              <Button
+                disabled={!researchConsent || !state.template}
+                onClick={() => {
+                  if (!state.template || !state.comparison || !researchConsent)
+                    return;
+                  sessionStorage.setItem(
+                    RESEARCH_HANDOFF,
+                    JSON.stringify(researchGrant(state.template.id)),
+                  );
+                  window.location.assign("/treasury/");
+                }}
+              >
+                Continue to testnet account
+              </Button>
+            </div>
             <div className="mt-4 flex flex-wrap gap-3">
               <Button onClick={() => void controller.startComparison()}>
                 Scan again
@@ -317,7 +362,9 @@ export default function ObjectRegistrationPage() {
           considering object-based account access.
         </p>
         <div className="mt-8 border-t border-line pt-5">
-          <ActionLink href="/workspace/" variant="secondary">Prepare a team payment</ActionLink>
+          <ActionLink href="/workspace/" variant="secondary">
+            Prepare a team payment
+          </ActionLink>
           <ActionLink href="/device-check/" variant="quiet">
             Back to device checks
           </ActionLink>

@@ -1,7 +1,7 @@
 # Team Treasury (working name, repository: Accoryn)
 
 A NEAR testnet treasury for small teams. A shared payment is approved together in a meeting:
-1. Each member has an app-made NEAR account, unlocked locally with a personal object.
+1. Each member creates an app-made NEAR testnet account after a manually acknowledged object-scan experiment. The scan is not secure authentication.
 2. One device broadcasts a short challenge by sound.
 3. Members who heard it attest from their own accounts.
 4. A ceremony gate contract approves the transfer in the team's Sputnik DAO only when enough members attended for that amount.
@@ -14,11 +14,13 @@ Built for NEAR HACKATHON (development ends 2026-11-14T23:59Z). Testnet only.
 |---|---|
 | Device checks (`/`, `/device-check/`) | Real camera, microphone and speaker checks |
 | Object registration (`/object-registration/`) | Three-view capture, local DINOv2 inference, local template, similarity scores. No unlock threshold yet |
-| Invoice drafts (`/workspace/`) | Exact amounts, review, local storage, CSV formatting. NEAR actions are **disabled** until the engines are bound |
+| Connected flow (`/treasury/`) | App-made accounts, vault creation/funding, inline invoices, acoustic member consent, journaled execution, verified receipts and CSV; opt-in testnet writes |
+| Read-only board (`/board/?dao=…`) | Real policy, tiers and verified payout evidence without a local key |
+| Legacy draft editor (`/workspace/`) | Exact local amounts/review/storage; its v1 service placeholders stay disabled. Use the connected treasury for chain actions |
 | Acoustic check lab (`/acoustic-check/`) | Real sound exchange of a fresh 20-character ceremony challenge between two devices |
 | Ceremony gate contract | Live on testnet at [`ceremony-gate-v1.accoryn.testnet`](https://testnet.nearblocks.io/address/ceremony-gate-v1.accoryn.testnet); it is the only account allowed to approve transfers in gated DAOs |
 | Engines (`web/src/engines/`) | Ceremony crypto, ggwave modem, Sputnik policy/parsing, settlement verification, RPC client, keystore, app-made accounts, transaction journal |
-| Not yet | Engines wired into the workspace screens; public board; two-device acceptance; locking the gate's developer key |
+| Not yet | Calibrated object authentication, two-device manual acceptance, production custody, locking the gate’s developer key |
 
 **How NEAR is used:**
 - The Sputnik DAO holds the funds and the policy.
@@ -29,25 +31,30 @@ Built for NEAR HACKATHON (development ends 2026-11-14T23:59Z). Testnet only.
 
 ## Run it locally
 
-Requires Node.js 22.18+ and Chrome. The contract work also needs Rust (pinned by `contracts/ceremony-gate/rust-toolchain.toml`), the `wasm32-unknown-unknown` target and `cargo-near` 0.22.0.
+Requires Node.js 22.18+ and Chrome. Using the existing deployed contracts does not require Rust or a wallet extension. Building/testing the contract source also needs Rust (pinned by `contracts/ceremony-gate/rust-toolchain.toml`), the `wasm32-unknown-unknown` target and `cargo-near` 0.22.0.
 
 ```sh
 npm ci --prefix web
-npm run dev --prefix web       # http://127.0.0.1:5173/
-npm run dev:lan --prefix web   # HTTPS on your LAN (self-signed) so phones can use camera/microphone
+VITE_ENABLE_TESTNET_WRITES=1 npm run dev --prefix web
+# Or HTTPS on your LAN (self-signed), needed for phone camera/microphone:
+VITE_ENABLE_TESTNET_WRITES=1 npm run dev:lan --prefix web
 ```
 
 | Route | Do | Expect |
 |---|---|---|
 | `/device-check/` | Start each check | Live camera preview, microphone level, speaker tone confirmation |
 | `/object-registration/` | Capture three views, save, compare | Similarity scores; nothing uploaded |
-| `/workspace/` | Draft an invoice | Exact totals and review; NEAR actions are shown as unavailable |
+| `/treasury/` | Continue from a fresh scan acknowledgment | Real testnet account → vault → inline invoice → member sound/consent → verified payout |
+| `/board/?dao=…` | Share a treasury account | Read-only chain evidence, with no signing-key access |
+| `/workspace/` | Use the older local draft editor | Saved drafts are also available in the connected flow |
 | `/acoustic-check/` | Broadcast on one device, listen on another | Matching check codes within about 2–6 s |
+
+Exact manual steps, retry behavior and coverage limits: [connected testnet acceptance](docs/testing/end-to-end-integration.md). The default build is read-only unless `VITE_ENABLE_TESTNET_WRITES=1` is explicitly set. Keys remain unencrypted/extractable in browser IndexedDB; image scores do not protect them.
 
 ## Tests
 
 ```sh
-npm run check --prefix web    # 168 unit tests (2 live ones skipped), browser tests, build, production smoke
+npm run check --prefix web    # unit tests, browser tests, build, production smoke; live spending is opt-in
 cd contracts/ceremony-gate && ./scripts/fetch-sputnik-wasm.sh && cargo test   # 16 unit + 5 sandbox
 ```
 
