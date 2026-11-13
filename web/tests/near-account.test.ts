@@ -231,3 +231,28 @@ test("helper creation validates inputs before any network call and honors abort"
     await fixture.close();
   }
 });
+
+// Error-boundary fixtures based on the actual 2026-11-14 helper refusal; not account-creation evidence.
+test("helper 429 preserves Retry-After seconds for actionable recovery", async () => {
+ const { fixture, rpc, helperUrl } = await setup({exists:false,keys:[]},()=>({status:429,headers:{"retry-after":"28287"},text:"Rate limit exceeded, retry in 8 hours."}));
+ try {
+  const result=await createViaTestnetHelper({accountId:"fresh-name.testnet",publicKey:OUR_KEY,rpc,helperUrl,confirmTimeoutMs:20,pollIntervalMs:5});
+  assert.deepEqual(result,{status:"rejected",accountId:"fresh-name.testnet",httpStatus:429,retryAfterSeconds:28287});
+  assert.equal(fixture.requests.filter(r=>r.path==="/account").length,1);
+ } finally {await fixture.close();}
+});
+test("a browser-readable helper body retains cooldown when Retry-After is not exposed", async () => {
+ const { fixture, rpc, helperUrl } = await setup({exists:false,keys:[]},()=>({status:429,text:"Rate limit exceeded, retry in 8 hours."}));
+ try {
+  const result=await createViaTestnetHelper({accountId:"fresh-name.testnet",publicKey:OUR_KEY,rpc,helperUrl,confirmTimeoutMs:20,pollIntervalMs:5});
+  assert.deepEqual(result,{status:"rejected",accountId:"fresh-name.testnet",httpStatus:429,retryAfterSeconds:28800});
+ } finally {await fixture.close();}
+});
+import { helperRetryAfterSeconds, helperRefusalMessage } from "../src/engines/near/account.ts";
+test("cooldown parsing handles HTTP dates and rejects malformed/excessive hints", () => {
+ const now=Date.parse("2026-11-14T00:00:00Z");
+ assert.equal(helperRetryAfterSeconds(new Headers({"retry-after":"Sat, 14 Nov 2026 00:05:00 GMT"}),"",now),300);
+ assert.equal(helperRetryAfterSeconds(new Headers({"retry-after":"Infinity"}),"raw untrusted text",now),undefined);
+ assert.equal(helperRetryAfterSeconds(new Headers({"retry-after":"9999999999999999999999"}),"",now),undefined);
+ assert.match(helperRefusalMessage({status:"rejected",accountId:"fresh-name.testnet",httpStatus:429,retryAfterSeconds:28800}),/faucet.*rate.limit.*8 hours.*original key/i);
+});

@@ -4,6 +4,7 @@ import { TxJournal } from "../near/txjournal.ts";
 import { NearRpcClient } from "../near/rpc.ts";
 import {
   createViaTestnetHelper,
+  helperRefusalMessage,
   validateNewAccountId,
 } from "../near/account.ts";
 import {
@@ -123,7 +124,7 @@ export class TreasuryEngine {
     });
     if (result.status === "rejected")
       throw new Error(
-        `Testnet helper refused creation (HTTP ${result.httpStatus}). The name and original key are retained; resume this request later.`,
+        helperRefusalMessage(result),
       );
     if (result.status === "taken")
       throw new Error(
