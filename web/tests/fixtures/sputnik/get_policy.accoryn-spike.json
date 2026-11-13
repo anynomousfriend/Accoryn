@@ -1,0 +1,120 @@
+{
+ "recordedFrom": {
+  "network": "testnet",
+  "accountId": "accoryn-spike.sputnikv2.testnet",
+  "method": "get_policy",
+  "args": {},
+  "blockHeight": 277513874,
+  "blockHash": "9MkbvUYuMa95ojwhSv5nwgoNJ242KMLMHdA6bp3r5Sog",
+  "note": "Real testnet RPC response recorded 2026-11-13; not a mock."
+ },
+ "result": {
+  "roles": [
+   {
+    "name": "Requestor",
+    "kind": {
+     "Group": [
+      "accoryn-alice.testnet",
+      "accoryn-bob.testnet",
+      "accoryn-carol.testnet"
+     ]
+    },
+    "permissions": [
+     "transfer:VoteReject",
+     "transfer:AddProposal",
+     "transfer:Finalize"
+    ],
+    "vote_policy": {
+     "transfer": {
+      "weight_kind": "RoleWeight",
+      "quorum": "0",
+      "threshold": [
+       1,
+       2
+      ]
+     }
+    }
+   },
+   {
+    "name": "Admin",
+    "kind": {
+     "Group": [
+      "accoryn-alice.testnet",
+      "accoryn-bob.testnet",
+      "accoryn-carol.testnet"
+     ]
+    },
+    "permissions": [
+     "policy:AddProposal",
+     "add_member_to_role:Finalize",
+     "policy_update_parameters:VoteApprove",
+     "policy_update_parameters:AddProposal",
+     "remove_member_from_role:AddProposal",
+     "policy_add_or_update_role:Finalize",
+     "remove_member_from_role:VoteReject",
+     "config:VoteReject",
+     "policy:Finalize",
+     "remove_member_from_role:VoteApprove",
+     "policy_remove_role:Finalize",
+     "policy_remove_role:AddProposal",
+     "policy_update_default_vote_policy:AddProposal",
+     "call:AddProposal",
+     "config:Finalize",
+     "add_member_to_role:VoteReject",
+     "factory_info_update:AddProposal",
+     "policy:VoteApprove",
+     "policy_update_default_vote_policy:Finalize",
+     "policy_remove_role:VoteApprove",
+     "policy_add_or_update_role:VoteReject",
+     "add_member_to_role:AddProposal",
+     "policy_remove_role:VoteReject",
+     "policy_add_or_update_role:VoteApprove",
+     "add_member_to_role:VoteApprove",
+     "policy_update_parameters:Finalize",
+     "factory_info_update:VoteReject",
+     "call:VoteApprove",
+     "factory_info_update:Finalize",
+     "remove_member_from_role:Finalize",
+     "policy_update_default_vote_policy:VoteReject",
+     "config:AddProposal",
+     "call:Finalize",
+     "call:VoteReject",
+     "policy:VoteReject",
+     "policy_add_or_update_role:AddProposal",
+     "policy_update_default_vote_policy:VoteApprove",
+     "config:VoteApprove",
+     "policy_update_parameters:VoteReject",
+     "factory_info_update:VoteApprove"
+    ],
+    "vote_policy": {}
+   },
+   {
+    "name": "Approver",
+    "kind": {
+     "Group": [
+      "ceremony-gate-v1.accoryn.testnet"
+     ]
+    },
+    "permissions": [
+     "transfer:VoteApprove"
+    ],
+    "vote_policy": {
+     "transfer": {
+      "weight_kind": "RoleWeight",
+      "quorum": "0",
+      "threshold": "1"
+     }
+    }
+   }
+  ],
+  "default_vote_policy": {
+   "weight_kind": "RoleWeight",
+   "quorum": "2",
+   "threshold": "2"
+  },
+  "proposal_bond": "0",
+  "proposal_period": "259200000000000",
+  "bounty_bond": "1000000000000000000000000",
+  "bounty_forgiveness_period": "86400000000000"
+ }
+}

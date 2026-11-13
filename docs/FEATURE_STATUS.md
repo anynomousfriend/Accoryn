@@ -1,3 +1,19 @@
+# Context 2 engine status (2026-11-13)
+
+This replaces the earlier note below that Context 2 had not started. These are delivered and verified:
+- the ceremony gate contract, live at `ceremony-gate-v1.accoryn.testnet`;
+- ceremony protocol crypto;
+- the ggwave acoustic engine and the `/acoustic-check/` lab;
+- Sputnik policy, conformance and parsing;
+- settlement verification;
+- the testnet RPC client, browser keystore, app-made accounts and transaction journal.
+
+Evidence: three live testnet ceremonies, 168 unit tests (2 of them live, skipped by default), 57 browser tests, 16 + 5 contract tests, and a clean-clone reproduction.
+
+The workspace actions are still unavailable: the engines are not yet bound in `web/src/integration/bindings.ts`. The two-device sound test remains manual.
+
+Details: [CONTEXT_2](../CONTEXT_2.md), [engine integration guide](integration/context-two-engines.md), [local test guide](testing/context-two-local.md), [testnet record](deployment/testnet.md).
+
 # Current app delivery status
 
 Context 1 app checkpoint is implemented on `feat/context-one-delivery`: connected local invoice preparation, exact review, browser draft storage, app sections for account/team/session/receipts, safe CSV formatting and an explicit unavailable-by-default integration boundary. Latest full checks: 33 unit / 51 browser tests, TypeScript, build and production smoke passed. Independent review fixes verified. Private checkpoint published successfully on 2026-11-13: [test workspace](https://team-treasury-device-lab.glassygrant5.chatgpt.site/workspace/). The release is tracked in [PR #2](https://github.com/anynomousfriend/Accoryn/pull/2). See [manual app checklist](testing/context-one-manual.md) and [adapter handoff](integration/context-one-adapter.md).

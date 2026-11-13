@@ -1,0 +1,39 @@
+{
+  "version": "accoryn-ceremony-v1",
+  "vectors": [
+    {
+      "name": "testnet-small-payment",
+      "gateId": "ceremony-gate-v1.accoryn.testnet",
+      "daoId": "accoryn-spike.sputnikv2.testnet",
+      "proposalId": "0",
+      "sessionId": "1",
+      "receiverId": "accoryn-payee.testnet",
+      "amountAtomic": "100000000000000000000000",
+      "attendeeId": "accoryn-alice.testnet",
+      "challengeHex": "000102030405060708090a0b0c0d0e",
+      "challengeText": "AAECAwQFBgcICQoLDA0O",
+      "seedHex": "2eda168967ca8ad408e677d672e70c91800ce67266e1d78e4bc6d047c6ee89da",
+      "sessionPublicKey": "ed25519:7FG9XG6Q5m7Na7tH5QHki23xiwsAGMt6MBACCJBHbvBe",
+      "sessionPublicKeyHex": "5ccd612b758b6815855474d884e96bb2c153f3e6a24efeaa945911d171f9282d",
+      "messageHex": "6163636f72796e2d636572656d6f6e792d6174746573742d763100636572656d6f6e792d676174652d76312e6163636f72796e2e746573746e6574006163636f72796e2d7370696b652e737075746e696b76322e746573746e657400300031006163636f72796e2d70617965652e746573746e657400313030303030303030303030303030303030303030303030006163636f72796e2d616c6963652e746573746e6574",
+      "signatureHex": "7b959d292346b5cd53e1f6565edc1617c66c074c5bf74f600f394902f5e56d54c8aa5c8a4ff5af19fa89b8b405f9c2d3f4fe7573a22038ac3446fc80dea0660f"
+    },
+    {
+      "name": "large-ids-and-amount",
+      "gateId": "gate.sandbox",
+      "daoId": "dao1.factory.sandbox",
+      "proposalId": "18446744073709551615",
+      "sessionId": "18446744073709551615",
+      "receiverId": "bob_payee-1.testnet",
+      "amountAtomic": "340282366920938463463374607431768211455",
+      "attendeeId": "carol.factory.sandbox",
+      "challengeHex": "fffefdfcfbfaf9f8f7f6f5f4f3f2f1",
+      "challengeText": "__79_Pv6-fj39vX08_Lx",
+      "seedHex": "9ee886cda7647f41f63250c46f6b30010073d96f014527c0edb141c2222f98e3",
+      "sessionPublicKey": "ed25519:AQFQnQw6323fHt3rqhWV79vViNWPqHJoKx9ofjbAvBjy",
+      "sessionPublicKeyHex": "8badd59e0c32f782adb9ee4ebaddc4fbe44eb655f87cbc84227d551378576bbc",
+      "messageHex": "6163636f72796e2d636572656d6f6e792d6174746573742d763100676174652e73616e64626f780064616f312e666163746f72792e73616e64626f7800313834343637343430373337303935353136313500313834343637343430373337303935353136313500626f625f70617965652d312e746573746e657400333430323832333636393230393338343633343633333734363037343331373638323131343535006361726f6c2e666163746f72792e73616e64626f78",
+      "signatureHex": "14a7acccfdd64adda7be47e11f943d9e2b8074e5a00b85dd10e0f21dfed160887969db8685569c63b1cfcb9847debb3525944021392cb98166b1dd1b0e1f0a0a"
+    }
+  ]
+}

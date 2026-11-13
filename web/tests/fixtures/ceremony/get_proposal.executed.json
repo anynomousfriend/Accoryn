@@ -1,0 +1,36 @@
+{
+ "recordedFrom": {
+  "network": "testnet",
+  "accountId": "accoryn-spike.sputnikv2.testnet",
+  "method": "get_proposal",
+  "args": {
+   "id": 1
+  },
+  "note": "Real testnet RPC response recorded by scripts/smoke-ceremony-testnet.ts; not a mock."
+ },
+ "result": {
+  "id": 1,
+  "proposer": "accoryn-alice.testnet",
+  "description": "Smoke test: ceremony-gated payout\n\naccoryn:v1:{\"req\":\"0aa2ef4a-0200-48ad-8f98-dc71dff876d0\",\"inv\":\"SMOKE-1\"}",
+  "kind": {
+   "Transfer": {
+    "token_id": "",
+    "receiver_id": "accoryn-payee.testnet",
+    "amount": "50000000000000000000000",
+    "msg": null
+   }
+  },
+  "status": "Approved",
+  "vote_counts": {
+   "Approver": [
+    1,
+    0,
+    0
+   ]
+  },
+  "votes": {
+   "ceremony-gate-v1.accoryn.testnet": "Approve"
+  },
+  "submission_time": "1794576582178506778"
+ }
+}
