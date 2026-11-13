@@ -87,12 +87,52 @@ fn group_members(role: &Value) -> Option<Vec<AccountId>> {
         .collect()
 }
 
+fn u128_field(value: &Value) -> Option<u128> {
+    match value {
+        Value::String(text) => text.parse().ok(),
+        Value::Number(number) => number.as_u64().map(u128::from),
+        _ => None,
+    }
+}
+
+/// Approvals a role needs for a transfer, as Sputnik computes it in
+/// `proposal_status`: max(quorum, threshold.to_weight(role size)). Only
+/// role-weighted policies on fixed groups are supported; anything else is
+/// treated as unknown (None) and refused by the caller.
+fn transfer_threshold(role: &Value, default_policy: &Value) -> Option<u128> {
+    let size = role.get("kind")?.get("Group")?.as_array()?.len() as u128;
+    let policy = role.get("vote_policy").and_then(|vp| vp.get("transfer")).unwrap_or(default_policy);
+    if policy.get("weight_kind")?.as_str()? != "RoleWeight" {
+        return None;
+    }
+    let quorum = u128_field(policy.get("quorum")?)?;
+    let threshold = policy.get("threshold")?;
+    let weight = match threshold {
+        Value::Array(ratio) if ratio.len() == 2 => {
+            let (num, den) = (u128_field(&ratio[0])?, u128_field(&ratio[1])?);
+            if den == 0 {
+                return None;
+            }
+            (num.checked_mul(size)? / den + 1).min(size)
+        }
+        other => u128_field(other)?.min(size),
+    };
+    Some(quorum.max(weight))
+}
+
 pub fn parse_policy(raw: &[u8], gate: &AccountId, host: &AccountId) -> Result<PolicyFacts, &'static str> {
     let policy: Value = near_sdk::serde_json::from_slice(raw).map_err(|_| "ERR_BAD_JSON")?;
     let roles = policy.get("roles").and_then(Value::as_array).ok_or("ERR_BAD_JSON")?;
+    let default_vote_policy = policy.get("default_vote_policy").ok_or("ERR_BAD_JSON")?;
     let mut gate_roles = 0usize;
     let mut eligible: Option<Vec<AccountId>> = None;
     for role in roles {
+        // Finalize re-evaluates every role; a role needing zero approvals (or one
+        // whose threshold we cannot evaluate) could approve a transfer without the gate.
+        match transfer_threshold(role, default_vote_policy) {
+            Some(required) if required >= 1 => {}
+            _ => return Err("ERR_POLICY_NOT_GATED"),
+        }
         let permissions = role.get("permissions").and_then(Value::as_array).ok_or("ERR_BAD_JSON")?;
         let can_approve_transfer = permissions
             .iter()
@@ -221,6 +261,23 @@ mod tests {
             ("ERR_MEMBER_COUNT", Box::new(move |p| {
                 let i = role_index(p, "Requestor");
                 p["roles"][i]["kind"]["Group"] = json!(["accoryn-alice.testnet"]);
+            })),
+            // Finalize evaluates every role: one needing zero approvals would let a
+            // requestor finalize a transfer with no gate vote at all.
+            ("ERR_POLICY_NOT_GATED", Box::new(move |p| {
+                p["roles"].as_array_mut().unwrap().push(json!({"name": "Empty", "kind": {"Group": []},
+                    "permissions": [], "vote_policy": {"transfer": {"weight_kind": "RoleWeight", "quorum": "0", "threshold": "1"}}}));
+            })),
+            ("ERR_POLICY_NOT_GATED", Box::new(move |p| {
+                let i = role_index(p, "Requestor");
+                p["roles"][i]["vote_policy"]["transfer"]["threshold"] = json!("0");
+            })),
+            ("ERR_POLICY_NOT_GATED", Box::new(move |p| {
+                let i = role_index(p, "Admin");
+                p["roles"][i]["vote_policy"] = json!({"transfer": {"weight_kind": "TokenWeight", "quorum": "0", "threshold": [1, 2]}});
+            })),
+            ("ERR_POLICY_NOT_GATED", Box::new(move |p| {
+                p["roles"].as_array_mut().unwrap().push(json!({"name": "all", "kind": "Everyone", "permissions": ["transfer:AddProposal"], "vote_policy": {}}));
             })),
             ("ERR_NOT_MEMBER", Box::new(move |p| {
                 let i = role_index(p, "Requestor");
