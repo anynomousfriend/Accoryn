@@ -1,5 +1,9 @@
 # Context 1 app checkpoint — manual test
 
+Private test URL: https://team-treasury-device-lab.glassygrant5.chatgpt.site/workspace/
+
+Review branch: `feat/context-one-delivery`; draft PR: https://github.com/anynomousfriend/Accoryn/pull/2.
+
 This checkpoint adds real browser-local invoice preparation and the app-side integration boundary. Account/treasury/acoustic/payment/reconciliation operations are unavailable until Context 2 provides reviewed real adapters. It is not a completed financial demo.
 
 1. Open `/object-registration/`, then **Prepare a team payment**, or directly `/workspace/`.
