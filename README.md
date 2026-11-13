@@ -334,6 +334,10 @@ node --test tests/near-live-testnet.test.ts
 
 This is a research prototype, not an audited production wallet. See the [protocol and threat model](docs/security/ceremony-threat-model.md) for replay handling, spend tiers, policy escape hatches and failure semantics.
 
+## NEAR agent tooling
+
+The project includes an isolated official NEAR MCP adapter for read-only testnet account/contract inspection, plus locally installed official NEAR development skills. See [tool setup, verification and faucet recovery](docs/testing/near-tooling-and-testnet.md). MCP does not bypass the free account faucet’s limits or replace the browser signing flow.
+
 ## Troubleshooting
 
 | Symptom | Check |

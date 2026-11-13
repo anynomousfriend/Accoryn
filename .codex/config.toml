@@ -1,0 +1,7 @@
+# Project-local development tools. No wallet keys or mainnet signing.
+[mcp_servers.near_testnet]
+command = "node"
+args = ["tools/near/server.mjs"]
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled_tools = ["account_view_account_summary", "contract_view_functions", "contract_call_raw_function_as_read_only"]

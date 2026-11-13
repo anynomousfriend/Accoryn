@@ -1,0 +1,15 @@
+{
+  "skills": {
+    "repository": "https://github.com/near/agent-skills",
+    "commit": "cb32b6af195e636c1e9c2efe2ea75a6d85b6b67b",
+    "installed": ["near-api-js", "near-dapp", "near-smart-contracts"],
+    "localDirectory": ".agents/skills"
+  },
+  "mcp": {
+    "repository": "https://github.com/nearai/near-mcp",
+    "inspectedSourceCommit": "7d598bd9a9e46dac4bf6851f788f8e4e7a4e88a0",
+    "package": "@nearai/near-mcp",
+    "version": "0.0.35",
+    "registryIntegrity": "sha512-+GaS7VIhQdnOnRxTyamjrxF4IhxmyD9lEzC07cB9NNwmA3IDhftUKgTZJoiksB97xmlbH2CSZuinQB/QxUi4oQ=="
+  }
+}
