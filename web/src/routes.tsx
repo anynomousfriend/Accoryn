@@ -1,3 +1,4 @@
+import WorkspacePage from "./workspace/WorkspacePage.tsx";
 import type { ReactNode } from "react";
 import App from "./App.tsx";
 import ObjectRegistrationPage from "./object-registration/ObjectRegistrationPage.tsx";
@@ -9,6 +10,7 @@ export function renderRoute(pathname: string): ReactNode {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (path === "/" || path === "/device-check") return <App />;
   if (path === "/object-registration") return <ObjectRegistrationPage />;
+  if (path === "/workspace") return <WorkspacePage />;
   if (path === "/landing") return <LandingPage />;
   if (path === "/design") return <ExperienceReference />;
   return (

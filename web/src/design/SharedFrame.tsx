@@ -62,6 +62,18 @@ export function SharedFrame({
     const onPreference = () => {
       if (preference.matches) stop();
     };
+    // IntersectionObserver can coalesce a rapid in-view replay followed by an
+    // instant scroll back out. Check active playback on scroll as well so that
+    // a missed intermediate visibility entry cannot leave it running offscreen.
+    const onViewportChange = () => {
+      if (!animations.current.length || !scene.current) return;
+      const rect = scene.current.getBoundingClientRect();
+      const width = Math.max(0, Math.min(rect.right, innerWidth) - Math.max(rect.left, 0));
+      const height = Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
+      if (rect.width <= 0 || rect.height <= 0 || width * height / (rect.width * rect.height) < 0.35) stop();
+    };
+    window.addEventListener("scroll", onViewportChange, { passive: true });
+    window.addEventListener("resize", onViewportChange);
     document.addEventListener("visibilitychange", onHide);
     preference.addEventListener("change", onPreference);
     let observer: IntersectionObserver | undefined;
@@ -84,6 +96,8 @@ export function SharedFrame({
     }
     return () => {
       observer?.disconnect();
+      window.removeEventListener("scroll", onViewportChange);
+      window.removeEventListener("resize", onViewportChange);
       document.removeEventListener("visibilitychange", onHide);
       preference.removeEventListener("change", onPreference);
       stop();

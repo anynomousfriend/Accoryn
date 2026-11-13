@@ -60,6 +60,6 @@ Independent review identified four important lifecycle/recovery issues; all were
 
 Fresh `npm run check --prefix web`: **17 unit tests, 36 browser tests, TypeScript, production build and packaged-model production smoke all passed**. Physical camera remained unavailable to automated Chrome (`NotAllowedError`); the live capture journey awaits your test.
 
-Deferred minor from review: the white visual guide is inset 12 px but the entire square preview is processed. For this checkpoint, fill the whole square preview with the object. The guide boundary will be aligned in a later revision.
+Context 1 delivery update: the deferred crop-guide mismatch is now fixed. A browser geometry regression verifies the guide matches the processed square; current manual testing should use that full square.
 
 Execution decisions: local ledger replaced unavailable skill helper scripts (manual bookkeeping risk); isolated worktree preserved the original checkout (local handoff must use the feature server); Objectron held-out views share a recording session (scores may overstate independent-session performance). No cryptographic/security threshold is inferred from these scores.

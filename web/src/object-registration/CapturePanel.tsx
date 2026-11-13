@@ -53,7 +53,7 @@ export function CapturePanel({
         ) : (
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-3 rounded-lg border-2 border-white/80"
+            className="pointer-events-none absolute inset-0 rounded-xl border-2 border-white/80"
           />
         )}
       </div>
