@@ -75,28 +75,8 @@ for (const protocol of ACOUSTIC_PROTOCOLS) {
   });
 }
 
-test("ggwave 0.4.0 does not round-trip DT_FAST in variable-length mode, so the modem does not offer it", async () => {
-  const ggwave = await sharedGgwave();
-  const parameters = ggwave.getDefaultParameters();
-  parameters.sampleRateInp = parameters.sampleRateOut = 48_000;
-  const instance = ggwave.init(parameters);
-  try {
-    const bytes = ggwave.encode(instance, encodeChallenge(generateChallenge()), ggwave.ProtocolId!.GGWAVE_PROTOCOL_DT_FAST!, 25);
-    const copy = new Uint8Array(bytes.byteLength);
-    copy.set(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength));
-    const samples = new Float32Array(copy.buffer);
-    let decoded = 0;
-    for (let offset = 0; offset < samples.length + 64 * 1024; offset += 1024) {
-      const chunk = new Float32Array(1024);
-      chunk.set(samples.subarray(offset, offset + 1024));
-      const result = ggwave.decode(instance, new Int8Array(chunk.buffer));
-      if (result && result.length > 0) decoded += 1;
-    }
-    assert.equal(decoded, 0);
-  } finally {
-    ggwave.free(instance);
-  }
-});
+// DT modes decoded only intermittently in variable-length software trials, so the
+// modem does not offer them (asserted by the protocol-list test above).
 
 test("the default loader imports the real ggwave package", async () => {
   const ggwave = await loadGgwave();
