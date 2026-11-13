@@ -1,4 +1,4 @@
-import { withStorageLock } from "./storage.ts";
+import { withStorageLock, readProposalRefs } from "./storage.ts";
 export type PendingAction = {
   requestId: string;
   kind: string;
@@ -90,6 +90,14 @@ export async function beginAction(
     if (readPendingAction())
       throw new Error(
         "Reconcile the previous action before submitting another.",
+      );
+    if (
+      value.draftId !== null &&
+      ["propose", "proposePayment"].includes(value.kind) &&
+      readProposalRefs().some((ref) => ref.draftId === value.draftId)
+    )
+      throw new Error(
+        "This draft already has a submitted proposal. Refresh its on-chain outcome.",
       );
     localStorage.setItem(key, encodePendingAction(value));
   });

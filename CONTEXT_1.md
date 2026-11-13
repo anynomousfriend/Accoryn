@@ -27,6 +27,25 @@ Updated: 2026-11-13. Owner: this working session and the user. The other contrib
 > - Reproduce everything locally: [docs/testing/context-two-local.md](docs/testing/context-two-local.md).
 > - **npm 11 pitfall:** `npm install <pkg>` prunes two `@emnapi` lock entries and breaks `npm ci`. Restore them from `main`'s lockfile, as described in the engines guide.
 
+## Connected integration checkpoint — 2026-11-13
+
+The user explicitly requested merging `feat/end-to-end-integration` (through `e46ce1a`) into local `main` for complete browser testing. The connected `/treasury/` and `/board/` are now the primary integration flow; this supersedes the older backlog below. Manual physical acceptance remains pending. The separate object-matching experiment is not part of this merge.
+
+- [x] Typed real adapter under `web/src/engines/app/`, connected `/treasury/`, and keyless `/board/?dao=…`. The v1 draft workspace remains compatible; it links to the actual connected flow.
+- [x] Explicit ten-minute **manual research confirmation** after a real fresh comparison; no invented image threshold or claim of secure object login. Local key ownership is confirmed as FullAccess on-chain before selection/signing.
+- [x] Testnet helper account creation retains its original public-key binding and local signing key across retries. Extractable unencrypted browser custody is disclosed.
+- [x] Create/fund gated Sputnik vaults, read actual members/governance/tiers/spendable balance, inline invoice save/review, durable submission references and real proposals.
+- [x] Explicit host/listener ceremony; independent member consent; canonical callback checks; expiry/cancellation/membership guards; verified settlement, evidence publication and CSV.
+- [x] Durable engine metadata plus signed-byte journal and shared UI pending barrier. Unsigned reconciled requests get a cancellation marker before releasing their barrier, preventing a delayed submit from racing reconciliation.
+- [x] Governance UI for factory auto-update hardening and atomic complete-member replacement; threshold and full proposal are read from chain. Governance live-write acceptance remains separate below.
+- [x] Real native Chrome payment journey completed with actual same-laptop microphone/speakers: two new accounts → funded vault → invoice → two attestations → exact 0.05 testnet NEAR payout → verified published receipt. Public tx: `EA1nmm93YpiqBKy731Rc5Tba87nzrgZgpsqKUf8nCR5A`.
+- [ ] Manual live camera/object discrimination and phone/laptop acoustic matrix. Automated fixture inference and physical laptop loopback do not prove these.
+- [ ] Additional live governance-write exercise: a subsequent fresh-account setup was refused by the testnet helper with HTTP 429 before governance writes. Do not claim that exercise passed.
+- [x] Final independent review fixes: terminal payout failures, atomic duplicate-draft admission, exact proposal/receipt ancestry, same-DAO board retry and current funding code pin. Final check: 195 unit + 66 browser passed, plus type/build/production smoke; opt-in live skips remain explicit.
+- [ ] User accepts the connected manual journey. Follow [the exact checklist](docs/testing/end-to-end-integration.md); pause further features for results.
+
+The main merge is explicitly user-authorized. No gate-key deletion, mainnet spending or public push/publication is included. The existing origin is public; this checkpoint stays local under the private-development agreement.
+
 ## Product and fixed decisions
 
 Accoryn is the shared repository name; app-wide branding is still undecided. Build a new mobile/desktop web app for teams approving treasury payments together. The intended journey is personal-object research access → shared NEAR treasury → exact payment review → acoustic participation exchange → explicit independent approvals → authoritative settlement and receipt.

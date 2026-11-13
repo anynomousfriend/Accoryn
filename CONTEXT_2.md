@@ -9,6 +9,11 @@ This lane is the engine/authority half of the same product, not a separate app.
 - **Start with:** [docs/integration/context-two-engines.md](docs/integration/context-two-engines.md) for the API and how the app should call it.
 - **Then:** [docs/testing/context-two-local.md](docs/testing/context-two-local.md) to reproduce every result on your own machine.
 
+
+## Local main integration checkpoint
+
+The user requested bringing the connected treasury UI and adapter into `main` from `feat/end-to-end-integration` through `e46ce1a`. Use `/treasury/` for browser account → vault → invoice → acoustic member approval → verified payout, and `/board/?dao=…` for public reads. Start with `VITE_ENABLE_TESTNET_WRITES=1` to enable testnet signing. The legacy `/workspace/` keeps its disabled v1 service boundary. No new contract deployment or gate-key deletion is part of this merge. Physical-device and extended live governance acceptance remain open; see [the manual guide](docs/testing/end-to-end-integration.md).
+
 ## Hackathon facts
 
 - **Event:** NEAR HACKATHON. Development and submission end **2026-11-14T23:59Z**. The live rules are at https://nearhackathon.com/HACKATHON.md; reread them before submitting.
@@ -143,3 +148,15 @@ These hold throughout:
   - captures
   - generated reports
   - the fetched `tests/res/*.wasm`
+
+## Integration handoff update — 2026-11-13
+
+Context 1 integrated the delivered engines on local branch `feat/end-to-end-integration` in `engines/app/`, `/treasury/` and `/board/`. A complete real testnet payout with actual laptop audio passed; see [acceptance/evidence](docs/testing/end-to-end-integration.md). The new adapter keeps gate tiers and host/listener roles explicit instead of coercing them into the old v1 fixed-threshold workspace stubs.
+
+- [x] Account/treasury/acoustic/invoice/settlement/CSV wiring and read-only board implemented.
+- [x] Atomic membership replacement and factory-hardening governance controls implemented.
+- [ ] Additional live governance votes: the fresh-account test was stopped by helper HTTP 429, before votes.
+- [ ] Recognition calibration, spoof resistance, secure custody and two-device manual acceptance remain unproven/pending. The shipped handoff is manually acknowledged research continuation, not automated object authentication.
+- [ ] Gate developer-key deletion still needs its own authorization; untouched here.
+
+Coordinate source edits with this integration branch before further engine/UI changes. No public push or main merge is included in this handoff.

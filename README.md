@@ -22,7 +22,7 @@ Teams need a shared answer to three questions before money moves: **What are we 
 The browser also provides a personal-object enrollment experiment, device checks and invoice preparation. Only built-in cameras, microphones and speakers are needed. No external tags, readers or security keys.
 
 > [!IMPORTANT]
-> **Read this as the status of `main`.** Device/object/invoice screens and the acoustic lab work here. The NEAR engines and deployed gate can be exercised through the included scripts, but `main` does **not yet connect them into one browser payment journey**. Workspace blockchain actions are intentionally unavailable. The payment implementation currently supports **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
+> **The connected browser flow is available on `main` at `/treasury/`.** Begin with device checks and object comparison, explicitly acknowledge the research continuation, then create/select a testnet account, create or load a shared vault, propose a payment, collect member acoustic attestations and verify settlement. The older `/workspace/` remains a local draft editor with unavailable v1 blockchain actions. The payment implementation currently supports **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
 
 ## Features and current status
 
@@ -32,15 +32,18 @@ The browser also provides a personal-object enrollment experiment, device checks
 | Personal-object enrollment | Capture three views, review/retake them, save a versioned local visual template | Browser research feature |
 | Fresh object comparison | Compare a new capture with the template; inspect three cosine scores, top-two mean and inference time | Measured similarity; no authentication threshold |
 | Invoice preparation | Enter recipient, treasury, purpose, date and line items; calculate exact NEAR totals; save and review local drafts | Browser feature |
-| Workspace sections | Inspect account, team, session and receipt surfaces and integration availability | Blockchain actions unavailable |
+| Connected treasury | Create/select accounts, create/load/fund vaults, save/submit invoices, host/listen, approve, execute, verify receipts and export CSV | Real browser/testnet integration; writes opt-in |
+| Public board | Inspect vault policy and verified payout evidence without a local signing key | Read-only `/board/?dao=…`; latest 50 proposals |
+| Governance | Propose complete membership changes or disabling factory automatic upgrades; inspect and vote | Real transaction controls; extended live acceptance pending |
+| Legacy workspace | Prepare local drafts and inspect the old v1 service sections | Blockchain actions unavailable here; use `/treasury/` |
 | Acoustic exchange | Broadcast/listen to a fresh challenge, compare check codes and record decoding trials | Browser lab; two-device acceptance pending |
-| App-made account engine | Generate/store signing keys and create testnet accounts through the account helper | Engine; not wired to workspace |
-| Treasury engine | Build gated Sputnik policies, create DAOs and verify policy conformance | Engine + live testnet scripts |
+| App-made accounts | Generate/store signing keys and create testnet accounts through the account helper | Connected UI + engine |
+| Treasury engine | Build gated Sputnik policies, create DAOs and verify policy conformance | Connected UI + engine + live scripts |
 | Ceremony gate | Bind approvals to a proposal/session and enforce cumulative-spend tiers | Deployed on testnet |
 | Transaction journal | Reconcile transaction outcomes and guard against duplicate submission | Engine + opt-in live tests |
 | Settlement verification | Verify proposal approval and an exact successful transfer receipt | Engine + recorded live evidence |
 
-An image similarity score is **not a probability, proof of identity or recovered private key**. The object experiment on `main` does not create or unlock an account.
+An image similarity score is **not a probability, proof of identity or recovered private key**. There is no automatic match/deny threshold. After a fresh comparison, an explicit research acknowledgment opens a ten-minute app continuation; it does not cryptographically protect a signing key or recover one from an image.
 
 ## How it is built
 
@@ -52,9 +55,11 @@ flowchart LR
         Object --> Draft["Local invoice workspace"]
         Audio["Acoustic lab · ggwave"]
     end
-    Draft -. "UI integration pending" .-> Engines
-    Audio -. "Ceremony integration pending" .-> Engines
-    subgraph Engines["TypeScript engines · callable by scripts"]
+    Object --> Consent["Explicit research acknowledgment"]
+    Consent --> Treasury["Connected treasury + member ceremony"]
+    Draft --> Treasury
+    Treasury --> Engines
+    subgraph Engines["TypeScript engines · browser adapter + scripts"]
         Accounts["Accounts + key storage"]
         Journal["Transaction journal"]
         Protocol["Challenge + attestation protocol"]
@@ -131,6 +136,8 @@ The recorded build used Rust 1.93.0 and cargo-near 0.22.0. It was not a Docker-r
 
 </details>
 
+A connected browser run also created/funded `integration-bf7a0112.sputnikv2.testnet`, collected two account attestations and verified a [0.05 NEAR payout](https://testnet.nearblocks.io/txns/EA1nmm93YpiqBKy731Rc5Tba87nzrgZgpsqKUf8nCR5A). Its recognition step used labelled real-inference image fixtures and its audio used the laptop’s physical speaker/microphone. It was not two-device or live-camera acceptance. See the [connected acceptance guide](docs/testing/end-to-end-integration.md).
+
 ## Quick start
 
 ### Requirements
@@ -147,7 +154,7 @@ git clone https://github.com/anynomousfriend/Accoryn.git
 cd Accoryn
 git switch main
 npm ci --prefix web
-npm run dev --prefix web
+VITE_ENABLE_TESTNET_WRITES=1 npm run dev --prefix web
 ```
 
 Open **http://127.0.0.1:5173/**. The first startup prepares the pinned vision assets; allow it to finish before testing.
@@ -155,10 +162,12 @@ Open **http://127.0.0.1:5173/**. The first startup prepares the pinned vision as
 For a phone on the same Wi-Fi:
 
 ```sh
-npm run dev:lan --prefix web
+VITE_ENABLE_TESTNET_WRITES=1 npm run dev:lan --prefix web
 ```
 
 Use the printed **`https://<LAN-IP>:5173/`** address on your phone and `https://localhost:5173/` on the laptop. Accept/trust the local development certificate. Keep the laptop running and allow local-network access through its firewall. Phone camera/microphone access needs HTTPS; a plain LAN HTTP URL is insufficient.
+
+`VITE_ENABLE_TESTNET_WRITES=1` explicitly enables real testnet transactions. Without it, signing actions stay unavailable and read-only access remains available. This flag is public configuration, never a place for secrets. See [`web/.env.example`](web/.env.example); restart Vite after changing it.
 
 ### Route guide
 
@@ -166,7 +175,9 @@ Use the printed **`https://<LAN-IP>:5173/`** address on your phone and `https://
 |---|---|
 | `/` or `/device-check/` | Start with real device readiness checks |
 | `/object-registration/` | Register, compare, replace or delete a local visual template |
-| `/workspace/` | Prepare and review invoice drafts; inspect unavailable engine actions |
+| `/treasury/` | Connected account → vault → invoice → member ceremony → verified settlement |
+| `/board/?dao=YOUR_VAULT` | Shareable read-only policy and verified payouts without a signing key |
+| `/workspace/` | Legacy local invoice editor; follow its connected-treasury link for chain actions |
 | `/acoustic-check/` | Run physical sound transmission trials |
 | `/landing/` | Product concept landing page |
 | `/design/` | Existing interface reference page |
@@ -175,18 +186,39 @@ Use the same origin throughout a local session: `localhost`, `127.0.0.1` and the
 
 ## Test the flow
 
-### 1. Browser journey: devices → object → invoice
+### 1. Device and object preparation
 
 1. Open `/device-check/`. Start the camera check, capture a frame, check that the microphone meter responds, then play and explicitly confirm the speaker tone. **Expected:** all three checks can be completed independently.
 2. Continue to `/object-registration/`. Capture three different views of a distinctive object. Review or retake each, then save. **Expected:** a saved local template and a path to fresh comparison.
 3. Capture the same object again from another angle. Repeat with a similar different object and an unrelated object. **Expected:** measured similarities and inference time, not an automatic wallet unlock. Record wrong-object scores as well as same-object scores.
 4. Reload and verify the template remains. Exercise replacement and deletion. **Expected:** only explicit actions replace/delete it; cancelled work must not leave a misleading completed result.
-5. Choose **Prepare a team payment** or open `/workspace/`. Enter valid testnet account IDs, invoice reference, purpose, due date and line items. Save and review the draft. **Expected:** exact NEAR totals and local persistence after reload; no transaction has been sent.
-6. Inspect the other workspace sections. **Expected:** unavailable NEAR actions remain visibly unavailable on `main`.
+5. After a fresh comparison, tick the explicit research acknowledgment and continue to `/treasury/`. **Expected:** an active ten-minute research continuation. Each financial operation still requires a separate click and the correct on-chain authority.
+6. For local-only draft testing, open `/workspace/`. Enter valid testnet accounts and invoice details, then save/review. Its old chain actions remain unavailable; use the connected treasury for payments.
 
 See the detailed [device checklist](docs/testing/feature-01-device-readiness.md), [object checklist](docs/testing/feature-02-object-registration.md) and [workspace checklist](docs/testing/context-one-manual.md).
 
-### 2. Physical acoustic test: laptop ↔ phone
+### 2. Complete browser payment: account → vault → ceremony → receipt
+
+Use two devices, two different member accounts and the same LAN HTTPS origin on each. Start with native testnet NEAR only.
+
+1. On **each device**, finish the preparation above. Create a different **New username** using **Create testnet account**, or select an account whose key already exists in that browser. Record the full `name.testnet` IDs. A new browser cannot recover an existing key from its username or object.
+2. On the host, create a shared vault listing both full member usernames, including the host. Creation attaches **6 testnet NEAR**, plus gas. Load the resulting `name.sputnikv2.testnet` vault on both devices; compare the roster, tiers, governance threshold and balance.
+3. Choose **Fund loaded vault** and fund it with **1 testnet NEAR**. In **New invoice**, enter a valid testnet recipient, vault, purpose and an initial **0.05 NEAR** payment. Save, review the exact details and explicitly submit. **Expected:** a numbered on-chain proposal and the submitted draft locked against resubmission.
+4. On the second device, load that vault and proposal ID. Both members review the canonical recipient, amount and purpose. Open the host session (a **0.1 testnet NEAR** deposit), then refresh the listener’s payment/session.
+5. Listener: **Listen to host sound**. Host: **Play host sound**. Keep both foregrounded with built-in audio and the devices close together. **Expected:** decoded challenge matches the loaded on-chain session. In this release, listeners are approving vault members; a separate external-recipient sound response is not required.
+6. Each eligible member explicitly approves/attests. Hearing sound alone signs nothing. Once the required attendance is met, execute. **Expected:** settled status only after independently verifying the exact successful transfer and approved proposal.
+7. Choose **Publish verified payout evidence**, then **Load chain receipts**. Inspect the explorer link and export CSV. Open `/board/?dao=YOUR_VAULT` in a fresh browser with no local key; it should show public policy and verified payout evidence. The board reads the latest 50 proposals, not complete historical indexing.
+8. Exercise **Lock research session**, cancellation and reload. Pending writes must retain their original request ID. Use **Reconcile original request** before any retry, and **Resume original request** only for the retained request. Never clear site data during an unknown outcome.
+
+**Account helper rate limits:** account creation may return HTTP 429. Retain the pending request/key and retry later through **Resume original request**, after reconciliation. Do not change usernames or delete storage to work around an unresolved request.
+
+**Lost host challenge:** audio challenge material is memory-only. If reload/hiding loses it, cancel the old session and explicitly open a new one; a stored template does not restore it. A fresh scan acknowledgment is required when research access expires.
+
+Governance controls support complete member updates and disabling factory automatic upgrades. Inspect the full governance proposal before voting and refresh authoritative state after the required votes. Implemented controls are not evidence that the extended live governance acceptance run passed.
+
+Use the full [connected acceptance checklist](docs/testing/end-to-end-integration.md) for expected states and negative/recovery cases. Physical camera discrimination and laptop-to-phone acoustics remain manual acceptance work.
+
+### 3. Standalone physical acoustic test: laptop ↔ phone
 
 1. Start LAN HTTPS and open `/acoustic-check/` on both devices.
 2. Keep both pages foregrounded, disable Bluetooth audio and start around 50–70% system volume. On iPhone, turn silent mode off.
@@ -197,9 +229,9 @@ See the detailed [device checklist](docs/testing/feature-01-device-readiness.md)
 
 This lab does not submit a payment. Same-laptop physical loopback has recorded successful decoding; that does not establish phone/laptop reliability. Use the [two-device acceptance matrix](docs/testing/acoustic-check-manual.md) before claiming meeting readiness.
 
-### 3. Real on-chain journey: create DAO → approve → pay → verify
+### 4. Scripted on-chain journey: create DAO → approve → pay → verify
 
-This exercises the real engines and deployed contracts **through scripts**, separately from the browser/audio journey. The smoke script generates its challenge in-process; it does not listen through a microphone.
+This exercises the real engines and deployed contracts **through scripts**, as an alternative to the connected browser journey. The smoke script generates its challenge in-process; it does not listen through a microphone.
 
 Use your own faucet-funded testnet accounts. The scripts read keys from `~/.near-credentials/testnet/`; never put credentials in this repository. A CLI installation is needed only for this section:
 
@@ -251,7 +283,7 @@ From the repository root:
 npm run check --prefix web
 ```
 
-Runs unit tests → TypeScript checks → Playwright browser tests → production build → production inference smoke. Local Playwright uses installed Chrome; ensure another app is not occupying port 5173. Live transaction tests are opt-in and skipped by default. This README edit does not assert a new application test run; previous checkpoint results are recorded in the linked testing documents.
+Runs unit tests → TypeScript checks → Playwright browser tests → production build → production inference smoke. Local Playwright uses installed Chrome; ensure another app is not occupying port 5173. Live transaction tests are opt-in and skipped by default. The local main integration check passed: **195 unit tests and 66 browser tests**, plus type checking, production build and packaged inference smoke. Two live unit tests and one live browser spending test were explicitly skipped; this merge does not claim a fresh live payout or physical two-device acceptance.
 
 Individual checks are available when diagnosing a failure:
 
@@ -292,7 +324,7 @@ node --test tests/near-live-testnet.test.ts
 | Boundary | What to understand |
 |---|---|
 | Object images | Observable and reproducible; they are not cryptographic secrets. Baseline comparison is uncalibrated and has no identity decision threshold. |
-| Key custody | The account engine stores extractable, unencrypted signing material in browser IndexedDB. A compromised browser/profile can bypass UI restrictions. No object-based cross-device key recovery exists. |
+| Key custody | The connected account engine stores extractable, unencrypted signing material in browser IndexedDB. A compromised browser/profile can bypass UI restrictions. No object-based cross-device key recovery exists. |
 | Acoustic presence | Sound demonstrates communication between devices. Live relay, collusion and one person controlling several member accounts remain possible. |
 | Approval | Challenge receipt is separate from explicit member consent. Eligibility and account-bound attestations are checked by the protocol/gate. |
 | Governance | `G = max(2, N−1)` members can change policy, replace members or remove the gate. Governance can authorize fund movement outside the ceremony; no timelock is implemented. |
@@ -311,7 +343,9 @@ This is a research prototype, not an audited production wallet. See the [protoco
 | First model load is slow or fails | Finish asset preparation; check internet, free storage and console errors. Retry explicitly. |
 | Pen/bottle or similar objects score unexpectedly | Record the images/conditions privately and report the scores. Similarity is not a secure identity verdict. |
 | Sound is not decoded | Use matching audible modes, foreground pages, built-in audio, then adjust distance/volume. Do not assume ultrasound support. |
-| Workspace chain action is disabled | Expected on current `main`: integration capabilities are empty. Use the live scripts for engine verification. |
+| Chain action is disabled | Use `/treasury/`, start Vite with `VITE_ENABLE_TESTNET_WRITES=1`, and complete a fresh research continuation. `/workspace/` retains its unavailable v1 bindings. |
+| Account helper returns HTTP 429 | Keep the original pending request/key, reconcile and resume later; do not clear storage or create a replacement intent. |
+| A write is pending/unknown after reload | Reconcile the original request; do not submit a second payment to guess whether the first succeeded. |
 | `npm ci` reports missing optional `@emnapi` entries | See the [documented lockfile pitfall](docs/integration/context-two-engines.md#pitfalls-already-hit); preserve the committed lockfile. |
 | Live script cannot find a key | Ensure your own account was saved to the testnet legacy keychain and all account environment variables are set. |
 | DAO creation fails or name already exists | Use a new name and confirm the creator's testnet balance covers deposit, funding and gas. |
@@ -325,8 +359,9 @@ web/
     object-registration/   Camera lifecycle, worker inference and local templates
     acoustic-check/        Browser sound-exchange lab
     workspace/             Invoice drafts, review and app sections
-    integration/           Typed service boundary; unavailable bindings on main
+    integration/           Legacy v1 service boundary; unavailable workspace bindings
     engines/
+      app/                 Connected UI, real adapter, public board and operation recovery
       acoustic/            ggwave modem and audio session lifecycle
       ceremony/            Domain-separated challenge/signature protocol
       near/                Accounts, custody, DAO policy, journal and settlement
@@ -340,7 +375,8 @@ docs/                      Deployment evidence, manual testing and integration g
 | Read next | Purpose |
 |---|---|
 | [Context 1](CONTEXT_1.md) / [Context 2](CONTEXT_2.md) | Work ownership and implementation checkpoints; historical entries retain their dates |
-| [Engine integration guide](docs/integration/context-two-engines.md) | Engine APIs and pending browser wiring |
+| [Connected acceptance guide](docs/testing/end-to-end-integration.md) | Browser payment journey, recovery and evidence limits |
+| [Engine integration guide](docs/integration/context-two-engines.md) | Engine APIs and original adapter handoff |
 | [App adapter contract](docs/integration/context-one-adapter.md) | Typed UI/service boundary |
 | [Deployment record](docs/deployment/testnet.md) | Contract fingerprints and transaction evidence |
 | [Manual engine guide](docs/testing/context-two-local.md) | Reproduce contract and live-chain checks |
