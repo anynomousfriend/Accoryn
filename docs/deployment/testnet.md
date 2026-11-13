@@ -28,6 +28,8 @@ The build is not yet reproducible (Docker was unavailable), so the code hash abo
 | Gate votes; DAO pays 0.05 NEAR | [`4NKh8ik6…`](https://testnet.nearblocks.io/txns/4NKh8ik6P9a66RfDyUsaVNpbYSPVnBPmjNJwon2swzw5) |
 | Settlement evidence pointer recorded | [`9YDEFtxq…`](https://testnet.nearblocks.io/txns/9YDEFtxqr362ug9R9YRdRubQ4Rjdo4ffewW7XPiS4wj5) |
 
+A second run later the same day, on proposal 2, also passed: the gate vote was tx [`7EgpJgCY…`](https://testnet.nearblocks.io/txns/7EgpJgCYQfED8dgBUNQmEgKTY3E5gA2cQ8VpXGAV1wxf). A wasm built from a fresh clone of the committed source was byte-identical to the deployed code (same code hash) on this toolchain.
+
 The script verified, from chain data only: proposal status `Approved`, exactly one successful DAO → payee `Transfer` receipt of 50000000000000000000000 yoctoNEAR, and the payee balance increased by exactly that amount. The ceremony challenge was generated in-process for this smoke test; no audio was involved. Recorded RPC responses are in `web/tests/fixtures/ceremony/`.
 
 Earlier, on the same treasury, a human member's direct `VoteApprove` on a transfer failed with `ERR_PERMISSION_DENIED` (tx [`243Qb7ww…`](https://testnet.nearblocks.io/txns/243Qb7wwWDtXN6yyAiq6g1fVUjjppLkSpRuCbQ8ACHfB)).

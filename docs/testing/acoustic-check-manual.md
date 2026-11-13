@@ -2,6 +2,20 @@
 
 Automated tests cover the real ggwave encoder/decoder with simulated audio, real Chrome Web Audio playback and microphone permission handling. They cannot measure whether a real speaker reaches a real microphone. This checklist does.
 
+## Local evidence so far (same laptop, not two devices)
+
+`web/scripts/acoustic-loopback.mjs` drives the real `/acoustic-check/` page in two visible Chrome windows on one MacBook Pro. Audio goes from its built-in speakers into its built-in microphone, with no fake media devices. System output was at 63%. Three runs on 2026-11-13:
+
+| Mode @ ggwave volume | Decoded (matching check code) | Seconds from broadcast to decode |
+|---|---|---|
+| audible-fast @ 25 | 14 / 15 | mostly 1.9–2.5; two first-trial outliers at 5.0 and 5.4 |
+| audible-fastest @ 25 | 6 / 6 | 1.3–1.4 |
+| ultrasound-fast @ 50 | 6 / 6 | 2.3–2.4 |
+
+No decoded code ever mismatched, and no page errors occurred. Headless Chrome decoded 0 of 3 because it does not use the real speakers and microphone, so these numbers come only from the windowed runs.
+
+**Limit:** a single laptop hearing itself is easier than a meeting. Two devices at a distance, different hardware, room noise and phone browsers are exactly what Part B measures, so Part B is still required.
+
 ## Part A: confirm the testnet deployment (5 minutes, any browser)
 
 1. Open the gate: https://testnet.nearblocks.io/address/ceremony-gate-v1.accoryn.testnet
