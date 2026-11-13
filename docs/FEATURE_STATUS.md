@@ -1,6 +1,6 @@
 # Current app delivery status
 
-Context 1 app checkpoint is implemented on `feat/context-one-delivery`: connected local invoice preparation, exact review, browser draft storage, app sections for account/team/session/receipts, safe CSV formatting and an explicit unavailable-by-default integration boundary. Latest full checks: 30 unit / 44 browser tests, TypeScript, build and production smoke passed. Independent review/private checkpoint update pending. See [manual app checklist](testing/context-one-manual.md) and [adapter handoff](integration/context-one-adapter.md).
+Context 1 app checkpoint is implemented on `feat/context-one-delivery`: connected local invoice preparation, exact review, browser draft storage, app sections for account/team/session/receipts, safe CSV formatting and an explicit unavailable-by-default integration boundary. Latest full checks: 33 unit / 51 browser tests, TypeScript, build and production smoke passed. Independent review fixes verified; private checkpoint publication is pending. See [manual app checklist](testing/context-one-manual.md) and [adapter handoff](integration/context-one-adapter.md).
 
 The user confirmed Context 2 has not started. No real account/custody, treasury, acoustic codec, approval or payout integration exists yet. These actions stay disabled; no successful mock provider is shipped. Visual redesign stays paused. User requested a batch manual handoff rather than stopping between these app-only tasks.
 

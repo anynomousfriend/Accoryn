@@ -2,9 +2,10 @@ import { decodeDrafts, encodeDrafts, type PaymentDraft } from "./drafts.ts";
 const key = "accoryn.payment-drafts.v1";
 export const readDrafts = (): PaymentDraft[] =>
   decodeDrafts(localStorage.getItem(key));
-export const writeDrafts = (drafts: readonly PaymentDraft[]): void =>
+const writeDrafts = (drafts: readonly PaymentDraft[]): void =>
   localStorage.setItem(key, encodeDrafts(drafts));
-export const clearDrafts = (): void => localStorage.removeItem(key);
+export const clearDrafts = (): Promise<void> =>
+  withStorageLock(() => localStorage.removeItem(key));
 export type ProposalRef = {
   draftId: string;
   treasuryId: string;
@@ -46,7 +47,7 @@ export function decodeProposalRefs(raw: string | null): ProposalRef[] {
 }
 export const readProposalRefs = (): ProposalRef[] =>
   decodeProposalRefs(localStorage.getItem(refsKey));
-export const writeProposalRefs = (refs: readonly ProposalRef[]): void =>
+const writeProposalRefs = (refs: readonly ProposalRef[]): void =>
   localStorage.setItem(refsKey, encodeProposalRefs(refs));
 export function upsertProposalRef(
   refs: readonly ProposalRef[],
@@ -65,4 +66,76 @@ export function upsertProposalRef(
   const next = existing ? [...refs] : [...refs, ref];
   encodeProposalRefs(next);
   return next;
+}
+/** All workspace read/modify/write operations share a native cross-tab mutex. */
+export async function withStorageLock<T>(
+  work: () => T | Promise<T>,
+): Promise<T> {
+  if (!globalThis.navigator?.locks)
+    throw new Error(
+      "This browser cannot safely coordinate local writes. Use a current browser over HTTPS or localhost.",
+    );
+  return navigator.locks.request("accoryn.workspace.storage.v1", work);
+}
+export function draftRevision(d: PaymentDraft): string {
+  return JSON.stringify([
+    d.id,
+    d.reference,
+    d.treasuryId,
+    d.recipient,
+    d.purpose,
+    d.dueDate,
+    d.lines.map((l) => [l.description, l.quantity, l.unitAmount]),
+    d.updatedAt,
+  ]);
+}
+export async function saveDraft(
+  draft: PaymentDraft,
+  expectedRevision: string | null,
+): Promise<PaymentDraft[]> {
+  return withStorageLock(() => {
+    const current = readDrafts();
+    const existing = current.find((d) => d.id === draft.id);
+    if (
+      existing
+        ? expectedRevision === null ||
+          draftRevision(existing) !== expectedRevision
+        : expectedRevision !== null
+    )
+      throw new Error(
+        "This draft changed or was deleted in another tab. Reopen the current draft or create a new one.",
+      );
+    const next = [draft, ...current.filter((d) => d.id !== draft.id)];
+    writeDrafts(next);
+    return next;
+  });
+}
+export async function deleteDraft(
+  id: string,
+  expectedRevision: string | null,
+): Promise<PaymentDraft[]> {
+  return withStorageLock(() => {
+    const current = readDrafts();
+    const existing = current.find((d) => d.id === id);
+    if (
+      existing &&
+      (expectedRevision === null ||
+        draftRevision(existing) !== expectedRevision)
+    )
+      throw new Error(
+        "This draft changed in another tab. Reopen it before deleting.",
+      );
+    const next = current.filter((d) => d.id !== id);
+    writeDrafts(next);
+    return next;
+  });
+}
+export async function rememberProposalReference(
+  ref: ProposalRef,
+): Promise<ProposalRef[]> {
+  return withStorageLock(() => {
+    const next = upsertProposalRef(readProposalRefs(), ref);
+    writeProposalRefs(next);
+    return next;
+  });
 }

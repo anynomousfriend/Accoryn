@@ -42,7 +42,7 @@ export function DraftEditor({
           onSave();
         }}
       >
-        <fieldset disabled={readOnly}>
+        <fieldset disabled={readOnly || disabled}>
           <div className="grid gap-4 sm:grid-cols-2">
             {(
               [

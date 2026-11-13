@@ -15,3 +15,11 @@ This checkpoint adds real browser-local invoice preparation and the app-side int
 Report device/browser, failed step and exact visible behavior. Do not share private object photos, credentials or sensitive invoice data.
 
 Automated coverage includes real LocalStorage/IndexedDB/native browser behavior, actual model inference and production-bundle checks. Pure formatter/validation and seeded-metadata tests do not establish real treasury authorization or settlement. Complete financial-flow manual steps will be added only after actual Context 2 integration.
+
+## Additional review regression checks
+
+- Open two tabs before saving. Save different invoices in each: both must survive. Open the same saved invoice in both; delete it in one, then try saving a stale edit in the other. Expect a conflict, not resurrection or loss of unrelated drafts.
+- Submitted-reference lists and pending-action banners are based on retained metadata, independent of local invoice drafts. No genuine references exist until engine integration; seeded-metadata automated tests are not real transactions.
+- A future connected participant must see the canonical treasury, network, native asset, readable exact amount, atomic amount and purpose together before consent. Browser component tests cover this rendering now; actual independent approval waits for Context 2.
+
+Final automated check after review fixes: **33 unit tests, 51 native-browser tests, TypeScript, production build and real packaged model/workspace smoke passed**. Web Locks protects concurrent local writes; unsupported browsers receive an explicit failure. Customer/device acceptance, custody/chain verification and spreadsheet application import behavior are not established by these counts. GitHub CI is not activated by the local test run.

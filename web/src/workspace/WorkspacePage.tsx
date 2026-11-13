@@ -1,10 +1,17 @@
+import { ProposalReview } from "./ProposalReview.tsx";
+import {
+  makeActionIntent,
+  validateFinancialProposal,
+  validateReconciliation,
+  type ActionInput,
+} from "./action-policy.ts";
 import {
   validateAccount,
   validateTreasury,
   validateProposal,
   validateEvidence,
 } from "../integration/validation.ts";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActionLink, Button, SiteHeader } from "../design/primitives.tsx";
 import { getAppServices } from "../integration/bindings.ts";
 import {
@@ -25,12 +32,13 @@ import {
 } from "./drafts.ts";
 import {
   readDrafts,
-  writeDrafts,
+  saveDraft,
+  deleteDraft,
+  draftRevision,
+  rememberProposalReference,
   clearDrafts,
   readProposalRefs,
-  writeProposalRefs,
   type ProposalRef,
-  upsertProposalRef,
 } from "./storage.ts";
 import {
   beginAction,
@@ -61,6 +69,8 @@ export default function WorkspacePage() {
   const [tab, setTab] = useState("Payment draft");
   const [draft, setDraft] = useState(blank);
   const [drafts, setDrafts] = useState<PaymentDraft[]>([]);
+  const [baseRevision, setBaseRevision] = useState<string | null>(null);
+  const [guardError, setGuardError] = useState(false);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [message, setMessage] = useState(
@@ -87,7 +97,14 @@ export default function WorkspacePage() {
   const generation = useRef(0);
   const operation = useRef<AbortController | null>(null);
   const available = (name: Parameters<typeof hasService>[1]) =>
-    hasService(services, name);
+    hasService(services, name) &&
+    (!guardError ||
+      [
+        "readTreasury",
+        "readProposal",
+        "listReceipts",
+        "reconcileAction",
+      ].includes(name));
   const report = (text: string, failed = false) => {
     setMessage(text);
     setError(failed);
@@ -101,19 +118,45 @@ export default function WorkspacePage() {
     setEvidence(null);
     setConsent(false);
   };
+  const refreshGuards = useCallback(() => {
+    let failed = false;
+    try {
+      setPending(readPendingAction());
+    } catch {
+      failed = true;
+    }
+    try {
+      setReferences(readProposalRefs());
+    } catch {
+      failed = true;
+    }
+    setGuardError(failed);
+  }, []);
   useEffect(() => {
+    refreshGuards();
     try {
       setDrafts(readDrafts());
-      setPending(readPendingAction());
-      setReferences(readProposalRefs());
-      setReady(true);
+      setStorageError(false);
     } catch {
       setStorageError(true);
       report(
-        "Local data is incompatible or unavailable. Stored drafts were not overwritten.",
+        "Local draft data is incompatible or unavailable. Stored drafts were not overwritten.",
         true,
       );
     }
+    setReady(true);
+    const changed = (event: StorageEvent) => {
+      if (event.storageArea !== localStorage) return;
+      refreshGuards();
+      if (event.key === "accoryn.payment-drafts.v1" || event.key === null) {
+        try {
+          setDrafts(readDrafts());
+          setStorageError(false);
+        } catch {
+          setStorageError(true);
+        }
+      }
+    };
     const hidden = () => {
       if (document.visibilityState === "hidden") {
         cancel();
@@ -122,16 +165,18 @@ export default function WorkspacePage() {
         );
       }
     };
+    window.addEventListener("storage", changed);
     window.addEventListener("pagehide", cancel);
     document.addEventListener("visibilitychange", hidden);
     return () => {
+      window.removeEventListener("storage", changed);
       window.removeEventListener("pagehide", cancel);
       document.removeEventListener("visibilitychange", hidden);
       generation.current++;
       operation.current?.abort();
       services.releaseResources?.();
     };
-  }, [services]);
+  }, [services, refreshGuards]);
   const run = async (
     job: (signal: AbortSignal, id: number) => Promise<void>,
   ) => {
@@ -166,7 +211,9 @@ export default function WorkspacePage() {
       return true;
     }
   }
-  const edit = (value: PaymentDraft) => {
+  const edit = (value: PaymentDraft, base?: string | null) => {
+    if (base !== undefined) setBaseRevision(base);
+    else if (value.id !== draft.id) setBaseRevision(null);
     cancel();
     setDraft(value);
     setReview(null);
@@ -178,9 +225,11 @@ export default function WorkspacePage() {
     setConsent(false);
     setDeleteConfirm(false);
   };
-  const save = () => {
+  const save = async () => {
+    const id = ++generation.current;
+    setBusy(true);
     try {
-      if (references.some((r) => r.draftId === draft.id))
+      if (readProposalRefs().some((r) => r.draftId === draft.id))
         throw new Error(
           "This draft already has a proposal reference. Create a new draft for a different payment.",
         );
@@ -188,16 +237,20 @@ export default function WorkspacePage() {
         ...draft,
         updatedAt: new Date().toISOString(),
       });
-      const next = [valid, ...drafts.filter((d) => d.id !== valid.id)];
-      writeDrafts(next);
+      const next = await saveDraft(valid, baseRevision);
+      if (id !== generation.current) return;
       setDraft(valid);
+      setBaseRevision(draftRevision(valid));
       setDrafts(next);
       report("Draft saved locally. No payment submitted.");
     } catch (e) {
-      report(
-        e instanceof Error ? e.message : "Could not save this draft.",
-        true,
-      );
+      if (id === generation.current)
+        report(
+          e instanceof Error ? e.message : "Could not save this draft.",
+          true,
+        );
+    } finally {
+      if (id === generation.current) setBusy(false);
     }
   };
   const reviewDraft = () => {
@@ -213,67 +266,55 @@ export default function WorkspacePage() {
     }
   };
   const command = async <T,>(
-    kind: string,
+    input: ActionInput,
     id: number,
     job: (requestId: string) => Promise<T>,
-    apply: (value: T) => boolean | void,
+    apply: (
+      value: T,
+      intent: PendingAction,
+    ) => Promise<boolean | void> | boolean | void,
   ) => {
-    const intent: PendingAction = {
-      requestId: crypto.randomUUID(),
-      kind,
-      treasuryId:
-        proposal?.treasuryId ||
-        review?.treasuryId ||
-        treasuryId ||
-        "unassigned",
-      draftId: review?.id ?? null,
-      proposalId: proposal?.id ?? null,
-      startedAt: new Date().toISOString(),
-    };
-    beginAction(intent);
+    if (guardError || !ready)
+      throw new Error("Protected storage must be reconciled before an action.");
+    const intent = makeActionIntent(
+      input,
+      crypto.randomUUID(),
+      new Date().toISOString(),
+    );
+    const signal = operation.current?.signal;
+    await beginAction(intent, signal);
     setPending(intent);
+    if (id !== generation.current) return;
     const result = await job(intent.requestId);
     if (id !== generation.current) return;
-    const confirmed = apply(result);
+    const confirmed = await apply(result, intent);
+    if (id !== generation.current) return;
     if (confirmed !== false) {
-      finishAction(intent.requestId);
-      setPending(null);
+      await finishAction(intent.requestId);
+      if (id === generation.current) setPending(null);
     } else
       report(
         "Action outcome is not confirmed. Reconcile before another submission.",
       );
   };
   const write = async (
-    kind: string,
+    input: Extract<
+      ActionInput,
+      { kind: "proposePayment" | "approveProposal" | "executeProposal" }
+    >,
     id: number,
     job: (requestId: string) => Promise<Proposal>,
   ) =>
-    command(kind, id, job, (result) => {
-      result = validateProposal(result);
-      if (
-        kind === "proposePayment" &&
-        review &&
-        (result.treasuryId !== review.treasuryId ||
-          result.recipient !== review.recipient ||
-          result.amountAtomic !== totalAtomic(review) ||
-          result.purpose !== review.purpose)
-      )
-        throw new Error("Proposal does not match the reviewed payment.");
-      if (
-        kind !== "proposePayment" &&
-        proposal &&
-        (result.id !== proposal.id ||
-          result.contentHash !== proposal.contentHash)
-      )
-        throw new Error("Proposal changed; review it again.");
-      if (review) {
-        const next = upsertProposalRef(readProposalRefs(), {
-          draftId: review.id,
+    command(input, id, job, async (value, intent) => {
+      const result = validateFinancialProposal(intent, value);
+      if (intent.draftId) {
+        const next = await rememberProposalReference({
+          draftId: intent.draftId,
           treasuryId: result.treasuryId,
           proposalId: result.id,
           contentHash: result.contentHash,
         });
-        writeProposalRefs(next);
+        if (id !== generation.current) return false;
         setReferences(next);
       }
       setProposal(result);
@@ -281,7 +322,7 @@ export default function WorkspacePage() {
       setEvidence(null);
       setConsent(false);
       report("Authoritative proposal state: " + result.status + ".");
-      return actionConfirmed(kind, result.status);
+      return actionConfirmed(input.kind, result.status);
     });
   const validEvidence =
     !!proposal &&
@@ -315,6 +356,7 @@ export default function WorkspacePage() {
               key={name}
               variant={tab === name ? "primary" : "secondary"}
               aria-current={tab === name ? "page" : undefined}
+              style={{ transition: "none" }}
               onClick={() => setTab(name)}
             >
               {name}
@@ -341,6 +383,24 @@ export default function WorkspacePage() {
             Stop current operation
           </Button>
         )}
+        {guardError && (
+          <section className={card + " mb-5"}>
+            <h2 className="font-semibold">
+              Protected action data needs recovery
+            </h2>
+            <p className="mt-2 text-sm">
+              Financial actions stay blocked. Clearing invoice drafts does not
+              remove protected records.
+            </p>
+            <Button
+              className="mt-3"
+              variant="secondary"
+              onClick={refreshGuards}
+            >
+              Retry protected storage
+            </Button>
+          </section>
+        )}
         {pending && (
           <section className={card + " mb-5"}>
             <h2 className="font-semibold">
@@ -363,36 +423,27 @@ export default function WorkspacePage() {
                     "reconcileAction",
                   )(pending, signal);
                   if (id !== generation.current) return;
-                  if (result.requestId !== pending.requestId)
-                    throw new Error("Wrong action response.");
-                  if (result.proposal) {
-                    const checked = validateProposal(result.proposal);
-                    setProposal(checked);
-                    setProposalId(checked.id);
-                    if (pending.draftId) {
-                      const next = upsertProposalRef(readProposalRefs(), {
-                        draftId: pending.draftId,
-                        treasuryId: checked.treasuryId,
-                        proposalId: checked.id,
-                        contentHash: checked.contentHash,
-                      });
-                      writeProposalRefs(next);
-                      setReferences(next);
-                    }
+                  const decision = validateReconciliation(pending, result);
+                  if (decision.reference) {
+                    const next = await rememberProposalReference(
+                      decision.reference,
+                    );
+                    if (id !== generation.current) return;
+                    setReferences(next);
                   }
-                  if (result.account)
-                    setAccount(validateAccount(result.account));
-                  if (result.treasury) {
-                    const checked = validateTreasury(result.treasury);
-                    setTreasury(checked);
-                    setTreasuryId(checked.id);
+                  if (id !== generation.current) return;
+                  if (decision.proposal) {
+                    setProposal(decision.proposal);
+                    setProposalId(decision.proposal.id);
                   }
-                  if (
-                    result.status === "confirmed" ||
-                    result.status === "rejected"
-                  ) {
-                    finishAction(pending.requestId);
-                    setPending(null);
+                  if (decision.account) setAccount(decision.account);
+                  if (decision.treasury) {
+                    setTreasury(decision.treasury);
+                    setTreasuryId(decision.treasury.id);
+                  }
+                  if (decision.clear) {
+                    await finishAction(pending.requestId);
+                    if (id === generation.current) setPending(null);
                   }
                   report("Action outcome: " + result.status + ".");
                 })
@@ -422,13 +473,42 @@ export default function WorkspacePage() {
                     key={d.id}
                     variant="quiet"
                     disabled={busy}
-                    onClick={() => edit(structuredClone(d))}
+                    onClick={() => edit(structuredClone(d), draftRevision(d))}
                   >
                     Open {d.reference}
                   </Button>
                 ))}
               </div>
             </section>
+            {references.length > 0 && (
+              <section className={card}>
+                <h2 className="font-serif text-2xl">
+                  Submitted proposal references
+                </h2>
+                <p className="mt-2 text-sm text-muted">
+                  Stored references are not proof of payment. Open one to
+                  refresh its authoritative outcome.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {references.map((ref) => (
+                    <Button
+                      key={ref.draftId}
+                      variant="secondary"
+                      onClick={() => {
+                        cancel();
+                        setTreasury(null);
+                        setTreasuryId(ref.treasuryId);
+                        setProposal(null);
+                        setProposalId(ref.proposalId);
+                        setTab("Approval session");
+                      }}
+                    >
+                      Open submitted proposal {ref.proposalId}
+                    </Button>
+                  ))}
+                </div>
+              </section>
+            )}
             <DraftEditor
               draft={draft}
               onChange={edit}
@@ -471,12 +551,15 @@ export default function WorkspacePage() {
                   }
                   onClick={() =>
                     void run((signal, id) =>
-                      write("proposePayment", id, (requestId) =>
-                        requireService(services, "proposePayment")(
-                          review,
-                          requestId,
-                          signal,
-                        ),
+                      write(
+                        { kind: "proposePayment", draft: review },
+                        id,
+                        (requestId) =>
+                          requireService(services, "proposePayment")(
+                            review,
+                            requestId,
+                            signal,
+                          ),
                       ),
                     )
                   }
@@ -514,18 +597,23 @@ export default function WorkspacePage() {
                 </p>
                 <Button
                   className="mt-3"
-                  onClick={() => {
+                  onClick={async () => {
+                    setBusy(true);
+                    report("Deleting local draft…");
                     try {
-                      const next = drafts.filter((d) => d.id !== draft.id);
-                      writeDrafts(next);
+                      const next = await deleteDraft(draft.id, baseRevision);
                       setDrafts(next);
                       edit(blank());
                       report("Local draft deleted.");
-                    } catch {
+                    } catch (e) {
                       report(
-                        "Could not delete the draft. Existing storage is preserved.",
+                        e instanceof Error
+                          ? e.message
+                          : "Could not delete the draft. Existing storage is preserved.",
                         true,
                       );
+                    } finally {
+                      setBusy(false);
                     }
                   }}
                 >
@@ -544,9 +632,12 @@ export default function WorkspacePage() {
                 </p>
                 <Button
                   className="mt-3"
-                  onClick={() => {
+                  onClick={async () => {
+                    setBusy(true);
+                    report("Clearing local drafts…");
                     try {
-                      clearDrafts();
+                      await clearDrafts();
+                      refreshGuards();
                       setDrafts([]);
                       setStorageError(false);
                       setReady(true);
@@ -555,6 +646,8 @@ export default function WorkspacePage() {
                       report("Local drafts cleared.");
                     } catch {
                       report("Storage remains unavailable.", true);
+                    } finally {
+                      setBusy(false);
                     }
                   }}
                 >
@@ -584,7 +677,7 @@ export default function WorkspacePage() {
                 onClick={() =>
                   void run((signal, id) =>
                     command(
-                      "openAccount",
+                      { kind: "openAccount" },
                       id,
                       (requestId) =>
                         requireService(services, "openAccount")(
@@ -607,7 +700,7 @@ export default function WorkspacePage() {
                 onClick={() =>
                   void run((signal, id) =>
                     command(
-                      "recoverAccount",
+                      { kind: "recoverAccount" },
                       id,
                       (requestId) =>
                         requireService(services, "recoverAccount")(
@@ -681,7 +774,7 @@ export default function WorkspacePage() {
                 onClick={() =>
                   void run((signal, id) =>
                     command(
-                      "joinTreasury",
+                      { kind: "joinTreasury", treasuryId },
                       id,
                       (requestId) =>
                         requireService(services, "joinTreasury")(
@@ -780,7 +873,7 @@ export default function WorkspacePage() {
                   )
                     throw new Error("Check member accounts and threshold.");
                   await command(
-                    "createTreasury",
+                    { kind: "createTreasury" },
                     id,
                     (requestId) =>
                       requireService(services, "createTreasury")(
@@ -826,12 +919,15 @@ export default function WorkspacePage() {
             <Button
               className="mt-3"
               disabled={
-                busy || !treasury || !proposalId || !available("readProposal")
+                busy ||
+                !isAccountId(treasuryId) ||
+                !proposalId ||
+                !available("readProposal")
               }
               onClick={() =>
                 void run(async (signal, id) => {
                   const result = await requireService(services, "readProposal")(
-                    treasury!.id,
+                    treasuryId,
                     proposalId,
                     signal,
                   );
@@ -839,7 +935,7 @@ export default function WorkspacePage() {
                     const checked = validateProposal(result);
                     if (
                       checked.id !== proposalId ||
-                      checked.treasuryId !== treasury!.id
+                      checked.treasuryId !== treasuryId
                     )
                       throw new Error("Wrong proposal response.");
                     setProposal(checked);
@@ -855,26 +951,7 @@ export default function WorkspacePage() {
               Refresh proposal outcome
             </Button>
             {proposal ? (
-              <dl className="mt-5 space-y-2 text-sm">
-                {[
-                  ["Proposal", proposal.id],
-                  ["Content hash", proposal.contentHash],
-                  ["Recipient", proposal.recipient],
-                  ["Atomic amount", proposal.amountAtomic],
-                  ["Status", proposal.status],
-                  [
-                    "Reported approvals",
-                    proposal.approvals.join(", ") || "None",
-                  ],
-                  ["Required approvals", String(proposal.requiredApprovals)],
-                  ["Expiry", proposal.expiresAt],
-                ].map(([name, value]) => (
-                  <div key={name}>
-                    <dt className="text-muted">{name}</dt>
-                    <dd className="break-all font-mono">{value}</dd>
-                  </div>
-                ))}
-              </dl>
+              <ProposalReview proposal={proposal} />
             ) : (
               <p className="mt-4 text-sm text-muted">
                 No authoritative proposal loaded.
@@ -953,13 +1030,21 @@ export default function WorkspacePage() {
                 }
                 onClick={() =>
                   void run((signal, id) =>
-                    write("approveProposal", id, (requestId) =>
-                      requireService(services, "approveProposal")(
-                        proposal!,
-                        evidence!,
-                        requestId,
-                        signal,
-                      ),
+                    write(
+                      {
+                        kind: "approveProposal",
+                        proposal: proposal!,
+                        actor: account?.accountId ?? null,
+                        refs: readProposalRefs(),
+                      },
+                      id,
+                      (requestId) =>
+                        requireService(services, "approveProposal")(
+                          proposal!,
+                          evidence!,
+                          requestId,
+                          signal,
+                        ),
                     ),
                   )
                 }
@@ -979,12 +1064,20 @@ export default function WorkspacePage() {
                 }
                 onClick={() =>
                   void run((signal, id) =>
-                    write("executeProposal", id, (requestId) =>
-                      requireService(services, "executeProposal")(
-                        proposal!,
-                        requestId,
-                        signal,
-                      ),
+                    write(
+                      {
+                        kind: "executeProposal",
+                        proposal: proposal!,
+                        actor: account?.accountId ?? null,
+                        refs: readProposalRefs(),
+                      },
+                      id,
+                      (requestId) =>
+                        requireService(services, "executeProposal")(
+                          proposal!,
+                          requestId,
+                          signal,
+                        ),
                     ),
                   )
                 }

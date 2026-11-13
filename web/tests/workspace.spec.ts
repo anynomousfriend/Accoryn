@@ -46,6 +46,7 @@ test("invoice drafts save, review exact totals, reload, and delete using real br
   await expect(page.getByLabel("Invoice reference")).toHaveValue("INV-test");
   await page.getByRole("button", { name: "Delete selected draft" }).click();
   await page.getByRole("button", { name: "Confirm draft deletion" }).click();
+  await expect(page.getByRole("status")).toContainText("Local draft deleted");
   await page.reload();
   await expect(page.getByRole("button", { name: "Open INV-test" })).toHaveCount(
     0,
@@ -189,4 +190,208 @@ test("a persisted proposal reference locks the original draft after reload", asy
   ).toBeDisabled();
   await page.getByRole("button", { name: "New draft" }).click();
   await expect(page.getByLabel("Invoice reference")).toBeEnabled();
+});
+
+test("saving from a second stale tab preserves the first tabs invoice", async ({
+  page,
+  context,
+}) => {
+  const other = await context.newPage();
+  await page.goto("/workspace/");
+  await other.goto("/workspace/");
+  for (const [tab, reference] of [
+    [page, "INV-A"],
+    [other, "INV-B"],
+  ] as const) {
+    await tab.getByLabel("Invoice reference").fill(reference);
+    await tab.getByLabel("Treasury account").fill("team.testnet");
+    await tab.getByLabel("Recipient account").fill("supplier.testnet");
+    await tab.getByLabel("Purpose").fill("Supplies");
+    await tab.getByLabel("Due date").fill("2026-11-20");
+    await tab.getByLabel("Description 1").fill("Item");
+    await tab.getByLabel("Unit amount in NEAR 1").fill("1");
+    await tab.getByRole("button", { name: "Save local draft" }).click();
+    await expect(tab.getByRole("status")).toContainText("Draft saved");
+  }
+  await other.reload();
+  await expect(other.getByRole("button", { name: "Open INV-A" })).toBeVisible();
+  await expect(other.getByRole("button", { name: "Open INV-B" })).toBeVisible();
+});
+test("damaged invoice storage cannot hide a valid pending action before or after clearing drafts", async ({
+  page,
+}) => {
+  await page.goto("/workspace/");
+  await page.evaluate(() => {
+    localStorage.setItem("accoryn.payment-drafts.v1", "{invalid");
+    localStorage.setItem(
+      "accoryn.pending-action.v1",
+      JSON.stringify({
+        version: 1,
+        action: {
+          requestId: "preserve-action",
+          kind: "executeProposal",
+          treasuryId: "team.testnet",
+          draftId: "draft-1",
+          proposalId: "42",
+          startedAt: "2026-11-13T00:00:00.000Z",
+        },
+      }),
+    );
+  });
+  await page.reload();
+  await expect(
+    page.getByRole("heading", {
+      name: "Pending action requires reconciliation",
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Clear local drafts" }).click();
+  await page.getByRole("button", { name: "Confirm clearing drafts" }).click();
+  await expect(
+    page.getByText("executeProposal · preserve-action"),
+  ).toBeVisible();
+});
+
+test("submitted references remain discoverable after clearing all local drafts", async ({
+  page,
+}) => {
+  await page.goto("/workspace/");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "accoryn.proposal-refs.v1",
+      JSON.stringify({
+        version: 1,
+        refs: [
+          {
+            draftId: "old-draft",
+            treasuryId: "team.testnet",
+            proposalId: "retained-proposal",
+            contentHash: "hash-1",
+          },
+        ],
+      }),
+    ),
+  );
+  await page.reload();
+  await page.getByRole("button", { name: "Clear local drafts" }).click();
+  await page.getByRole("button", { name: "Confirm clearing drafts" }).click();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Open submitted proposal retained-proposal" })
+    .click();
+  await expect(page.getByLabel("Existing proposal ID")).toHaveValue(
+    "retained-proposal",
+  );
+});
+
+test("independent proposal review displays canonical treasury, purpose, network and exact amount", async ({
+  page,
+}) => {
+  await page.goto("/tests/harness/proposal-review.html");
+  for (const value of [
+    "canonical-team.testnet",
+    "Canonical engine payment purpose",
+    "testnet",
+    "Native NEAR",
+    "1.000000000000000000000001 NEAR",
+    "1000000000000000000000001",
+  ])
+    await expect(page.getByText(value, { exact: true })).toBeVisible();
+});
+
+test("workspace section selection remains readable during the immediate color change", async ({
+  page,
+}) => {
+  await page.goto("/workspace/");
+  await page.getByRole("button", { name: "Account", exact: true }).click();
+  const ratio = await page
+    .getByRole("button", { name: "Account", exact: true })
+    .evaluate((el) => {
+      const style = getComputedStyle(el);
+      const luminance = (color: string) => {
+        const values = color
+          .match(/[\d.]+/g)!
+          .slice(0, 3)
+          .map(Number)
+          .map((v) => {
+            const c = v / 255;
+            return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+          });
+        return values[0] * 0.2126 + values[1] * 0.7152 + values[2] * 0.0722;
+      };
+      const fg = luminance(style.color),
+        bg = luminance(style.backgroundColor);
+      return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+    });
+  expect(ratio).toBeGreaterThanOrEqual(4.5);
+});
+
+test("a stale edit cannot resurrect a draft deleted in another tab", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/workspace/");
+  for (const [label, value] of [
+    ["Invoice reference", "INV-conflict"],
+    ["Treasury account", "team.testnet"],
+    ["Recipient account", "supplier.testnet"],
+    ["Purpose", "Supplies"],
+    ["Due date", "2026-11-20"],
+    ["Description 1", "Item"],
+    ["Unit amount in NEAR 1", "1"],
+  ])
+    await page.getByLabel(label).fill(value);
+  await page.getByRole("button", { name: "Save local draft" }).click();
+  await expect(page.getByRole("status")).toContainText("Draft saved");
+  const other = await context.newPage();
+  await other.goto("/workspace/");
+  await other.getByRole("button", { name: "Open INV-conflict" }).click();
+  await page.getByRole("button", { name: "Delete selected draft" }).click();
+  await page.getByRole("button", { name: "Confirm draft deletion" }).click();
+  await expect(page.getByRole("status")).toContainText("Local draft deleted");
+  await other.getByLabel("Purpose").fill("Stale edit");
+  await other.getByRole("button", { name: "Save local draft" }).click();
+  await expect(other.getByRole("alert")).toContainText("another tab");
+  await other.reload();
+  await expect(
+    other.getByRole("button", { name: "Open INV-conflict" }),
+  ).toHaveCount(0);
+});
+
+test("native action-record acquisition is exclusive across two tabs", async ({
+  page,
+  context,
+}) => {
+  const other = await context.newPage();
+  await page.goto("/workspace/");
+  await other.goto("/workspace/");
+  const attempt = (tab: typeof page, requestId: string) =>
+    tab.evaluate(async (requestId) => {
+      const { beginAction } = await import(
+        String("/src/workspace/action-journal.ts")
+      );
+      try {
+        await beginAction({
+          requestId,
+          kind: "createTreasury",
+          treasuryId: "unassigned",
+          draftId: null,
+          proposalId: null,
+          startedAt: "2026-11-13T00:00:00.000Z",
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    }, requestId);
+  const acquired = await Promise.all([
+    attempt(page, "request-A"),
+    attempt(other, "request-B"),
+  ]);
+  expect(acquired.filter(Boolean)).toHaveLength(1);
+  const recorded = await page.evaluate(
+    () =>
+      JSON.parse(localStorage.getItem("accoryn.pending-action.v1")!).action
+        .requestId,
+  );
+  expect(["request-A", "request-B"]).toContain(recorded);
 });

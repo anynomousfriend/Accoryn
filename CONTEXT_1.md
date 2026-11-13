@@ -39,9 +39,9 @@ User clarified that Context 2 has not started and asked this lane to continue in
 
 - [x] Real local invoice drafts with validated account spelling/dates/lines, exact 24-decimal NEAR arithmetic, save/reopen/delete and explicit exact-payment review.
 - [x] Account/recovery, team/policy, proposal/session/consent and receipt/export app sections with one typed adapter boundary. Unavailable operations remain disabled; no fake accounts, balances, approvals, decoded sound or receipts appear.
-- [x] Persistent unknown-action journal; clearing drafts retains it. Submitted proposal references survive reload and lock the original draft; changing a payment requires an explicitly new draft/review.
+- [x] Persistent unknown-action journal with operation-specific payment context and native cross-tab locking; clearing drafts retains it. Submitted proposal references remain independently discoverable after reload or draft deletion and lock the original draft; changing a payment requires an explicitly new draft/review.
 - [x] Runtime response validation and safe CSV export formatting, preserving atomic amounts and pending/unknown outcomes. Real receipts are not fabricated to enable export.
-- [x] Actual browser draft persistence/corruption tests, responsive layouts, production workspace smoke and native object/model regressions. Latest full run: 30 unit / 44 browser tests, typecheck/build/production smoke passed.
+- [x] Actual browser draft persistence/corruption tests, responsive layouts, production workspace smoke and native object/model regressions. Latest full run after independent review fixes: 33 unit / 51 browser tests, typecheck/build/production smoke passed.
 - [x] Primary-source problem/alternative assessment in [problem evidence](docs/research/problem-evidence.md). Customer interviews and demand validation remain unperformed.
 - [x] Small app-owned [adapter handoff](docs/integration/context-one-adapter.md): exact types in `web/src/integration/services.ts`, response guards in `validation.ts`, single wiring point `bindings.ts`. Context 2 owns its actual engines and need not edit React screens.
 - [ ] Real account/custody, treasury, acoustic, independent approval, settlement and receipt integration: awaiting reviewed Context 2 adapters and actual joint tests.

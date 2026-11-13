@@ -85,14 +85,21 @@ export type ServiceMethods = {
   reconcileAction: (
     action: PendingAction,
     signal: AbortSignal,
-  ) => Promise<{
-    requestId: string;
-    status: "pending" | "unknown" | "confirmed" | "rejected";
-    proposal?: Proposal;
-    account?: Account;
-    treasury?: Treasury;
-  }>;
+  ) => Promise<ReconciliationResult>;
 };
+export type ReconciliationResult =
+  | { requestId: string; status: "pending" | "unknown" | "rejected" }
+  | {
+      requestId: string;
+      status: "confirmed";
+      outcome:
+        | { kind: "openAccount" | "recoverAccount"; account: Account }
+        | { kind: "createTreasury" | "joinTreasury"; treasury: Treasury }
+        | {
+            kind: "proposePayment" | "approveProposal" | "executeProposal";
+            proposal: Proposal;
+          };
+    };
 export type ServiceName = keyof ServiceMethods;
 export type AppServices = {
   version: 1;
@@ -115,5 +122,5 @@ export function requireService<K extends ServiceName>(
 ): ServiceMethods[K] {
   if (!hasService(services, name))
     throw new Error("This service is not connected yet.");
-  return services[name] as ServiceMethods[K];
+  return ((...args:Parameters<ServiceMethods[K]>) => Reflect.apply(services[name]!,services,args)) as ServiceMethods[K];
 }
