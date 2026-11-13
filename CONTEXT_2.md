@@ -1,97 +1,145 @@
-# Context 2 — compute-intensive engines and security architecture
+# Context 2: engines, security architecture and NEAR authority
 
-Updated: 2026-11-13. Owner: the other contributor. Companion lane: [Context 1](CONTEXT_1.md), owned by the user/current session. Read AGENTS.md and both files before starting. This is the harder engine/authority half of the same product, not a separate app or a replacement UI.
+**Updated:** 2026-11-13 (second update, after the first engine delivery).
 
-## Mission and non-negotiable boundaries
+**Lane:** engine/security. Its companion lane is [Context 1](CONTEXT_1.md), the app delivery lane, which built the current app. Read AGENTS.md and both context files before starting.
 
-Provide the evaluated vision engine, reliable acoustic exchange and authoritative NEAR account/treasury/payment foundation that Context 1 integrates. The lead audience is teams approving shared treasury payments together. Keep ordinary personal objects and acoustic participation central, with built-in device hardware only. No external NFC/tag/key hardware, no GPS, and no mandatory passkey added to the user's object-only research choice.
+This lane is the engine/authority half of the same product, not a separate app.
 
-An ordinary photographed object is not a high-entropy signing secret. A browser cannot establish trusted sensor input by asserting that a capture is fresh. Sound can be relayed, and multiple devices need not mean distinct people. Preserve these limits in architecture and claims. Research may conclude that an object is unsuitable or that a promised security property is not attainable; show the evidence rather than manufacture a threshold or proof.
+- **Start with:** [docs/integration/context-two-engines.md](docs/integration/context-two-engines.md) for the API and how the app should call it.
+- **Then:** [docs/testing/context-two-local.md](docs/testing/context-two-local.md) to reproduce every result on your own machine.
 
-## What already exists — do not rebuild it
+## Hackathon facts
 
-- [x] Native camera/microphone/speaker readiness and basic responsive app skeleton.
-- [x] Three-view local object capture, IndexedDB visual-template lifecycle, fresh-scan numeric comparison and connected navigation.
-- [x] Real pinned DINOv2-small q8/WASM baseline through Transformers.js 4.3.2. Current worker is single-thread WASM; WebGPU is not an implemented fallback. Read the exact artifact/schema manifest before comparing engines.
-- [x] Baseline fixture integration and production tests; latest full suite 17 unit / 36 browser tests plus type/build/production smoke. Four important reviewed cancellation/recovery issues fixed.
-- [ ] Full physical Feature 2 acceptance. Automated Chrome could not access the camera. This remains Context 1's user checkpoint.
-- [ ] Calibrated instance authorization, liveness/spoof resistance, cryptographic object access, cross-device recovery, acoustic data transport, NEAR accounts, treasury policy and payout. None is implemented by the existing registration feature.
+- **Event:** NEAR HACKATHON. Development and submission end **2026-11-14T23:59Z**. The live rules are at https://nearhackathon.com/HACKATHON.md; reread them before submitting.
+- **Requirements:**
+  - a public repository
+  - a LICENSE
+  - a README that AI screeners can follow ("do X → see Y")
+  - the human's X post with a demo video
+  - **one** confirmed submission
+- **Tracks:**
+  - `social` (lead)
+  - `open`
+  - `realworld` (once the invoice → settled receipt flow works in the app)
+  - `privacy`/`security` only if the optional AI-proposer stretch ships
+- **Social Money brief:** "Don't rebuild the multisig — build what communities do with it." Sputnik/Trezu hold custody; we add amount tiers, a meeting requirement, a per-member participation record and a public board.
 
-The existing tiny Objectron test sample separates views within one recording, not independent sessions; distractor backgrounds differ. Its scores and ~0.46-second laptop inference are integration observations, not general accuracy/performance guarantees. Do not inherit an authorization threshold from them. [Current evidence](docs/testing/feature-02-object-registration.md).
+## Decisions approved by the Context 2 owner on 2026-11-13 (do not reopen)
 
-## Your exclusive implementation backlog
+1. **Custody: object-only, app-made accounts.**
+   - The browser generates an ed25519 full-access key for a new `<name>.testnet` account, created through the testnet helper, and stores it in IndexedDB.
+   - The object scan is a disclosed local convenience unlock. It is not a key, encryption or a secret.
+   - Recovery means DAO governance replaces a lost member.
+2. **Enforcement: the on-chain ceremony gate is the DAO's only transfer approver.**
+   - Members attest with their own accounts using the challenge-derived session key: signed attestations, not commit-reveal.
+   - Fallback rule: if the gate had not worked on testnet by 2026-11-14 03:00Z, we would use native votes with the ceremony as evidence. It worked, so the fallback is not needed.
+3. **Approved security trade-offs (all disclosed):**
+   - G = max(2, N−1) members can change the policy or the gate. This is the governance escape hatch and the recovery path.
+   - The factory `auto_update` risk remains until `FactoryInfoUpdate{auto_update:false}` passes.
+   - The gate is locked (keys deleted) before submission.
+   - There is no silent fallback when sound fails.
+   - Approval covers testnet only.
+4. **Scope:**
+   - amount tiers and a participation record
+   - a public board
+   - verified invoice receipts
+   - a Trezu-compatible role layout (Requestor/Admin/Approver)
+   - an AI proposer only as a stretch
+5. **The Context 2 lane may edit UI and routes** to meet the deadline, through reviewed PRs, coordinating with Context 1. Context 1 still owns its existing screens' behavior and tests.
+6. **Acoustic modem:** port the proven modem from the owner's earlier Proof-of-vicinity prototype (ggwave 0.4.0) instead of writing a new one.
 
-### A. Evaluated instance-recognition engine — higher compute/reasoning
+## Non-negotiable boundaries (unchanged)
 
-- [ ] Build a consented, reproducible capture/evaluation protocol with separate enrollment, development/calibration and held-out sessions. Include phone/laptop variance, lighting, angles, crop/background changes, wrong categories, similar instances, identical-model objects and lost/damaged objects. Never commit private captures; retain consent/provenance and reproducible public computational fixtures where licensed.
-- [ ] Establish DINOv2-small baseline error distributions and cold/warm p50/p95 timings, memory, download size and failure rates on target devices. Scores alone are not accuracy. Report genuine acceptance/rejection and wrong-object acceptance counts with denominators and uncertainty when thresholds are evaluated.
-- [ ] Benchmark DINOv3-small as a challenger and local-feature matching/LightGlue or foreground isolation where global descriptors confuse instances. These are candidate experiments, not approved installed dependencies or guaranteed improvements. Verify current artifact/license/runtime support before selecting them. Keep the existing baseline until measured improvement justifies cost.
-- [ ] Evaluate quantization/numerical compatibility, model reuse, caching, WASM/WebGPU and worker behavior. Never silently compare embeddings from incompatible schemas or substitute a different runtime/model. Keep deployment file sizes within hosting limits; do not change the application dependency lockfile concurrently with Context 1.
-- [ ] Research explicit fresh-view/rotation challenges using supported built-in sensors; test screens, prints, prerecorded video, descriptor reuse and manipulated clients. Distinguish a usability prompt from trusted liveness. Desktop must not depend on phone accelerometers or torch support.
-- [ ] Return an evidence-backed accept/retry/reject policy only if held-out data supports it, including unsuitable-object rejection and known attacks. No universal safety threshold or production identity guarantee. Context 1 currently reports scores only and must not enable access automatically when you deliver a faster extractor.
+These hold throughout:
+- Use built-in device hardware only: no NFC, tags, external keys or GPS, and no mandatory passkey.
+- An ordinary photographed object is not a high-entropy secret.
+- A browser cannot assert that a capture is fresh.
+- Sound can be relayed, and several devices need not mean several people.
+- Hearing a challenge is not consent to pay.
+- Do not manufacture thresholds or proofs; show the evidence.
 
-### B. Object-only research access, key custody and recovery — security-critical
+## Status
 
-- [ ] Write a concrete threat/custody/recovery design before implementing signing. Explain where random cryptographic keys originate, who can use/decrypt/recover them, what is stored, what the verifier trusts and what happens after object loss or browser-data deletion.
-- [ ] Compare software-only custody/attestation approaches compatible with the object-only research choice. Explicitly identify trusted services, compromised-client risks, photo/template theft, rate limiting, revocation and availability trade-offs. Do not derive a NEAR private key by hashing an embedding or use a client “matched” flag as authorization.
-- [ ] Get the consequential custody/recovery/security trade-offs reviewed with the user. A handoff file is not approval of an unspecified security architecture, mandatory hardware, passkeys or mainnet funding.
-- [ ] Implement the chosen research signer/account adapter against real NEAR testnet. Test unauthorized requests, replay, malformed signatures, recovery/revocation, wrong network/account and concurrent operations. No sensitive material in logs/Git/client metadata. Cross-device access is a separate designed capability, not something local IndexedDB already supports.
+`[x]` means implemented and verified as described. It is not a claim of production security or universal device compatibility.
 
-### C. Reliable acoustic engine and session verifier — DSP/protocol work
+### D. NEAR authority, treasury policy and settlement
 
-- [ ] Benchmark **ggwave** as the first candidate; no codec is currently installed. Verify the precise browser build/protocol and license. Measure device-pair success, retries, p50/p95 complete-session latency, sample rates, clipping, noise, browser processing and suspension. A software encode/decode roundtrip is not a physical audio channel test.
-- [ ] Near-ultrasonic modes are device-dependent and may be audible. Detect unsupported paths and fail visibly; an audible alternative needs an explicit product policy and choice. Consider a different codec/custom chirp or OFDM only after a measured limitation justifies the additional implementation/testing cost.
-- [ ] Define a short fresh challenge identifier and authoritative session record bound to network, treasury, proposal ID/content hash, required participants, nonce and expiry. Keep larger signed responses on the authenticated ordinary channel. A codec is neither encryption nor consent.
-- [ ] Implement identity-bound two-way exchange, serialized participant turns/collision handling, bounded retries, abort/resume rules and stale-message rejection. Differentiate insufficient signal, timeout, cancellation and invalid payload. Own low-level audio/DSP resources and a clear dispose/cancel API; Context 1 calls it from its screens.
-- [ ] Implement/test verifier semantics for replay, expiry, changed proposal/amount/participants, wrong signer, duplicate response, prerecorded audio, live relay and multiple devices owned by one person. Sound exchange is communication evidence; do not claim a guaranteed room boundary or distance bound without evidence.
+- [x] Assessed the real Sputnik deployment.
+  - The factory is `sputnikv2.testnet`, not `sputnik-v2.testnet`, and DAO code is v2.3.1 (`AA4nA45v…`).
+  - Trezu is mainnet-only, so we copy its role layout instead of integrating it on testnet.
+- [x] Explicit policy (`web/src/engines/near/policy.ts`):
 
-### D. NEAR authority, treasury policy and settlement — contracts/backend work
+  | Role | Members | Can do | Votes needed |
+  |---|---|---|---|
+  | Requestor | all members | propose, reject, finalize transfers | majority to reject |
+  | Admin | all members | governance | G, quorum 2 |
+  | Approver | the gate only | approve transfers | 1 |
 
-- [ ] Assess one real existing treasury integration first (Sputnik testnet and actual deployment/version/policy; assess Trezu compatibility separately). Prefer reuse where it meets the actual policy. Do not assume a hinted protocol or sample hackathon product is mandatory.
-- [ ] Define the demo's member/threshold/presence policy explicitly. Unanimous signatures, 2-of-3 signatures and all-three acoustic participation are different policies. Context 1 displays your authoritative policy; it must not invent one.
-- [ ] Resolve enforcement: another client can bypass a frontend acoustic gate. If protected payout requires participation attestation, bind a trustworthy attestation/authorization path to enforceable NEAR policy and test every alternate spending/membership/recovery path. A custom gate/contract is an intentional architecture choice, not a track requirement. Do not label optional client ceremony as mandatory on-chain security.
-- [ ] Implement real treasury/proposal/policy operations, exact integer amounts, role/membership rules, independent approvals and execution against testnet. Handle asynchronous contract outcomes, insufficient approvals/funds, changed membership, unauthorized/duplicate votes, expiry and repeated execution.
-- [ ] Implement authoritative reconciliation after RPC timeout, retries or reload: unknown outcome must not trigger duplicate payment. Verify execution receipts and receiver balance changes, including failure/refund where applicable. Return structured states for Context 1; never substitute “request submitted” for “payment settled.”
-- [ ] If gas sponsorship is included, constrain allowed targets/methods/actions, signer, nonce/expiry, gas/deposit and budget. Gas sponsorship does not automatically fund bonds, storage or deposits. No new mainnet spend without exact approval.
-- [ ] Supply invoice-to-proposal-to-settlement linkage and canonical receipt fields. Context 1 owns invoice entry, receipt rendering and safe CSV formatting; you own settlement correctness and backend records.
-- [ ] Optional later: escrow state/release/refund policy and cross-chain settlement/Chain Signatures/Intents. Do not make these core-demo dependencies. Prior research found no Intents testnet; reverify current official support before choosing an implementation. A dry quote is never a payout, and a completed mainnet path requires separately authorized funds.
+  The builder output equals what testnet stores. The conformance check rejects every known bypass, including roles that need zero votes, which would otherwise allow a Finalize-based bypass.
+- [x] Enforcement: humans cannot approve transfers (`ERR_PERMISSION_DENIED`, verified on testnet). The gate refuses ungated policies.
+- [x] Ceremony gate contract `contracts/ceremony-gate`, deployed at `ceremony-gate-v1.accoryn.testnet`.
+  - It covers sessions, signed attestations, cumulative amount tiers with a spend window, participation records, settlement-evidence pointers, and `set_tiers` callable only by the DAO.
+  - Tests: 16 unit + 5 sandbox tests against the exact testnet Sputnik code.
+- [x] Real treasury operations on testnet: create (`web/scripts/create-gated-dao-testnet.ts`), propose, ceremony, execute.
+  - Three passing live ceremonies, recorded in [docs/deployment/testnet.md](docs/deployment/testnet.md).
+  - Sandbox coverage: underfunded payouts revert, a `Failed` payout can be finalized exactly once, and a mid-ceremony reject reopens the session.
+- [x] Settlement truth: `verifySettlement` requires exactly one successful DAO → recipient transfer of the exact amount, plus an `Approved` proposal. It is tested on a recorded real transaction.
+- [x] Idempotent writes: `TxJournal` stores the signed transaction before broadcasting and reconciles without re-signing. Live: no duplicate on resubmit, and verified `expired` when the nonce was consumed.
+- [ ] **Lock the gate:** delete its last full-access key before submission and record it in the deployment doc.
+- [ ] Run the `FactoryInfoUpdate{auto_update:false}` hardening proposal when a treasury is created in the app.
+- [ ] Invoice → proposal → receipt linkage in the app. The description tag codec and the receipt mapping exist; the UI wiring is pending.
+- [ ] Optional: gas sponsorship, escrow, Intents/Chain Signatures. Not core; Intents has no testnet.
+
+### B. Object-only access, custody and recovery
+
+- [x] Custody design decided (above) and the threat model written: [docs/security/ceremony-threat-model.md](docs/security/ceremony-threat-model.md).
+- [x] Browser keystore for app-made accounts, and account creation through the testnet helper with a sub-account fallback (`web/src/engines/near/{keystore,account}.ts`).
+- [ ] Object unlock wired to `Keystore.signerFor`, with a provisional *research* threshold from a small consented evaluation (accept/retry/reject with denominators). Until then it reports scores only.
+- [ ] Recovery UI: create a new account, then a governance proposal swaps the member. Can be shown with a script first.
+
+### C. Acoustic engine and session verifier
+
+- [x] ggwave modem and session helpers (`web/src/engines/acoustic/`).
+  - Typed outcomes: decoded, timeout, no-signal, cancelled, unsupported, denied.
+  - Idempotent dispose and a watchdog for stalled playback.
+- [x] Session record bound to network, DAO, proposal, recipient, amount, attendee, nonce and expiry: the protocol v1 vectors in `contracts/ceremony-gate/tests/vectors.json`.
+- [x] Verifier semantics, tested in the gate:
+  - replay, a changed amount or proposal, the wrong signer, duplicates and expiry are all rejected
+  - a live relay is **not** prevented, and this is disclosed
+- [x] Evidence so far:
+  - **Software:** real ggwave round trips.
+  - **Same-laptop physical loopback through `/acoustic-check/`:** 26 of 27 decoded. audible-fast takes about 2 s per 20-character frame, and audible-fastest about 1.3 s.
+- [ ] **Two-device physical test** (laptop ↔ phone, quiet and noisy): [docs/testing/acoustic-check-manual.md](docs/testing/acoustic-check-manual.md) Part B. A human must run it.
+
+### A. Vision engine research (deprioritized for the deadline)
+
+- [ ] A small consented capture evaluation for the provisional unlock threshold, as above. DINOv3, LightGlue and WebGPU are out of scope before submission.
 
 ### E. Evidence and hardening
 
-- [ ] Contract/backend/engine tests with real integrations; property/invariant tests where meaningful for nonce, policy, replay and execution state. Record observed failures and your coverage limits.
-- [ ] Reproducible sensor/recognition/device benchmarks and adversarial test reports. Keep model weights reproducibly fetchable and pinned, not committed binary blobs. No private captures, signing material or generated test reports in Git.
-- [ ] Provide a security/limitations review and exact testnet deployment details. A self-review or green test suite is not a security audit.
-- [ ] Deliver one complete proposal-bound testnet approval/payment path before optional model upgrades or cross-chain work. Do not spend the whole hackathon on an unintegrated research engine.
+- [x] Contract, engine and live-testnet tests with honest labels: recorded fixtures carry provenance, and software-only audio is labelled.
+- [x] A clean-clone reproduction passed (`npm ci` + full web check, contract fetch + tests + clippy). The deployed gate code hash equals the clean-clone build on our toolchain; it is not Docker-reproducible.
+- [x] Testnet deployment record and threat model.
+- [ ] Final security/limitations section in the README for judges.
 
-## Boundaries and handoff contracts
+## Next steps, in order
 
-You own new `contracts/`, `services/`, `web/src/engines/`, engine evaluation scripts and engine/security documentation. These are ownership reservations, not existing implemented modules. Do not rewrite React screens, readiness, the local object store/controller, routing or design assets. Existing baseline worker/client/manifest files remain owned by Context 1 until a reviewed transfer; build a replacement behind an agreed adapter rather than modifying the same files in parallel.
+1. **Wire the engines into the app** (shared with Context 1 and coordinated on `WorkspacePage.tsx`):
+   - Build `web/src/engines/services.ts`, which implements `AppServices`, and apply the proposed interface v2 changes in [the engines guide](docs/integration/context-two-engines.md).
+   - Bind it in `web/src/integration/bindings.ts` behind configuration, and update `tests/integration-boundary.test.ts`.
+   - UI changes: an account name plus the object unlock, the treasury view with tiers and enforcement, Host/Join ceremony controls, and receipts.
+2. **Public read-only board `/board/?dao=`:** policy, tiers, proposals, sessions, attendance and payouts with explorer links. No keys needed, so judges can use it.
+3. **Two-device manual test (M2):** three devices create accounts, then create and fund a treasury, propose from an invoice, run the ceremony, execute, and check the receipt and CSV. Also test reload and reconcile.
+4. **Lock the gate, rewrite the README for judges and add a LICENSE.** The human handles the demo video, publishes the repository, posts on X and submits.
 
-Before substantial implementation, publish small versioned interface proposals in your PR; Context 1 reviews them. The following are integration requirements, not implemented endpoints:
+## Ownership and Git
 
-| Boundary | Minimum shared contract |
-|---|---|
-| Vision | Async extraction/comparison with cancellation, exact model/preprocessor/schema identity, quality/retry errors and measured timing. Current baseline returns 384 normalized values; incompatible revisions require explicit re-enrollment. Do not add authentication semantics to a vector-returning adapter. |
-| Account/access | Network/account identity, explicit signer/custody boundary, authorization result, recovery/revocation state and typed failures; never expose a secret key through UI status data. |
-| Acoustic/session | Create/start/listen/cancel/dispose; bound session/proposal identity, participant progress, expiry and typed terminal outcomes. Decoded bytes cannot directly cast a vote. |
-| Treasury | Read authoritative policy/members/balances; create/read proposal; independently authorize/approve; execute/reconcile. Bind network, account/treasury IDs, proposal content and nonce. Amounts use atomic-unit strings, not floating-point currency. |
-| Receipt | Version, network, treasury/proposal/invoice IDs, recipient, asset/decimals, atomic amount, state, timestamps and transaction evidence. Include pending/unknown/failed/refunded states where supported. |
-
-Agree lifecycle/error semantics and one real integration test before either lane builds against a new boundary. Never hand over hardcoded success adapters as if the engine were finished. Separate services/contracts may own their own manifests; coordinate root web package/lockfile changes through Context 1.
-
-## Priority and Git protocol
-
-1. Read current evidence and agree custody/account + treasury interfaces; unblock the smallest real testnet path.
-2. In parallel within this lane, establish measured vision/acoustic baselines. Do not enable an uncalibrated access rule.
-3. Deliver enforcement/attestation and real acoustic session integration, then payment reconciliation and the business-invoice path.
-4. Harden and measure; only then pursue optional heavier model/codec/cross-chain extensions.
-
-Start from the commit containing this context pair on `feat/object-registration` (or its reviewed merge into main), not an assumed newer main. Use your own branch, e.g. `feat/engines-security`, and isolated workspace. Open small PRs by engine or contract; do not force-push shared history or merge without review. Context 1 coordinates root web dependencies and integrated releases. Keep your checkboxes current in Context 2; do not mark UI integration or physical acceptance complete on the other lane's behalf.
-
-Each independently testable engine milestone has automated evidence and a physical/manual checkpoint where required. Context 1's Feature 2 manual gate remains in force for the app journey; isolated research and backend work may progress concurrently under this new two-lane split. New consequential security choices still follow the project's design/review process.
-
-## Track responsibilities and definition of done
-
-Social Money: your real treasury policy, independent authorization and payout underpin Context 1's team experience. Open Innovation: measured object/acoustic behavior and limits connected to that NEAR proposal. Real-World Money: canonical invoice payment and reconciliation underpin the UI's receipt/CSV; it remains conditional until the complete flow works. Context 1 owns final rule rechecks and submission narrative; neither lane independently promises organizer acceptance or publishes a submission.
-
-Your lane is done when its agreed APIs run on real engines/testnet, failure/security tests and device measurements are documented, deployment/provenance is reproducible, and Context 1 can integrate the complete payout flow without fabricating any successful state. Integration acceptance is shared; code ownership stays separate.
+- **Context 2 owns:** `contracts/`, `web/src/engines/`, the engine scripts in `web/scripts/` and the engine/security docs.
+- **Context 1 owns:** the existing screens, the object-registration controller and the workspace journal. Interface changes are reviewed across lanes.
+- **Git:** use feature branches and reviewed PRs, with no force-pushes and no unreviewed merges into `main`.
+- **Never commit:**
+  - keys (testnet keys live in `~/.near-credentials`)
+  - captures
+  - generated reports
+  - the fetched `tests/res/*.wasm`

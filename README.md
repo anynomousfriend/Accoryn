@@ -1,59 +1,93 @@
-# Team Treasury
+# Team Treasury (working name, repository: Accoryn)
 
-A new software-only research project for shared treasury approvals on NEAR. The product name is being selected.
+A NEAR testnet treasury for small teams. A shared payment is approved together in a meeting:
+1. Each member has an app-made NEAR account, unlocked locally with a personal object.
+2. One device broadcasts a short challenge by sound.
+3. Members who heard it attest from their own accounts.
+4. A ceremony gate contract approves the transfer in the team's Sputnik DAO only when enough members attended for that amount.
 
-Development proceeds in tested feature checkpoints. Each release includes automated checks and a manual device checklist. Work on the next feature waits for feedback on the current checkpoint.
+Built for NEAR HACKATHON (development ends 2026-11-14T23:59Z). Testnet only.
 
-## Current status
+## What works today
 
-Development is now **features first**. Visual redesign is paused. The app opens directly on the first functional checkpoint; each subsequent feature waits for the user's manual acceptance of the previous one.
+| Area | Status |
+|---|---|
+| Device checks (`/`, `/device-check/`) | Real camera, microphone and speaker checks |
+| Object registration (`/object-registration/`) | Three-view capture, local DINOv2 inference, local template, similarity scores. No unlock threshold yet |
+| Invoice drafts (`/workspace/`) | Exact amounts, review, local storage, CSV formatting. NEAR actions are **disabled** until the engines are bound |
+| Acoustic check lab (`/acoustic-check/`) | Real sound exchange of a fresh 20-character ceremony challenge between two devices |
+| Ceremony gate contract | Live on testnet at [`ceremony-gate-v1.accoryn.testnet`](https://testnet.nearblocks.io/address/ceremony-gate-v1.accoryn.testnet); it is the only account allowed to approve transfers in gated DAOs |
+| Engines (`web/src/engines/`) | Ceremony crypto, ggwave modem, Sputnik policy/parsing, settlement verification, RPC client, keystore, app-made accounts, transaction journal |
+| Not yet | Engines wired into the workspace screens; public board; two-device acceptance; locking the gate's developer key |
 
-See [functional checkpoint status](docs/FEATURE_STATUS.md) for what is implemented, what automation verified, and the current manual test gate.
+**How NEAR is used:**
+- The Sputnik DAO holds the funds and the policy.
+- The gate contract enforces amount tiers and the meeting attestation on-chain.
+- Settlement is read back from the chain, never assumed.
 
-Feature 01 implements a real camera preview and in-memory frame capture, measured microphone input, and a speaker test requiring explicit audibility confirmation. Reset/stop releases device access. Physical-device acceptance is pending.
+**Verified on testnet** (proposal → session → two attestations → gate vote → exactly 0.05 NEAR paid): see [docs/deployment/testnet.md](docs/deployment/testnet.md).
 
-Previous visual work is retained at `/landing/` and `/design/` for later. The [editable reference](docs/design/experience-system.md) documents those components; it is not the current development priority.
+## Run it locally
 
-| Route | What it does |
-| --- | --- |
-| `/` | Opens Feature 1: real device-readiness checks |
-| `/device-check/` | Runs real device checks |
-| `/landing/` | Previous visual preview, retained for later |
-| `/design/` | Labelled component/status/motion specimens; no transaction |
-| `/design/?content=long` | Reference with long labels/identifiers |
-
-Approved first checkpoint: [device readiness](docs/superpowers/specs/2026-11-12-device-readiness-design.md). Follow the [manual acceptance checklist](docs/testing/feature-01-device-readiness.md). No wallet, object recognition, acoustic proximity verification, or payment execution is included yet.
-
-## Local development
-
-Requires Node.js 22.18+ (CI uses Node 24), npm, and Chrome for the local browser tests.
+Requires Node.js 22.18+ and Chrome. The contract work also needs Rust (pinned by `contracts/ceremony-gate/rust-toolchain.toml`), the `wasm32-unknown-unknown` target and `cargo-near` 0.22.0.
 
 ```sh
 npm ci --prefix web
-npm run dev --prefix web
+npm run dev --prefix web       # http://127.0.0.1:5173/
+npm run dev:lan --prefix web   # HTTPS on your LAN (self-signed) so phones can use camera/microphone
 ```
 
-Open `http://127.0.0.1:5173/` on the development laptop. Phones require the private HTTPS preview supplied with the release; plain HTTP LAN access cannot exercise capture permissions.
+| Route | Do | Expect |
+|---|---|---|
+| `/device-check/` | Start each check | Live camera preview, microphone level, speaker tone confirmation |
+| `/object-registration/` | Capture three views, save, compare | Similarity scores; nothing uploaded |
+| `/workspace/` | Draft an invoice | Exact totals and review; NEAR actions are shown as unavailable |
+| `/acoustic-check/` | Broadcast on one device, listen on another | Matching check codes within about 2–6 s |
+
+## Tests
 
 ```sh
-npm test --prefix web
-npm run typecheck --prefix web
-npm run test:browser --prefix web
-npm run build --prefix web
+npm run check --prefix web    # 168 unit tests (2 live ones skipped), browser tests, build, production smoke
+cd contracts/ceremony-gate && ./scripts/fetch-sputnik-wasm.sh && cargo test   # 16 unit + 5 sandbox
 ```
 
-The [GitHub Actions template](docs/testing/github-actions.example.yml) installs Playwright Chromium and uses it instead of the local Chrome channel. It is not active: the current GitHub token lacks permission to create workflow files. Local checks are available through `npm run check --prefix web`. Tests never enable fake capture devices or inject successful sensor responses. Physical capture and audibility remain manual checks.
+- **Complete local guide**, including live-testnet runs with your own free testnet accounts: [docs/testing/context-two-local.md](docs/testing/context-two-local.md).
+- **Physical sound test between two devices:** [docs/testing/acoustic-check-manual.md](docs/testing/acoustic-check-manual.md).
+- **Test policy:** tests never inject fake capture devices or fake successful responses. Recorded testnet responses in `web/tests/fixtures/` carry provenance. Software-only audio tests are labelled as such.
 
-Styling uses Tailwind CSS. Installed project design skills are pinned in `skills-lock.json`; their local instruction files are excluded from application source.
+## Documentation map
 
-The native tab-visibility test opens an isolated temporary Chrome profile. Linux runners need `xvfb-run -a npm run test:browser --prefix web`. Production builds emit actual HTML entries for deep routes. Fonts and artwork are local to the build.
+- **Read first:**
+  - [AGENTS.md](AGENTS.md)
+  - [CONTEXT_1.md](CONTEXT_1.md): the app lane
+  - [CONTEXT_2.md](CONTEXT_2.md): the engine/security lane
+- **Engine API and integration plan:** [docs/integration/context-two-engines.md](docs/integration/context-two-engines.md).
+- **App adapter contract:** [docs/integration/context-one-adapter.md](docs/integration/context-one-adapter.md).
+- **Security model and limits:** [docs/security/ceremony-threat-model.md](docs/security/ceremony-threat-model.md).
+- **Feature status:** [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md).
+- **Tracks and evidence:** [docs/hackathon/track-alignment.md](docs/hackathon/track-alignment.md).
 
-The [track-evidence roadmap](docs/hackathon/track-alignment.md) targets Social Money, Open Innovation alongside it and Real-World Money after a complete business payout. The UI alone is not a completed NEAR integration. [DINOv2-small and ggwave are recommended baselines](docs/research/vision-audio-baselines.md); neither is integrated in this release.
+## Limits, stated plainly
+
+- **The object scan is a local convenience unlock.** A photo is not a secret, and app-made keys are stored in the browser.
+- **Sound shows that devices communicated, not who is in the room.** A challenge can be relayed live, and one person can control several accounts.
+- **Governance can override the ceremony.** G = max(2, N−1) members can change the DAO policy or remove the gate. This is how a lost member is replaced.
+- **The gate is still upgradeable.** It still has a developer key until it is locked before submission.
 
 ## Engineering rules
 
 - Use real browser and blockchain APIs; label unimplemented behavior clearly.
-- Camera/microphone checks require localhost or HTTPS and explicit user permission.
-- No external hardware, NFC, tags, readers, or security keys.
-- Document the assumptions and limitations of object-only access and acoustic participation.
-- Never commit keys, captures, local certificates, or environment secrets.
+- No external hardware, NFC, tags, readers or security keys.
+- Never commit keys, captures, local certificates, environment secrets or fetched contract binaries.
+
+## Third-party code and tools
+
+- **Libraries:**
+  - React, Vite, Tailwind
+  - Transformers.js with DINOv2-small
+  - near-api-js 7.5.3
+  - `@noble/curves` and `@noble/hashes`
+  - ggwave 0.4.0, with the modem ported from the owner's earlier Proof-of-vicinity prototype
+  - near-sdk 5.29, near-sandbox and near-api, for the contract and its tests
+- **Existing NEAR infrastructure:** the Sputnik DAO v2 contract (`sputnikv2.testnet`).
+- **AI tools:** AI coding assistants (Claude Code and Codex) were used during development.

@@ -2,6 +2,31 @@
 
 Updated: 2026-11-13. Owner: this working session and the user. The other contributor's lane is [Context 2](CONTEXT_2.md). These two tracked files replace the old discovery brief as the shared development context. Read AGENTS.md first.
 
+> **Incoming from Context 2 (2026-11-13), read before continuing this lane.**
+>
+> **Decisions, now specified:** Context 2 has specified and its owner has approved the custody, enforcement and verifier design, so the "unfinished architecture" caveat below is resolved for testnet.
+> - Custody is object-only app-made accounts with an IndexedDB key; the object is a local unlock only.
+> - The on-chain ceremony gate is the DAO's only transfer approver.
+>
+> See [CONTEXT_2.md](CONTEXT_2.md) and [the threat model](docs/security/ceremony-threat-model.md).
+>
+> **Delivered:**
+> - the gate, live on testnet;
+> - engines under `web/src/engines/`;
+> - the `/acoustic-check/` lab route;
+> - `npm run dev:lan` (HTTPS for phones);
+> - testnet scripts;
+> - a pre-bundling fix for a cold-start Vite reload that broke `object-controller.spec.ts`.
+>
+> **Not changed:** `bindings.ts` still exposes no capabilities, and no existing Context 1 screen changed behavior.
+>
+> **Coordination:** the Context 2 owner allowed that lane to also edit UI and routes through reviewed PRs, to meet the deadline. Coordinate before editing `WorkspacePage.tsx`.
+>
+> **Where to go next:**
+> - Integration plan and the proposed `AppServices` v2: [docs/integration/context-two-engines.md](docs/integration/context-two-engines.md).
+> - Reproduce everything locally: [docs/testing/context-two-local.md](docs/testing/context-two-local.md).
+> - **npm 11 pitfall:** `npm install <pkg>` prunes two `@emnapi` lock entries and breaks `npm ci`. Restore them from `main`'s lockfile, as described in the engines guide.
+
 ## Product and fixed decisions
 
 Accoryn is the shared repository name; app-wide branding is still undecided. Build a new mobile/desktop web app for teams approving treasury payments together. The intended journey is personal-object research access → shared NEAR treasury → exact payment review → acoustic participation exchange → explicit independent approvals → authoritative settlement and receipt.

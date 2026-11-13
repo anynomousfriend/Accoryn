@@ -10,6 +10,8 @@ Network: NEAR **testnet** only. No mainnet contract or funds are involved.
 | Sputnik DAO factory | `sputnikv2.testnet` | default DAO code hash `AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH` (DAO v2.3.1) | Existing NEAR infrastructure; not ours. |
 | Spike treasury | [`accoryn-spike.sputnikv2.testnet`](https://testnet.nearblocks.io/address/accoryn-spike.sputnikv2.testnet) | factory default | Created with the gated policy (Requestor/Admin = alice, bob, carol; Approver = the gate only). Create tx [`6xUWKjSV…`](https://testnet.nearblocks.io/txns/6xUWKjSVkbeQe41nw7QacfUupiA1PviRWzrpoXVphWns). |
 
+| Demo treasury | [`accoryn-demo.sputnikv2.testnet`](https://testnet.nearblocks.io/address/accoryn-demo.sputnikv2.testnet) | factory default | Created by `web/scripts/create-gated-dao-testnet.ts` (tx [`3nEkmDrB…`](https://testnet.nearblocks.io/txns/3nEkmDrBLMsxyxp1CYK3vYKTSuN7m8mNyS7Adp7djMQm)). The stored policy passed `checkPolicyConformance`. A full ceremony payout ran on it: proposal 0, gate vote [`4cRDDg4u…`](https://testnet.nearblocks.io/txns/4cRDDg4us3deu25cntFZoEExek6tDUwzrLUy71nBH1nY). |
+
 **Lock status: the gate still has one full-access key** held by the developers, so it can currently be upgraded. It will be locked (all keys deleted, verified with `view_access_key_list`) before submission, after the app integration has run against it. Until then, treat the gate as developer-controlled. After locking, fixes require deploying a new gate and switching each DAO to it through governance.
 
 The build is not yet reproducible (Docker was unavailable), so the code hash above identifies the deployed bytes but cannot be independently rebuilt bit-for-bit. Anyone can still read the source at the commit noted in this file's history and compare behavior.
@@ -34,9 +36,15 @@ The script verified, from chain data only: proposal status `Approved`, exactly o
 
 Earlier, on the same treasury, a human member's direct `VoteApprove` on a transfer failed with `ERR_PERMISSION_DENIED` (tx [`243Qb7ww…`](https://testnet.nearblocks.io/txns/243Qb7wwWDtXN6yyAiq6g1fVUjjppLkSpRuCbQ8ACHfB)).
 
+## Transaction journal (live)
+
+`ACCORYN_LIVE_TESTNET=1 node --test tests/near-live-testnet.test.ts` passed three times on 2026-11-13. Each run checks two things:
+- a journaled 1-yocto transfer reconciles as final, and resubmitting the same request does not send a second transaction (for example [`GisScTWU…`](https://testnet.nearblocks.io/txns/GisScTWUH261pfkhJax7Mnm1cuAc7debnmDipCd4oRjw));
+- a signed transaction that was never delivered reconciles as `expired`, but only after its nonce is verifiably consumed.
+
 ## Development accounts
 
-`accoryn.testnet` (gate parent), `accoryn-alice.testnet`, `accoryn-bob.testnet`, `accoryn-carol.testnet`, `accoryn-payee.testnet`: faucet-funded testnet accounts. Their keys live in the developer's local near-cli keychain and are never committed.
+`accoryn.testnet` (gate parent), `accoryn-alice.testnet`, `accoryn-bob.testnet`, `accoryn-carol.testnet`, `accoryn-payee.testnet`: faucet-funded testnet accounts. Their keys live in the developer's local near-cli keychain and are never committed. `accoryn-io-c3c5066d.testnet` (and `sub.accoryn-io-c3c5066d.testnet`) were created once by the testnet-helper verification and are throwaway; their keys were kept only in memory.
 
 ## Reproduce
 
