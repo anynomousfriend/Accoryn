@@ -21,8 +21,8 @@ import { TxJournal, createMemoryTxRecordStore } from "../src/engines/near/txjour
 import type { JournalRpc } from "../src/engines/near/txjournal.ts";
 
 const live = process.env.ACCORYN_LIVE_TESTNET === "1";
-const SENDER = "accoryn-carol.testnet";
-const PAYEE = "accoryn-payee.testnet";
+const SENDER = process.env.ACCORYN_LIVE_SENDER ?? "accoryn-carol.testnet";
+const PAYEE = process.env.ACCORYN_LIVE_PAYEE ?? "accoryn-payee.testnet";
 
 function signerFromKeychain(accountId: string): KeyPairSigner {
   const file = join(homedir(), ".near-credentials", "testnet", `${accountId}.json`);
