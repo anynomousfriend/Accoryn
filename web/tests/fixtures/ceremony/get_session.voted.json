@@ -1,0 +1,40 @@
+{
+ "recordedFrom": {
+  "network": "testnet",
+  "accountId": "ceremony-gate-v1.accoryn.testnet",
+  "method": "get_session",
+  "note": "Real testnet RPC response recorded by scripts/smoke-ceremony-testnet.ts; not a mock."
+ },
+ "result": {
+  "session_id": "1",
+  "dao_id": "accoryn-spike.sputnikv2.testnet",
+  "proposal_id": 1,
+  "host": "accoryn-alice.testnet",
+  "session_pk": "ed25519:6osrwDbQxpTrREpBynRKRkr6xu3YLnocP4zMX8xUqZXM",
+  "receiver_id": "accoryn-payee.testnet",
+  "amount": "50000000000000000000000",
+  "eligible": [
+   "accoryn-alice.testnet",
+   "accoryn-bob.testnet",
+   "accoryn-carol.testnet"
+  ],
+  "attestations": [
+   {
+    "account_id": "accoryn-alice.testnet",
+    "at": "1794576590319394411"
+   },
+   {
+    "account_id": "accoryn-bob.testnet",
+    "at": "1794576593895497704"
+   }
+  ],
+  "required": 2,
+  "opened_at": "1794576586492789467",
+  "expires_at": "1794576886492789467",
+  "status": "Voted",
+  "last_error": null,
+  "evidence_txs": [
+   "4NKh8ik6P9a66RfDyUsaVNpbYSPVnBPmjNJwon2swzw5"
+  ]
+ }
+}

@@ -1,0 +1,1313 @@
+{
+ "recordedFrom": {
+  "network": "testnet",
+  "method": "EXPERIMENTAL_tx_status",
+  "txHash": "4NKh8ik6P9a66RfDyUsaVNpbYSPVnBPmjNJwon2swzw5",
+  "senderId": "accoryn-carol.testnet",
+  "note": "Real testnet RPC response recorded by scripts/smoke-ceremony-testnet.ts; not a mock."
+ },
+ "result": {
+  "final_execution_status": "FINAL",
+  "receipts": [
+   {
+    "predecessor_id": "accoryn-carol.testnet",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "FunctionCall": {
+         "args": "eyJkYW9faWQiOiJhY2NvcnluLXNwaWtlLnNwdXRuaWt2Mi50ZXN0bmV0IiwicHJvcG9zYWxfaWQiOjF9",
+         "deposit": "0",
+         "gas": 300000000000000,
+         "method_name": "execute"
+        }
+       }
+      ],
+      "gas_price": "1000000000",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "7vj69Jhmo4rWNjRmuGDfNzdke66GNGVC7KcCQ6a1gDpL",
+    "receiver_id": "ceremony-gate-v1.accoryn.testnet"
+   },
+   {
+    "predecessor_id": "ceremony-gate-v1.accoryn.testnet",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "FunctionCall": {
+         "args": "eyJpZCI6MSwiYWN0aW9uIjoiVm90ZUFwcHJvdmUiLCJwcm9wb3NhbCI6eyJUcmFuc2ZlciI6eyJ0b2tlbl9pZCI6IiIsInJlY2VpdmVyX2lkIjoiYWNjb3J5bi1wYXllZS50ZXN0bmV0IiwiYW1vdW50IjoiNTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJtc2ciOm51bGx9fSwibWVtbyI6ImFjY29yeW4tY2VyZW1vbnk6djE6c2Vzc2lvbj0xOmF0dGVuZGVlcz0yIn0=",
+         "deposit": "0",
+         "gas": 150000000000000,
+         "method_name": "act_proposal"
+        }
+       }
+      ],
+      "gas_price": "1000000000",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [
+       {
+        "data_id": "G9W9UTeHdUnCqxZpzt27exd7J7hDG8Qbgqv1wrromNTW",
+        "receiver_id": "ceremony-gate-v1.accoryn.testnet"
+       }
+      ],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "522VFtEwpdNg6PeFHSXUP48QMBRjQvADcgndvy6G9Qtt",
+    "receiver_id": "accoryn-spike.sputnikv2.testnet"
+   },
+   {
+    "predecessor_id": "accoryn-spike.sputnikv2.testnet",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "50000000000000000000000"
+        }
+       }
+      ],
+      "gas_price": "1000000000",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [
+       {
+        "data_id": "5KKhqFBBP5wqk1H3VJjuTat2tphuUAiy6EqXY2yehacn",
+        "receiver_id": "accoryn-spike.sputnikv2.testnet"
+       }
+      ],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "HoMGSFPbKpfuMaEcTrJi5ZW3dt6DrZX54hVXfd7mPZTD",
+    "receiver_id": "accoryn-payee.testnet"
+   },
+   {
+    "predecessor_id": "system",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "200864306250000000000"
+        }
+       }
+      ],
+      "gas_price": "0",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "DF8vqjV9V8wve6uCKosQzXPyuumgq4CbLshLGB8DiinT",
+    "receiver_id": "accoryn-carol.testnet"
+   },
+   {
+    "predecessor_id": "accoryn-spike.sputnikv2.testnet",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "FunctionCall": {
+         "args": "eyJwcm9wb3NhbF9pZCI6MX0=",
+         "deposit": "0",
+         "gas": 10000000000000,
+         "method_name": "on_proposal_callback"
+        }
+       }
+      ],
+      "gas_price": "1000000000",
+      "input_data_ids": [
+       "5KKhqFBBP5wqk1H3VJjuTat2tphuUAiy6EqXY2yehacn"
+      ],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "8cPpZtio7KLRCgKSbJhx1Q51azv3KPocyg1MYa3jbHf3",
+    "receiver_id": "accoryn-spike.sputnikv2.testnet"
+   },
+   {
+    "predecessor_id": "accoryn-spike.sputnikv2.testnet",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "0"
+        }
+       }
+      ],
+      "gas_price": "1000000000",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "FTvL6zr2DkeUZhNnA4kU8GHC1bYWrtkkSEPpGqno9UqE",
+    "receiver_id": "accoryn-alice.testnet"
+   },
+   {
+    "predecessor_id": "system",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "200864306250000000000"
+        }
+       }
+      ],
+      "gas_price": "0",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "Edpp3PZE5VBTjdGrwwDt3VFUBJRos2U1u4qsBAeNgtqz",
+    "receiver_id": "accoryn-carol.testnet"
+   },
+   {
+    "predecessor_id": "system",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "10404561822819400000000"
+        }
+       }
+      ],
+      "gas_price": "0",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "3Uv8Yxquq6RjRL6qXrgLkwguhcApm4NiUnMBB3PLoAPF",
+    "receiver_id": "accoryn-carol.testnet"
+   },
+   {
+    "predecessor_id": "system",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "139458866227437000000000"
+        }
+       }
+      ],
+      "gas_price": "0",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "3ptgZFd9PWNweunYYwmaHgXyrgTDf67FxyXx77zwsdFw",
+    "receiver_id": "accoryn-carol.testnet"
+   },
+   {
+    "predecessor_id": "ceremony-gate-v1.accoryn.testnet",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "FunctionCall": {
+         "args": "eyJkYW9faWQiOiJhY2NvcnluLXNwaWtlLnNwdXRuaWt2Mi50ZXN0bmV0IiwicHJvcG9zYWxfaWQiOjEsInNlc3Npb25faWQiOiIxIiwiYW1vdW50IjoiNTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJ3aW5kb3dfaWQiOiIyMDc3MCJ9",
+         "deposit": "0",
+         "gas": 30000000000000,
+         "method_name": "on_voted"
+        }
+       }
+      ],
+      "gas_price": "1000000000",
+      "input_data_ids": [
+       "G9W9UTeHdUnCqxZpzt27exd7J7hDG8Qbgqv1wrromNTW"
+      ],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "A5kNErr591zQz6N7ZcJ5ohzrhV9QanaLzY5Dxi84PzRJ",
+    "receiver_id": "ceremony-gate-v1.accoryn.testnet"
+   },
+   {
+    "predecessor_id": "system",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "30664875232507600000000"
+        }
+       }
+      ],
+      "gas_price": "0",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "GeC4a8HvSfYfDdFgrs7FuESt6px1pvdLvQEP6821CuRr",
+    "receiver_id": "accoryn-carol.testnet"
+   },
+   {
+    "predecessor_id": "system",
+    "priority": 0,
+    "receipt": {
+     "Action": {
+      "actions": [
+       {
+        "Transfer": {
+         "deposit": "118814668395937800000000"
+        }
+       }
+      ],
+      "gas_price": "0",
+      "input_data_ids": [],
+      "is_promise_yield": false,
+      "output_data_receivers": [],
+      "signer_id": "accoryn-carol.testnet",
+      "signer_public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV"
+     }
+    },
+    "receipt_id": "Co3fqReW3nd42sUKtmeoY1axHvrGWqpMyVCoJoG3L9Wj",
+    "receiver_id": "accoryn-carol.testnet"
+   }
+  ],
+  "receipts_outcome": [
+   {
+    "block_hash": "FCnYZ1wFybeQMTBTkHH1uGtjB3LDK2w4SDK2Xc2dPEJN",
+    "id": "7vj69Jhmo4rWNjRmuGDfNzdke66GNGVC7KcCQ6a1gDpL",
+    "outcome": {
+     "executor_id": "ceremony-gate-v1.accoryn.testnet",
+     "gas_burnt": 2966214472682,
+     "logs": [
+      "EVENT_JSON:{\"standard\":\"accoryn_ceremony\",\"version\":\"1.0.0\",\"event\":\"execute_started\",\"data\":[{\"dao_id\":\"accoryn-spike.sputnikv2.testnet\",\"proposal_id\":1,\"session_id\":\"1\",\"executor\":\"accoryn-carol.testnet\",\"required\":2,\"count\":2}]}"
+     ],
+     "metadata": {
+      "contracts": [
+       {
+        "local": "6RyhWz4BnSszxQg88ysQnECuFm2KWUXLUrdqVKtTcfBm"
+       }
+      ],
+      "gas_profile": [
+       {
+        "cost": "FUNCTION_CALL_BASE",
+        "cost_category": "ACTION_COST",
+        "gas_used": "400000000000"
+       },
+       {
+        "cost": "FUNCTION_CALL_BYTE",
+        "cost_category": "ACTION_COST",
+        "gas_used": "10708080630"
+       },
+       {
+        "cost": "NEW_ACTION_RECEIPT",
+        "cost_category": "ACTION_COST",
+        "gas_used": "289092464624"
+       },
+       {
+        "cost": "BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "7943043330"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "35445963"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BYTES",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "290935444370"
+       },
+       {
+        "cost": "LOG_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3543313050"
+       },
+       {
+        "cost": "LOG_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3048920721"
+       },
+       {
+        "cost": "PROMISE_RETURN",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "560152386"
+       },
+       {
+        "cost": "READ_CACHED_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "70680000000"
+       },
+       {
+        "cost": "READ_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "52197264000"
+       },
+       {
+        "cost": "READ_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "5356078197"
+       },
+       {
+        "cost": "READ_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "12585825930"
+       },
+       {
+        "cost": "READ_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "57954456"
+       },
+       {
+        "cost": "STORAGE_READ_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "225427382996"
+       },
+       {
+        "cost": "STORAGE_READ_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3745256493"
+       },
+       {
+        "cost": "STORAGE_READ_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "2665226900"
+       },
+       {
+        "cost": "STORAGE_WRITE_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "192590208000"
+       },
+       {
+        "cost": "STORAGE_WRITE_EVICTED_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "15255720825"
+       },
+       {
+        "cost": "STORAGE_WRITE_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "5991043695"
+       },
+       {
+        "cost": "STORAGE_WRITE_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "15974547585"
+       },
+       {
+        "cost": "TOUCHING_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "36480000000"
+       },
+       {
+        "cost": "UTF8_DECODING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "9335337183"
+       },
+       {
+        "cost": "UTF8_DECODING_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "85724660826"
+       },
+       {
+        "cost": "WASM_INSTRUCTION",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "295732239396"
+       },
+       {
+        "cost": "WRITE_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "16822769166"
+       },
+       {
+        "cost": "WRITE_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "1645158288"
+       },
+       {
+        "cost": "WRITE_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "20058657402"
+       },
+       {
+        "cost": "WRITE_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3812968692"
+       }
+      ],
+      "version": 4
+     },
+     "receipt_ids": [
+      "522VFtEwpdNg6PeFHSXUP48QMBRjQvADcgndvy6G9Qtt",
+      "A5kNErr591zQz6N7ZcJ5ohzrhV9QanaLzY5Dxi84PzRJ",
+      "Co3fqReW3nd42sUKtmeoY1axHvrGWqpMyVCoJoG3L9Wj"
+     ],
+     "status": {
+      "SuccessReceiptId": "A5kNErr591zQz6N7ZcJ5ohzrhV9QanaLzY5Dxi84PzRJ"
+     },
+     "tokens_burnt": "296621447268200000000"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "EEZEAe6j48HPJeysft5KKSQ1FcCSx5VLH1ptFJjWQHWq"
+     }
+    ]
+   },
+   {
+    "block_hash": "FpgTmbAMfaQAZnsF7NtFZE6BzfDvruh7fmRp5NNKcRXY",
+    "id": "522VFtEwpdNg6PeFHSXUP48QMBRjQvADcgndvy6G9Qtt",
+    "outcome": {
+     "executor_id": "accoryn-spike.sputnikv2.testnet",
+     "gas_burnt": 3183559141170,
+     "logs": [
+      "Memo: accoryn-ceremony:v1:session=1:attendees=2"
+     ],
+     "metadata": {
+      "contracts": [
+       {
+        "local": "AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH"
+       }
+      ],
+      "gas_profile": [
+       {
+        "cost": "FUNCTION_CALL_BASE",
+        "cost_category": "ACTION_COST",
+        "gas_used": "200000000000"
+       },
+       {
+        "cost": "FUNCTION_CALL_BYTE",
+        "cost_category": "ACTION_COST",
+        "gas_used": "82729558"
+       },
+       {
+        "cost": "NEW_ACTION_RECEIPT",
+        "cost_category": "ACTION_COST",
+        "gas_used": "289092464624"
+       },
+       {
+        "cost": "TRANSFER",
+        "cost_category": "ACTION_COST",
+        "gas_used": "115123062500"
+       },
+       {
+        "cost": "BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "9002115774"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "35445963"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BYTES",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "587834778865"
+       },
+       {
+        "cost": "LOG_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3543313050"
+       },
+       {
+        "cost": "LOG_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "620343177"
+       },
+       {
+        "cost": "READ_CACHED_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "38760000000"
+       },
+       {
+        "cost": "READ_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "41757811200"
+       },
+       {
+        "cost": "READ_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "2505078447"
+       },
+       {
+        "cost": "READ_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "20137321488"
+       },
+       {
+        "cost": "READ_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "258626688"
+       },
+       {
+        "cost": "STORAGE_READ_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "281784228745"
+       },
+       {
+        "cost": "STORAGE_READ_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "2754775437"
+       },
+       {
+        "cost": "STORAGE_READ_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "11900939484"
+       },
+       {
+        "cost": "STORAGE_WRITE_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "128393472000"
+       },
+       {
+        "cost": "STORAGE_WRITE_EVICTED_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "9346136337"
+       },
+       {
+        "cost": "STORAGE_WRITE_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "986760138"
+       },
+       {
+        "cost": "STORAGE_WRITE_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "12035193132"
+       },
+       {
+        "cost": "TOUCHING_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "45600000000"
+       },
+       {
+        "cost": "UTF8_DECODING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "9335337183"
+       },
+       {
+        "cost": "UTF8_DECODING_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "28866467421"
+       },
+       {
+        "cost": "WASM_INSTRUCTION",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "387510671196"
+       },
+       {
+        "cost": "WRITE_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "25234153749"
+       },
+       {
+        "cost": "WRITE_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "7190758080"
+       },
+       {
+        "cost": "WRITE_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "25789702374"
+       },
+       {
+        "cost": "WRITE_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "9530520948"
+       }
+      ],
+      "version": 4
+     },
+     "receipt_ids": [
+      "HoMGSFPbKpfuMaEcTrJi5ZW3dt6DrZX54hVXfd7mPZTD",
+      "8cPpZtio7KLRCgKSbJhx1Q51azv3KPocyg1MYa3jbHf3",
+      "3ptgZFd9PWNweunYYwmaHgXyrgTDf67FxyXx77zwsdFw"
+     ],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "318355914117000000000"
+    },
+    "proof": [
+     {
+      "direction": "Right",
+      "hash": "61vBxyj83XybG9zqnSF16uZg5ysT6NJmvvv53JCzjamt"
+     },
+     {
+      "direction": "Right",
+      "hash": "9RzVbiDGhdKcHuCBHC34JGN4tc4cMoJHRZffW4WDXRH"
+     }
+    ]
+   },
+   {
+    "block_hash": "8D4bPxSGuPXgis1Ww4Kuu694Gics1jBUa4FDUfFLGnqC",
+    "id": "HoMGSFPbKpfuMaEcTrJi5ZW3dt6DrZX54hVXfd7mPZTD",
+    "outcome": {
+     "executor_id": "accoryn-payee.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [
+      "DF8vqjV9V8wve6uCKosQzXPyuumgq4CbLshLGB8DiinT"
+     ],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "22318256250000000000"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "Bc4Y9wS7V1AT6D5Nz5GecmGY3z2UnpMsVZNU8BjgXwFP"
+     },
+     {
+      "direction": "Right",
+      "hash": "5G2ZviHM7eZEWVmjPTqMpuxQU53xu2sD3th6uJgrY2gJ"
+     }
+    ]
+   },
+   {
+    "block_hash": "9yTfLRWZzPhMKVvNYqdziXVdbjUAfxLDZ3hxGeP59P6j",
+    "id": "DF8vqjV9V8wve6uCKosQzXPyuumgq4CbLshLGB8DiinT",
+    "outcome": {
+     "executor_id": "accoryn-carol.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "0"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "6KZtiBHZkdav6cGyK8LCSmGh3S391kX2q9VqLSgy8Nb8"
+     },
+     {
+      "direction": "Right",
+      "hash": "7w7JRHzGoByVXuXVGuThi6E7QJVabNM2J4AsuUukdiD8"
+     },
+     {
+      "direction": "Right",
+      "hash": "AM8ohHkK5LXBQRVArWcM42jHDzdVmb5UoxM5Cz2Zvc3"
+     }
+    ]
+   },
+   {
+    "block_hash": "9yTfLRWZzPhMKVvNYqdziXVdbjUAfxLDZ3hxGeP59P6j",
+    "id": "8cPpZtio7KLRCgKSbJhx1Q51azv3KPocyg1MYa3jbHf3",
+    "outcome": {
+     "executor_id": "accoryn-spike.sputnikv2.testnet",
+     "gas_burnt": 2603978442386,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       {
+        "local": "AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH"
+       }
+      ],
+      "gas_profile": [
+       {
+        "cost": "NEW_ACTION_RECEIPT",
+        "cost_category": "ACTION_COST",
+        "gas_used": "108059500000"
+       },
+       {
+        "cost": "TRANSFER",
+        "cost_category": "ACTION_COST",
+        "gas_used": "115123062500"
+       },
+       {
+        "cost": "BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "8207811441"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "35445963"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BYTES",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "587834778865"
+       },
+       {
+        "cost": "PROMISE_RETURN",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "560152386"
+       },
+       {
+        "cost": "READ_CACHED_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "38760000000"
+       },
+       {
+        "cost": "READ_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "26098632000"
+       },
+       {
+        "cost": "READ_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "1741010514"
+       },
+       {
+        "cost": "READ_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "20137321488"
+       },
+       {
+        "cost": "READ_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "255866952"
+       },
+       {
+        "cost": "STORAGE_READ_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "169070537247"
+       },
+       {
+        "cost": "STORAGE_READ_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "464287995"
+       },
+       {
+        "cost": "STORAGE_READ_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "12445206872"
+       },
+       {
+        "cost": "STORAGE_WRITE_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "128393472000"
+       },
+       {
+        "cost": "STORAGE_WRITE_EVICTED_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "12461515116"
+       },
+       {
+        "cost": "STORAGE_WRITE_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "986760138"
+       },
+       {
+        "cost": "STORAGE_WRITE_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "12035193132"
+       },
+       {
+        "cost": "TOUCHING_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "45600000000"
+       },
+       {
+        "cost": "UTF8_DECODING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3111779061"
+       },
+       {
+        "cost": "UTF8_DECODING_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "6123190059"
+       },
+       {
+        "cost": "WASM_INSTRUCTION",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "350049767760"
+       },
+       {
+        "cost": "WRITE_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "25234153749"
+       },
+       {
+        "cost": "WRITE_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "7114492464"
+       },
+       {
+        "cost": "WRITE_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "25789702374"
+       },
+       {
+        "cost": "WRITE_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "10142572752"
+       }
+      ],
+      "version": 4
+     },
+     "receipt_ids": [
+      "FTvL6zr2DkeUZhNnA4kU8GHC1bYWrtkkSEPpGqno9UqE",
+      "3Uv8Yxquq6RjRL6qXrgLkwguhcApm4NiUnMBB3PLoAPF"
+     ],
+     "status": {
+      "SuccessReceiptId": "FTvL6zr2DkeUZhNnA4kU8GHC1bYWrtkkSEPpGqno9UqE"
+     },
+     "tokens_burnt": "260397844238600000000"
+    },
+    "proof": [
+     {
+      "direction": "Right",
+      "hash": "8SbMusqySEBciDV89pqF8TS5qwDB9ZThnrVtXhBFxhmU"
+     },
+     {
+      "direction": "Left",
+      "hash": "MLWtA1RzFjZcZfvbFoSb4DQ43W2RZ2hT2HmEmi3b5g8"
+     },
+     {
+      "direction": "Right",
+      "hash": "AM8ohHkK5LXBQRVArWcM42jHDzdVmb5UoxM5Cz2Zvc3"
+     }
+    ]
+   },
+   {
+    "block_hash": "C9P21hPk4XiS3nVYDwzQ7x2vkHCeEHLvHzBfyRVyQYL1",
+    "id": "FTvL6zr2DkeUZhNnA4kU8GHC1bYWrtkkSEPpGqno9UqE",
+    "outcome": {
+     "executor_id": "accoryn-alice.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [
+      "Edpp3PZE5VBTjdGrwwDt3VFUBJRos2U1u4qsBAeNgtqz"
+     ],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "22318256250000000000"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "9vptwPoLHfHRmAPp6Rkd2nWZw4oAw8dT5DRjxJ64Po1U"
+     },
+     {
+      "direction": "Right",
+      "hash": "AcbDhLQi8a5WhvpcZ8qZj7FMC3G85ipxMc4MgPLVd4ks"
+     }
+    ]
+   },
+   {
+    "block_hash": "CfuEPkxSCiwwpatvPhS3TDBE8J3CKTYX45rtBCp6dn68",
+    "id": "Edpp3PZE5VBTjdGrwwDt3VFUBJRos2U1u4qsBAeNgtqz",
+    "outcome": {
+     "executor_id": "accoryn-carol.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "0"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "67wrrEUakjnRivnLW4Tax7zi3gwEzfKQG3tpBnNgNbpV"
+     },
+     {
+      "direction": "Right",
+      "hash": "FPozv2zR7WMonTeDdU3YJoz8TzZRqjLv4bXovCX5wZoy"
+     }
+    ]
+   },
+   {
+    "block_hash": "C9P21hPk4XiS3nVYDwzQ7x2vkHCeEHLvHzBfyRVyQYL1",
+    "id": "3Uv8Yxquq6RjRL6qXrgLkwguhcApm4NiUnMBB3PLoAPF",
+    "outcome": {
+     "executor_id": "accoryn-carol.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "0"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "FR87UXjL9Lr3LevbnQdidBFGuXoWBz6vMn6Gdu4voQVq"
+     }
+    ]
+   },
+   {
+    "block_hash": "8D4bPxSGuPXgis1Ww4Kuu694Gics1jBUa4FDUfFLGnqC",
+    "id": "3ptgZFd9PWNweunYYwmaHgXyrgTDf67FxyXx77zwsdFw",
+    "outcome": {
+     "executor_id": "accoryn-carol.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "0"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "GJYzEquSMXtx8weyWUDYyRdZ6CPdztzNqFVR63ekZgfY"
+     }
+    ]
+   },
+   {
+    "block_hash": "8D4bPxSGuPXgis1Ww4Kuu694Gics1jBUa4FDUfFLGnqC",
+    "id": "A5kNErr591zQz6N7ZcJ5ohzrhV9QanaLzY5Dxi84PzRJ",
+    "outcome": {
+     "executor_id": "ceremony-gate-v1.accoryn.testnet",
+     "gas_burnt": 2234972982524,
+     "logs": [
+      "EVENT_JSON:{\"standard\":\"accoryn_ceremony\",\"version\":\"1.0.0\",\"event\":\"vote_submitted\",\"data\":[{\"dao_id\":\"accoryn-spike.sputnikv2.testnet\",\"proposal_id\":1,\"session_id\":\"1\",\"attendees\":[\"accoryn-alice.testnet\",\"accoryn-bob.testnet\"]}]}"
+     ],
+     "metadata": {
+      "contracts": [
+       {
+        "local": "6RyhWz4BnSszxQg88ysQnECuFm2KWUXLUrdqVKtTcfBm"
+       }
+      ],
+      "gas_profile": [
+       {
+        "cost": "BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "7413507108"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "35445963"
+       },
+       {
+        "cost": "CONTRACT_LOADING_BYTES",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "290935444370"
+       },
+       {
+        "cost": "LOG_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3543313050"
+       },
+       {
+        "cost": "LOG_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3062119512"
+       },
+       {
+        "cost": "READ_CACHED_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "104880000000"
+       },
+       {
+        "cost": "READ_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "36538084800"
+       },
+       {
+        "cost": "READ_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "4170062301"
+       },
+       {
+        "cost": "READ_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "15102991116"
+       },
+       {
+        "cost": "READ_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "67712094"
+       },
+       {
+        "cost": "STORAGE_READ_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "225427382996"
+       },
+       {
+        "cost": "STORAGE_READ_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "5230978077"
+       },
+       {
+        "cost": "STORAGE_READ_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "2755002964"
+       },
+       {
+        "cost": "STORAGE_WRITE_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "256786944000"
+       },
+       {
+        "cost": "STORAGE_WRITE_EVICTED_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "15769597737"
+       },
+       {
+        "cost": "STORAGE_WRITE_KEY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "11911604523"
+       },
+       {
+        "cost": "STORAGE_WRITE_VALUE_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "16222695897"
+       },
+       {
+        "cost": "TOUCHING_TRIE_NODE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "38760000000"
+       },
+       {
+        "cost": "UTF8_DECODING_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3111779061"
+       },
+       {
+        "cost": "UTF8_DECODING_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "67646671128"
+       },
+       {
+        "cost": "WASM_INSTRUCTION",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "188787123492"
+       },
+       {
+        "cost": "WRITE_MEMORY_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "19626564027"
+       },
+       {
+        "cost": "WRITE_MEMORY_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "1914811716"
+       },
+       {
+        "cost": "WRITE_REGISTER_BASE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "22924179888"
+       },
+       {
+        "cost": "WRITE_REGISTER_BYTE",
+        "cost_category": "WASM_HOST_COST",
+        "gas_used": "3976435944"
+       }
+      ],
+      "version": 4
+     },
+     "receipt_ids": [
+      "GeC4a8HvSfYfDdFgrs7FuESt6px1pvdLvQEP6821CuRr"
+     ],
+     "status": {
+      "SuccessValue": "dHJ1ZQ=="
+     },
+     "tokens_burnt": "223497298252400000000"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "Dwx1iidL5wBiVkEWtoVLkZHBm86gho7HzhPKCZSY3emf"
+     },
+     {
+      "direction": "Right",
+      "hash": "3Mj7T6UYiSVaesLThXPdBMZwvEP7xeBfKcKhutzUbF9k"
+     }
+    ]
+   },
+   {
+    "block_hash": "9yTfLRWZzPhMKVvNYqdziXVdbjUAfxLDZ3hxGeP59P6j",
+    "id": "GeC4a8HvSfYfDdFgrs7FuESt6px1pvdLvQEP6821CuRr",
+    "outcome": {
+     "executor_id": "accoryn-carol.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "0"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "2HWUqhuucQCKoUSAJ9gX8MXcJxobJ1uj84PGWsu3QzWC"
+     },
+     {
+      "direction": "Left",
+      "hash": "MLWtA1RzFjZcZfvbFoSb4DQ43W2RZ2hT2HmEmi3b5g8"
+     },
+     {
+      "direction": "Right",
+      "hash": "AM8ohHkK5LXBQRVArWcM42jHDzdVmb5UoxM5Cz2Zvc3"
+     }
+    ]
+   },
+   {
+    "block_hash": "FpgTmbAMfaQAZnsF7NtFZE6BzfDvruh7fmRp5NNKcRXY",
+    "id": "Co3fqReW3nd42sUKtmeoY1axHvrGWqpMyVCoJoG3L9Wj",
+    "outcome": {
+     "executor_id": "accoryn-carol.testnet",
+     "gas_burnt": 223182562500,
+     "logs": [],
+     "metadata": {
+      "contracts": [
+       null
+      ],
+      "gas_profile": [],
+      "version": 4
+     },
+     "receipt_ids": [],
+     "status": {
+      "SuccessValue": ""
+     },
+     "tokens_burnt": "0"
+    },
+    "proof": [
+     {
+      "direction": "Left",
+      "hash": "7HJBA35BMf3Z8p7UMyVthfUwkHpzwyTqwX1EXZJorY6L"
+     },
+     {
+      "direction": "Right",
+      "hash": "9RzVbiDGhdKcHuCBHC34JGN4tc4cMoJHRZffW4WDXRH"
+     }
+    ]
+   }
+  ],
+  "status": {
+   "SuccessValue": "dHJ1ZQ=="
+  },
+  "transaction": {
+   "actions": [
+    {
+     "FunctionCall": {
+      "args": "eyJkYW9faWQiOiJhY2NvcnluLXNwaWtlLnNwdXRuaWt2Mi50ZXN0bmV0IiwicHJvcG9zYWxfaWQiOjF9",
+      "deposit": "0",
+      "gas": 300000000000000,
+      "method_name": "execute"
+     }
+    }
+   ],
+   "hash": "4NKh8ik6P9a66RfDyUsaVNpbYSPVnBPmjNJwon2swzw5",
+   "nonce": 277513105000002,
+   "priority_fee": 0,
+   "public_key": "ed25519:BW4m9RG6hFJLRMCd4wMZfsQeM1LFa349zeWVaS8HgCSV",
+   "receiver_id": "ceremony-gate-v1.accoryn.testnet",
+   "signature": "ed25519:Ck27hoY7usYpXnKCqCSVgDKorDQGxfu6eDjStGcqYmWB7EFrn7vhSsCg5Z7YK9eatdzdR3nUy9zf9wT144fHrCg",
+   "signer_id": "accoryn-carol.testnet"
+  },
+  "transaction_outcome": {
+   "block_hash": "4Hx9ZXAkGk3L3Sxtit2xmpq3aQHnPddZRayn9TLwbnLN",
+   "id": "4NKh8ik6P9a66RfDyUsaVNpbYSPVnBPmjNJwon2swzw5",
+   "outcome": {
+    "executor_id": "accoryn-carol.testnet",
+    "gas_burnt": 311254308905,
+    "logs": [],
+    "metadata": {
+     "gas_profile": null,
+     "version": 1
+    },
+    "receipt_ids": [
+     "7vj69Jhmo4rWNjRmuGDfNzdke66GNGVC7KcCQ6a1gDpL"
+    ],
+    "status": {
+     "SuccessReceiptId": "7vj69Jhmo4rWNjRmuGDfNzdke66GNGVC7KcCQ6a1gDpL"
+    },
+    "tokens_burnt": "31125430890500000000"
+   },
+   "proof": []
+  }
+ }
+}
