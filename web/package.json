@@ -21,7 +21,11 @@
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.2",
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "2.4.0",
+    "ggwave": "0.4.0",
     "lucide-react": "1.72.0",
+    "near-api-js": "7.5.3",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
