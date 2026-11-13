@@ -1,0 +1,80 @@
+# Context 1 — app delivery and feature integration
+
+Updated: 2026-11-13. Owner: this working session and the user. The other contributor's lane is [Context 2](CONTEXT_2.md). These two tracked files replace the old discovery brief as the shared development context. Read AGENTS.md first.
+
+## Product and fixed decisions
+
+Accoryn is the shared repository name; app-wide branding is still undecided. Build a new mobile/desktop web app for teams approving treasury payments together. The intended journey is personal-object research access → shared NEAR treasury → exact payment review → acoustic participation exchange → explicit independent approvals → authoritative settlement and receipt.
+
+Keep the two central ideas: familiar personal-object enrollment/access and an in-person acoustic approval ceremony. Use only built-in camera, microphone, speaker, display and supported optional sensors. No external hardware, NFC tags, hardware security keys or GPS. A desktop path cannot require phone motion sensors. The user selected an object-only research prototype; do not introduce a mandatory passkey as a routine implementation choice.
+
+Photographs are not cryptographic secrets. Audio communication does not establish unrelayable proximity or distinct-human attendance. Hearing a challenge is not consent to pay. Context 2 must specify custody, recovery, verifier trust and enforceable NEAR policy before signing or payment depends on those mechanisms. This file does not approve that unfinished architecture.
+
+Functional features come first; visual redesign, dithered artwork, scrollytelling, motion and new branding remain paused. Retain React/TypeScript/Vite/Tailwind and the current basic screens. Return to Emil's design guidance after functional acceptance.
+
+## Completed and current checkpoint
+
+`[x]` means implemented/verified as described, not a claim of production security or universal device compatibility.
+
+- [x] Git history preserved in the shared Accoryn repository; cohesive feature commits and review branches in use.
+- [x] Real camera preview/frame capture, measured microphone input and speaker playback with explicit audibility confirmation.
+- [x] User accepted the three device-check happy paths on 2026-11-12. Browser/device versions and all denial/cancellation/phone-laptop combinations were not supplied.
+- [x] Connected readiness → object-registration navigation, including direct entry for returning users.
+- [x] Feature 2: three-view capture/review/retake, local DINOv2-small inference, one versioned IndexedDB template, explicit replacement, fresh-scan comparison and deletion.
+- [x] Actual baseline: DINOv2-small ViT-S/14, q8 WASM worker, Transformers.js 4.3.2. Immutable model/runtime provenance is in `web/src/object-registration/model-manifest.json`. Photos are transient; embeddings and metadata are stored locally.
+- [x] Real scores: three cosine similarities, top-two mean and measured inference time. No match/deny threshold, account unlock or wallet creation.
+- [x] Independent review's four important cancellation/recovery findings fixed with regressions. Latest full check: 17 unit tests, 36 browser tests, TypeScript, build and packaged-model smoke passed. The subsequent hosting-only build repair passed build/production smoke again.
+- [x] Private preview deployed after removing an unused oversized runtime fallback; access remains owner-private. Draft [PR #1](https://github.com/anynomousfriend/Accoryn/pull/1) is open. Main has not been merged automatically.
+- [ ] User manually accepts Feature 2's complete live capture → save → fresh-scan comparison journey. Automated Chrome returned NotAllowedError for physical camera access; real photo fixtures are not camera E2E.
+- [ ] Device/browser matrix, independent capture-session discrimination and spoof testing. Context 2 owns recognition research; this lane owns the app/device acceptance record.
+
+Local app: http://127.0.0.1:5173/ . Direct feature: http://127.0.0.1:5173/object-registration/ . Private HTTPS preview: https://team-treasury-device-lab.glassygrant5.chatgpt.site/object-registration/ . Authenticated hosted rendering still requires user verification; deployment success is not a hosted-camera test.
+
+Known minor: the white visual guide is inset 12 px while the entire square preview is processed. Fill the whole preview for current tests. Full evidence and manual steps: [Feature 2 checklist](docs/testing/feature-02-object-registration.md).
+
+## Our exclusive implementation backlog
+
+Build these as connected functional slices, not disconnected mock success screens. Boxes remain unchecked until their actual deliverable passes its checks.
+
+1. [ ] **Accept and stabilize object registration.** Collect user results, fix camera/retake/save/replacement/reset/suspension failures, update the device matrix and manual checklist. Do not invent thresholds from a few positive examples.
+2. [ ] **Integrate the agreed account/access service.** Build onboarding, consent, loading/failure/retry and recovery screens using Context 2's tested custody/account adapter. Show a NEAR testnet account only after real creation/verification. Keep this blocked until custody/recovery design and signer behavior are explicit.
+3. [ ] **Team and treasury journey.** Create/join/select treasury screens; display actual members, roles, balances and approval policy from the Context 2 adapter. Never present a hardcoded 2-of-3 rule as chain policy. Membership changes must invalidate stale views/sessions as specified by the engine.
+4. [ ] **Payment proposal and exact review.** Validate recipient, asset, atomic amount, purpose, expiry and optional invoice reference; submit via the adapter; show the same immutable proposal to every participant. Any edited payment requires renewed review and a new bound session.
+5. [ ] **Acoustic ceremony UI.** Explain permissions, start/stop/retry and unsupported devices; display actual per-participant engine progress; clear resources on suspension/navigation. Call Context 2's engine rather than implementing a competing modem or trusting client success flags. An explicit audible alternative requires an agreed policy; no silent downgrade.
+6. [ ] **Independent consent and shared status.** Separate decoded audio from signing approval. Display eligible approvals, missing members, expiration and rejected/unknown outcomes from authoritative engine state. Reconnect/reload without duplicating payment actions.
+7. [ ] **Invoice, receipt and export UX.** Invoice form/reference and payment purpose; render confirmed/pending/failed/refunded outcomes from Context 2 reconciliation. Show proposal/transaction evidence. Export spreadsheet-safe CSV using real receipt fields; neutralize formula injection. UI owns export formatting; Context 2 owns settlement truth.
+8. [ ] **App-level automated and physical tests.** Browser → real adapter → testnet/backend → receipt coverage; actual sensor failures, interrupted flows, reloads, keyboard and phone layouts. Keep fixture/controller-state tests labelled separately from physical-camera/audio tests. No fake media, fabricated balances, mock payout success or dry quotes counted as completed transfers.
+9. [ ] **Delivery and contributor ergonomics.** Root web dependency/lockfile coordination, reproducible asset preparation, build-size limits, test commands, private preview updates and release notes. Activate GitHub CI when an authorized workflow-capable credential is available; local checks are not GitHub CI.
+10. [ ] **Problem validation and submission evidence.** Maintain audience/problem/alternative evidence and incorporate user-provided team feedback. Validate whether meeting-based approval reduces a real problem enough to justify friction. Do not send outreach or publish without authorization. Document the demonstrated NEAR role and actual test results; recheck event rules before submission.
+11. [ ] **Visual work after functional acceptance.** Revamped branding and responsive design, abstract/dithered assets, considered motion and landing-page storytelling. Preserve reduced motion, readable payment data and immediate reliable financial-state feedback. Do not start this simply because the UI looks basic.
+
+## Ownership boundaries — avoid editing the same implementation
+
+| This lane owns | Context 2 supplies; we integrate it |
+|---|---|
+| `web/src/App.tsx`, routes, React pages/components, design/styles/assets, existing readiness controller | Vision algorithms and evaluated replacement engine |
+| Current object-registration screen/controller/store and its baseline adapter wiring | New engine implementation under `web/src/engines/vision/`; no parallel rewrite of registration UI |
+| App session screens, permissions copy, capture UX and resource-lifecycle integration | Acoustic codec, device calibration, challenge/session protocol and verifier |
+| Forms, payment review, user consent, invoice/receipt rendering, CSV formatting | Account/signer/custody adapter, treasury authority, execution and reconciliation |
+| Browser integration tests, user manual acceptance and release coordination | Engine/contract/backend tests, real-device channel measurements and security evidence |
+| Root `web/package.json`/lockfile, build/hosting scripts, FEATURE_STATUS, Context 1 | Dependencies requested through Context 2 PRs; its separate services/contracts manifests are its own |
+
+Context 2 owns `contracts/`, `services/`, future `web/src/engines/`, engine evaluation scripts and security/engine documentation. Those directories are planned ownership, not claims that code already exists. Existing baseline worker/manifest files stay with Context 1 until an explicit handoff PR moves them; do not edit them concurrently. Interface changes are reviewed across lanes before either side depends on them. AGENTS.md and shared integration assumptions change by agreement, not unilateral edits.
+
+## Integration order and gates
+
+- Continue Feature 2 manual acceptance here. Context 2 may do isolated research/engine work in parallel; do not activate unverified engines in the user flow.
+- First agree the account/custody and treasury boundary, then integrate one real testnet account/treasury slice. Do not block that slice on DINOv3, a custom modem or cross-chain expansion.
+- Add the real acoustic engine and enforceable payment-policy integration, then complete one invoice-to-receipt demonstration.
+- Social Money is the lead target; Open Innovation is additional. Real-World Money remains conditional on a working invoice/payment/reconciliation flow. These are targeting decisions, not organizer eligibility guarantees. See [track evidence](docs/hackathon/track-alignment.md).
+- Escrow, flexible thresholds, reputation, inheritance and cross-chain settlement are not core-demo prerequisites. Optional backend extensions belong to Context 2; their future UI integration belongs here. Mainnet spending, public repository visibility changes and final submission need their own concrete authorization.
+
+## Git and shipping protocol
+
+Start from the commit containing this context pair, currently on `feat/object-registration`; do not assume `origin/main` contains Feature 2 before PR #1 is reviewed/merged. Each contributor uses a separate feature branch/worktree. Prefer short PRs, agreed interfaces first, then independent implementation. No force pushes, history rewrites or unreviewed merges into main. Root web dependency edits have one coordinating owner here.
+
+For every feature: meaningful failing test → real implementation → appropriate full checks → review → testable release with exact steps → wait for manual results and fix failures. Report unsupported behavior rather than simulating success. Keep private images, credentials, signing keys, binaries, generated reports and research conversation notes out of Git. Reproducible licensed dataset fixtures are computational test inputs, never personal captures or production artwork.
+
+## Next action
+
+Ask the user to test Feature 2: capture and accept three views, save a label, compare genuine rescans ×3 plus a different/similar object, reload, replace with explicit consent and delete/reload. Record device/browser, scores and timings. Then continue this lane's backlog; hand Context 2 to the other contributor now.
