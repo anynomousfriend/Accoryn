@@ -26,3 +26,7 @@ web/public/runtime/
 # Rust build output and contract binaries fetched for tests (pinned by code hash, never committed).
 contracts/**/target/
 contracts/**/tests/res/
+
+# Local agent tooling (worktrees, browser session files).
+.claude/worktrees/
+.playwright-mcp/
