@@ -90,3 +90,43 @@ test("starting during the initial storage read cannot bypass an existing registr
   expect(result.phase).toBe("saved");
   expect(result.template?.label).toBe("Existing object");
 });
+
+test('cancel during initial storage lookup still discovers the existing registration', async ({page}) => {
+ await page.goto('/tests/harness/registration.html');await page.waitForFunction(()=>!!(window as any).registrationHarness);
+ const result=await page.evaluate(async()=>{
+  const h=(window as any).registrationHarness;await h.store.save(await h.makeTemplate('Preserved object'),new AbortController().signal);
+  const reading=h.controller.initialize();h.controller.cancel();await reading;
+  await h.controller.startEnrollment();return h.controller.getSnapshot();
+ });
+ expect(result.template?.label).toBe('Preserved object');
+});
+
+test('save retries real retained fixture views after a validation failure',async({page})=>{
+ await page.goto('/tests/harness/registration.html');await page.waitForFunction(()=>!!(window as any).registrationHarness);
+ const result=await page.evaluate(async()=>{
+  const h=(window as any).registrationHarness;const t=await h.makeTemplate('Fixture');const c=h.controller;await c.initialize();
+  // Controller-state integration fixture, not a simulated live camera or model response.
+  Object.assign(c,{vectors:t.views,model:t.model,abort:new AbortController(),state:{...c.getSnapshot(),phase:'review',mode:'enrollment',previews:[],viewIndex:3}});
+  await c.save('',true);const failed=c.getSnapshot().phase;await c.save('Retry succeeds',true);return {failed,state:c.getSnapshot(),stored:await h.store.read()};
+ });
+ expect(result.failed).toBe('error');expect(result.state.phase).toBe('saved');expect(result.stored.label).toBe('Retry succeeds');
+});
+test('cancel reconciles an actually deleted native record before an immediate new action',async({page})=>{
+ await page.goto('/tests/harness/registration.html');await page.waitForFunction(()=>!!(window as any).registrationHarness);
+ const result=await page.evaluate(async()=>{
+  const h=(window as any).registrationHarness;await h.store.save(await h.makeTemplate('Delete me'),new AbortController().signal);await h.controller.initialize();
+  await h.store.delete(new AbortController().signal);h.controller.cancel();await h.controller.startComparison();return h.controller.getSnapshot();
+ });
+ expect(result.template).toBeNull();expect(result.comparison).toBeNull();
+});
+test('stale stream cleanup preserves the current native media session',async({page})=>{
+ await page.goto('/tests/harness/registration.html');
+ const result=await page.evaluate(async()=>{
+  const {releaseCameraStream}=await import(String('/src/object-registration/camera-resources.ts'));
+  const audio=new AudioContext();const old=audio.createMediaStreamDestination().stream;const current=audio.createMediaStreamDestination().stream;
+  const video=document.createElement('video');video.srcObject=current;
+  const retained=releaseCameraStream(old,current,video);const result={retained:retained===current,attached:video.srcObject===current,live:current.getTracks()[0].readyState,old:old.getTracks()[0].readyState};
+  current.getTracks().forEach(t=>t.stop());await audio.close();return result;
+ });
+ expect(result).toEqual({retained:true,attached:true,live:'live',old:'ended'});
+});

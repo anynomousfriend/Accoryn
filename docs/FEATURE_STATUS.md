@@ -4,7 +4,7 @@ Visual redesign is paused. The current screens are the working skeleton for impl
 
 ## Release candidate: Feature 2 — local object registration
 
-The approved object feature is implemented on `feat/object-registration`, pending independent review and private-preview release. It connects readiness to three-view camera capture, local DINOv2 inference, an IndexedDB visual template, and a fresh-scan similarity report. No image upload, account unlock or wallet creation is implemented. Automated release-candidate checks passed 16 unit tests, 32 browser tests, TypeScript, production build and actual packaged-worker smoke checks. Physical camera access was denied to automated Chrome; the complete live capture journey needs [manual acceptance](testing/feature-02-object-registration.md).
+The approved object feature is implemented on `feat/object-registration`, ready for local manual testing after independent review fixes; private-preview publication tracked in the release checklist. It connects readiness to three-view camera capture, local DINOv2 inference, an IndexedDB visual template, and a fresh-scan similarity report. No image upload, account unlock or wallet creation is implemented. Automated release-candidate checks passed 17 unit tests, 36 browser tests, TypeScript, production build and actual packaged-worker smoke checks. Physical camera access was denied to automated Chrome; the complete live capture journey needs [manual acceptance](testing/feature-02-object-registration.md).
 
 ## Accepted prior checkpoint: Feature 1 — device readiness
 
@@ -32,6 +32,6 @@ Build each milestone as an extension of the preceding journey. Its browser/integ
 4. Wait for the user's results; fix failures before the next feature.
 5. Return to visuals after the functional milestones are accepted.
 
-Upcoming work includes object enrollment/verification, actual NEAR accounts/treasury integration, acoustic challenge exchange and policy-bound payment/receipt flows. Only local registration and scan comparison are implemented in the current feature branch. The user approved its design and [three-task implementation plan](superpowers/plans/2026-11-12-object-registration.md) on 2026-11-12; native execution is in final review. Later account, acoustic and payment milestones wait for manual results. The matcher reports measured similarity scores and does not unlock an account.
+Upcoming work includes object enrollment/verification, actual NEAR accounts/treasury integration, acoustic challenge exchange and policy-bound payment/receipt flows. Only local registration and scan comparison are implemented in the current feature branch. The user approved its design and [three-task implementation plan](superpowers/plans/2026-11-12-object-registration.md) on 2026-11-12; native execution and review fixes are verified; manual testing is pending. Later account, acoustic and payment milestones wait for manual results. The matcher reports measured similarity scores and does not unlock an account.
 
 The user supplied the shared repository: [Accoryn](https://github.com/anynomousfriend/Accoryn). Existing history was preserved and pushed to `origin/main`. Use feature branches and reviewed pull requests for subsequent changes. App-wide branding remains a separate decision; visual work is paused.

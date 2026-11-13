@@ -30,6 +30,7 @@ export type EmbeddingResult = {
   model: ModelIdentity;
 };
 export type RegistrationSnapshot = {
+  storageReady:boolean;
   phase:
     | "idle"
     | "loading"

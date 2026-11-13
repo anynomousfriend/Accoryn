@@ -1,6 +1,6 @@
 # Feature 02 — object registration and scan comparison
 
-Status: release candidate; independent review and private-preview update pending. No wallet or automatic object authentication is implemented.
+Status: ready for manual testing locally; independent review fixes verified. Hosted preview publication is tracked separately below. No wallet or automatic object authentication is implemented.
 
 ## Real model baseline
 
@@ -53,3 +53,13 @@ Report device/browser versions, pass/fail at the failed step, same-object versus
 ## Known boundaries
 
 One browser/device, one local registration, no cross-device recovery. IndexedDB templates are origin-accessible research data, not a hardware-backed vault. No automatic threshold, wallet keys, NEAR account, acoustic challenge or payment is implemented. Scores do not establish identity or resist replay. Device/browser compatibility and physical capture remain the manual acceptance gate.
+
+## Final review and fresh verification (2026-11-13)
+
+Independent review identified four important lifecycle/recovery issues; all were fixed in one pass. New tests failed before fixes, then passed: canceled initial storage lookup, retained-view save retry, reconciliation of an actually deleted native record before the next action, and stale stream cleanup ownership. Save-retry coverage prepares controller state with real inference-derived fixture vectors; it is not physical capture. Media ownership uses native Web Audio MediaStreams, not a fake camera. No live-camera success is claimed.
+
+Fresh `npm run check --prefix web`: **17 unit tests, 36 browser tests, TypeScript, production build and packaged-model production smoke all passed**. Physical camera remained unavailable to automated Chrome (`NotAllowedError`); the live capture journey awaits your test.
+
+Deferred minor from review: the white visual guide is inset 12 px but the entire square preview is processed. For this checkpoint, fill the whole square preview with the object. The guide boundary will be aligned in a later revision.
+
+Execution decisions: local ledger replaced unavailable skill helper scripts (manual bookkeeping risk); isolated worktree preserved the original checkout (local handoff must use the feature server); Objectron held-out views share a recording session (scores may overstate independent-session performance). No cryptographic/security threshold is inferred from these scores.

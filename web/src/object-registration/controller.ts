@@ -1,3 +1,4 @@
+import { releaseCameraStream } from "./camera-resources.ts";
 import { InferenceClient } from "./inference-client.ts";
 import { TemplateStore } from "./template-store.ts";
 import { assessQuality, centerSquare } from "./capture-quality.ts";
@@ -9,7 +10,11 @@ import type {
   ModelIdentity,
   ObjectTemplate,
 } from "./types.ts";
+export function canSaveRegistration(phase:string, viewCount:number, hasModel:boolean):boolean {
+ return (phase==='review'||phase==='error') && viewCount===3 && hasModel;
+}
 const initial = (): RegistrationSnapshot => ({
+  storageReady: false,
   phase: "loading",
   mode: null,
   detail: "Checking local registration storage…",
@@ -60,10 +65,20 @@ export class ObjectRegistrationController {
       "comparing",
     ].includes(this.state.phase);
   }
-  private stopCamera() {
-    this.stream?.getTracks().forEach((t) => t.stop());
-    this.stream = null;
-    if (this.video) this.video.srcObject = null;
+  private stopCamera(owned:MediaStream|null=this.stream) {
+    this.stream=releaseCameraStream(owned,this.stream,this.video);
+  }
+  private async reconcileStopped(id:number) {
+    try {
+      const template=await this.store.read();
+      if(id!==this.generation || this.state.phase!=='stopped')return;
+      this.storageProblem=false;
+      this.update({template,storageReady:true,detail:'Stopped. Unsaved photos discarded; saved registration checked.'});
+    } catch(e) {
+      if(id!==this.generation || this.state.phase!=='stopped')return;
+      this.storageProblem=true;
+      this.update({phase:'error',storageReady:false,detail:e instanceof Error?e.message:'Check local storage and retry.'});
+    }
   }
   private clearImages() {
     for (const url of new Set(
@@ -85,9 +100,11 @@ export class ObjectRegistrationController {
     this.clearImages();
   }
   async initialize() {
+    if(this.storageProblem)this.store.close();
     const id = this.generation;
     this.update({
       phase: "loading",
+      storageReady:false,
       detail: "Checking local registration storage…",
     });
     try {
@@ -96,6 +113,7 @@ export class ObjectRegistrationController {
       this.storageProblem = false;
       this.update({
         template,
+        storageReady:true,
         phase: template ? "saved" : "idle",
         detail: template
           ? "Local registration loaded. You can compare a fresh scan."
@@ -138,7 +156,7 @@ export class ObjectRegistrationController {
     this.video.srcObject = stream;
     await this.video.play();
     if (!this.current(id)) {
-      this.stopCamera();
+      this.stopCamera(stream);
       return;
     }
     this.update({
@@ -162,6 +180,7 @@ export class ObjectRegistrationController {
   }
   private async start(mode: "enrollment" | "comparison") {
     if (this.busy()) return;
+    if(!this.state.storageReady){await this.initialize();return;}
     if (this.storageProblem) {
       this.update({
         phase: "error",
@@ -336,9 +355,7 @@ export class ObjectRegistrationController {
   async save(label: string, replaceConfirmed: boolean) {
     if (this.busy()) return;
     if (
-      this.state.phase !== "review" ||
-      this.vectors.length !== 3 ||
-      !this.model
+      !canSaveRegistration(this.state.phase,this.vectors.length,!!this.model) || !this.state.storageReady
     ) {
       this.update({
         phase: "error",
@@ -360,7 +377,7 @@ export class ObjectRegistrationController {
       id: crypto.randomUUID(),
       label: label.trim(),
       createdAt: new Date().toISOString(),
-      model: this.model,
+      model: this.model!,
       views: [...this.vectors] as ObjectTemplate["views"],
     };
     this.update({
@@ -371,10 +388,7 @@ export class ObjectRegistrationController {
       await this.store.save(template, signal);
       // Reconcile even when cancellation raced with a completed transaction.
       const stored = await this.store.read();
-      if (!this.current(id)) {
-        if (stored) this.update({ template: stored });
-        return;
-      }
+      if (!this.current(id)) return;
       this.clearImages();
       this.update({
         phase: "saved",
@@ -393,14 +407,16 @@ export class ObjectRegistrationController {
     this.release();
     this.update({
       phase: "stopped",
+      storageReady:false,
       detail:
-        "Stopped. Unsaved photos and views were discarded. Saved registration is unchanged.",
+        "Stopped. Unsaved photos discarded. Checking saved registration…",
       previews: [],
       reviewUrl: null,
       comparison: null,
       progress: null,
       viewIndex: 0,
     });
+    void this.reconcileStopped(this.generation);
   };
   async deleteRegistration() {
     this.cancel();
@@ -417,6 +433,7 @@ export class ObjectRegistrationController {
       this.update({
         phase: "idle",
         template: null,
+        storageReady:true,
         mode: null,
         detail: "Registration deleted from this browser.",
       });
