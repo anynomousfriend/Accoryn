@@ -13,7 +13,7 @@ test("built routes contain the same entry document", async () => {
       '<!doctype html><script type="module" src="/assets/app.js"></script>';
     await writeFile(join(directory, "index.html"), html);
     await writeRoutePages(directory);
-    for (const path of ["device-check/index.html", "design/index.html", "landing/index.html", "object-registration/index.html"]) {
+    for (const path of ["device-check/index.html", "design/index.html", "landing/index.html", "object-registration/index.html", "workspace/index.html"]) {
       assert.equal(await readFile(join(directory, path), "utf8"), html);
     }
     // A second build safely replaces entries instead of retaining stale code.

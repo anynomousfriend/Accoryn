@@ -8,7 +8,7 @@ import type { Browser } from "@playwright/test";
 
 // Playwright normally forces focus/visibility in its own CDP session. A
 // native browser attached with noDefaults preserves actual tab transitions.
-// This temporary profile belongs only to this test. Linux needs Xvfb.
+// This headless native profile belongs only to this test and does not depend on OS window focus.
 test("hidden reference cancels illustration playback", async ({ baseURL }) => {
   const directory = await mkdtemp(join(tmpdir(), "treasury-visibility-"));
   const executable =
@@ -18,6 +18,7 @@ test("hidden reference cancels illustration playback", async ({ baseURL }) => {
   const child = spawn(
     executable,
     [
+      "--headless=new",
       "--remote-debugging-port=0",
       "--remote-debugging-address=127.0.0.1",
       `--user-data-dir=${directory}`,

@@ -1,3 +1,9 @@
+# Current app delivery status
+
+Context 1 app checkpoint is implemented on `feat/context-one-delivery`: connected local invoice preparation, exact review, browser draft storage, app sections for account/team/session/receipts, safe CSV formatting and an explicit unavailable-by-default integration boundary. Latest full checks: 33 unit / 51 browser tests, TypeScript, build and production smoke passed. Independent review fixes verified. Private checkpoint published successfully on 2026-11-13: [test workspace](https://team-treasury-device-lab.glassygrant5.chatgpt.site/workspace/). The release is tracked in [PR #2](https://github.com/anynomousfriend/Accoryn/pull/2). See [manual app checklist](testing/context-one-manual.md) and [adapter handoff](integration/context-one-adapter.md).
+
+The user confirmed Context 2 has not started. No real account/custody, treasury, acoustic codec, approval or payout integration exists yet. These actions stay disabled; no successful mock provider is shipped. Visual redesign stays paused. User requested a batch manual handoff rather than stopping between these app-only tasks.
+
 # Functional feature checkpoints
 
 Visual redesign is paused. The current screens are the working skeleton for implementing and testing real behavior.
@@ -16,11 +22,11 @@ Automated verification passed: 10 unit tests, 17 real-browser tests, TypeScript 
 
 ## User navigation: current and planned
 
-**Current feature branch:** open `/` → readiness checks → Continue to object registration (at 3 of 3), or Open registration directly → `/object-registration/` → Start → capture/review three views → save local template → fresh capture → compare numeric similarities. Returning users can compare, explicitly replace or delete their local registration. No account-creation continuation is implemented.
+**Current feature branch:** open `/` → readiness checks → Continue to object registration (at 3 of 3), or Open registration directly → `/object-registration/` → Start → capture/review three views → save local template → fresh capture → compare numeric similarities. Returning users can compare, explicitly replace or delete their local registration. Choose **Prepare a team payment** to reach `/workspace/` for local invoice preparation; account creation remains unavailable.
 
 **Intended connected journey:** device readiness → guided object enrollment → fresh-scan verification → real NEAR testnet account setup → create/join team treasury → propose payment → all required members review the exact proposal → acoustic exchange → explicit independent approvals → actual settlement and receipt.
 
-The sequence beyond local registration/comparison is a proposed product flow, not implemented navigation. Object matching must not be described as deriving a safe private key from a photograph. The object-only research access, key custody and recovery design must be explicit before account signing is implemented.
+Local invoice preparation is connected through `/workspace/`; the account, treasury, acoustic and financial sequence remains a proposed flow pending real engines. Object matching must not be described as deriving a safe private key from a photograph. The object-only research access, key custody and recovery design must be explicit before account signing is implemented.
 
 Build each milestone as an extension of the preceding journey. Its browser/integration tests should start from the working app entry and reach the newly completed step, alongside focused failure tests. Do not build disconnected mock screens and call them completed features. Progress updates should say what the user can now navigate from and to.
 
@@ -32,10 +38,10 @@ Build each milestone as an extension of the preceding journey. Its browser/integ
 4. Wait for the user's results; fix failures before the next feature.
 5. Return to visuals after the functional milestones are accepted.
 
-Upcoming work includes object enrollment/verification, actual NEAR accounts/treasury integration, acoustic challenge exchange and policy-bound payment/receipt flows. Only local registration and scan comparison are implemented in the current feature branch. The user approved its design and [three-task implementation plan](superpowers/plans/2026-11-12-object-registration.md) on 2026-11-12; native execution and review fixes are verified; manual testing is pending. Later account, acoustic and payment milestones wait for manual results. The matcher reports measured similarity scores and does not unlock an account.
+Upcoming integration work includes research account access, actual NEAR accounts/treasuries, acoustic exchange and policy-bound payment/receipt flows. Local object registration/comparison and browser-local invoice preparation are implemented; engine-dependent actions are disabled. The user approved its design and [three-task implementation plan](superpowers/plans/2026-11-12-object-registration.md) on 2026-11-12; native execution and review fixes are verified; manual testing is pending. Later account, acoustic and payment milestones wait for manual results. The matcher reports measured similarity scores and does not unlock an account.
 
 The user supplied the shared repository: [Accoryn](https://github.com/anynomousfriend/Accoryn). Existing history was preserved and pushed to `origin/main`. Use feature branches and reviewed pull requests for subsequent changes. App-wide branding remains a separate decision; visual work is paused.
 
 ## Work ownership
 
-Follow [Context 1](../CONTEXT_1.md) for app delivery and integration and [Context 2](../CONTEXT_2.md) for the other contributor's heavy vision/acoustic/custody/NEAR engine work. The checklists distinguish implementation from physical/manual acceptance. Feature 2 is ready to test; subsequent app milestones still wait for its manual results.
+Follow [Context 1](../CONTEXT_1.md) for app delivery and integration and [Context 2](../CONTEXT_2.md) for the other contributor's heavy vision/acoustic/custody/NEAR engine work. The checklists distinguish implementation from physical/manual acceptance. Object registration and the Context 1 app checkpoint are ready for manual testing. Further functional releases wait for user feedback; real engine integration remains pending.

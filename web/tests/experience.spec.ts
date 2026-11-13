@@ -214,8 +214,24 @@ test("illustration uses the shared motion token", async ({ page }) => {
 
 test("leaving the artwork viewport stops playback", async ({ page }) => {
   await page.goto("/design/");
+  // Keep playback long enough that natural completion cannot satisfy this test.
+  await page.evaluate(() =>
+    document.documentElement.style.setProperty("--motion-explain", "10000ms"),
+  );
   await page.getByRole("button", { name: "Replay illustration" }).click();
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.evaluate(async () => {
+    const scene = document.querySelector(".shared-frame")!;
+    await new Promise<void>((resolve) => {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => !entry.isIntersecting)) {
+          observer.disconnect();
+          requestAnimationFrame(() => resolve());
+        }
+      });
+      observer.observe(scene);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
+  });
   await expect
     .poll(
       () =>
@@ -227,7 +243,7 @@ test("leaving the artwork viewport stops playback", async ({ page }) => {
                 .flatMap((element) => element.getAnimations())
                 .filter((a) => a.playState === "running").length,
           ),
-      { timeout: 150, intervals: [10] },
+      { timeout: 1500 },
     )
     .toBe(0);
 });

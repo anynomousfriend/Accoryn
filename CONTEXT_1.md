@@ -30,7 +30,26 @@ Functional features come first; visual redesign, dithered artwork, scrollytellin
 
 Local app: http://127.0.0.1:5173/ . Direct feature: http://127.0.0.1:5173/object-registration/ . Private HTTPS preview: https://team-treasury-device-lab.glassygrant5.chatgpt.site/object-registration/ . Authenticated hosted rendering still requires user verification; deployment success is not a hosted-camera test.
 
-Known minor: the white visual guide is inset 12 px while the entire square preview is processed. Fill the whole preview for current tests. Full evidence and manual steps: [Feature 2 checklist](docs/testing/feature-02-object-registration.md).
+The crop-guide mismatch was fixed on the Context 1 delivery branch; a geometry regression now verifies the visible guide against the processed square at phone/laptop widths. Full evidence and manual steps: [Feature 2 checklist](docs/testing/feature-02-object-registration.md).
+
+
+## Context 1 app implementation checkpoint — 2026-11-13
+
+User clarified that Context 2 has not started and asked this lane to continue independently on separate branches, batching manual testing at the end. Current branch: `feat/context-one-delivery`, based on merged `origin/main` (`7be5f67`). No engine implementation, fake successful provider or new npm dependency was added.
+
+- [x] Real local invoice drafts with validated account spelling/dates/lines, exact 24-decimal NEAR arithmetic, save/reopen/delete and explicit exact-payment review.
+- [x] Account/recovery, team/policy, proposal/session/consent and receipt/export app sections with one typed adapter boundary. Unavailable operations remain disabled; no fake accounts, balances, approvals, decoded sound or receipts appear.
+- [x] Persistent unknown-action journal with operation-specific payment context and native cross-tab locking; clearing drafts retains it. Submitted proposal references remain independently discoverable after reload or draft deletion and lock the original draft; changing a payment requires an explicitly new draft/review.
+- [x] Runtime response validation and safe CSV export formatting, preserving atomic amounts and pending/unknown outcomes. Real receipts are not fabricated to enable export.
+- [x] Actual browser draft persistence/corruption tests, responsive layouts, production workspace smoke and native object/model regressions. Latest full run after independent review fixes: 33 unit / 51 browser tests, typecheck/build/production smoke passed.
+- [x] Primary-source problem/alternative assessment in [problem evidence](docs/research/problem-evidence.md). Customer interviews and demand validation remain unperformed.
+- [x] Small app-owned [adapter handoff](docs/integration/context-one-adapter.md): exact types in `web/src/integration/services.ts`, response guards in `validation.ts`, single wiring point `bindings.ts`. Context 2 owns its actual engines and need not edit React screens.
+- [ ] Real account/custody, treasury, acoustic, independent approval, settlement and receipt integration: awaiting reviewed Context 2 adapters and actual joint tests.
+- [ ] Physical/manual acceptance: [app checklist](docs/testing/context-one-manual.md), plus existing object-registration checklist. No sensor compatibility or financial E2E result is inferred from local fixtures.
+- [ ] GitHub Actions activation: current credential was checked and still lacks workflow-writing permission. Executable workflow example is retained; local checks are not CI.
+- [ ] Visual redesign: still paused until functional acceptance, as requested. Public submission/production/mainnet actions are not performed.
+
+The original backlog below remains an end-to-end acceptance tracker: an unchecked integration item can have its app-side implementation above complete. It must not be checked off as a working payment capability before real engine integration. The adapter is a versioned client-facing proposal, not approval of an undisclosed custody or treasury-security architecture.
 
 ## Our exclusive implementation backlog
 
@@ -71,10 +90,10 @@ Context 2 owns `contracts/`, `services/`, future `web/src/engines/`, engine eval
 
 ## Git and shipping protocol
 
-Start from the commit containing this context pair, currently on `feat/object-registration`; do not assume `origin/main` contains Feature 2 before PR #1 is reviewed/merged. Each contributor uses a separate feature branch/worktree. Prefer short PRs, agreed interfaces first, then independent implementation. No force pushes, history rewrites or unreviewed merges into main. Root web dependency edits have one coordinating owner here.
+PR #1 is now merged into main. This lane continues on `feat/context-one-delivery` from `origin/main`; the other contributor should use its own engine branch and review the adapter handoff before integrating. Each contributor uses a separate feature branch/worktree. Prefer short PRs, agreed interfaces first, then independent implementation. No force pushes, history rewrites or unreviewed merges into main. Root web dependency edits have one coordinating owner here.
 
 For every feature: meaningful failing test → real implementation → appropriate full checks → review → testable release with exact steps → wait for manual results and fix failures. Report unsupported behavior rather than simulating success. Keep private images, credentials, signing keys, binaries, generated reports and research conversation notes out of Git. Reproducible licensed dataset fixtures are computational test inputs, never personal captures or production artwork.
 
 ## Next action
 
-Ask the user to test Feature 2: capture and accept three views, save a label, compare genuine rescans ×3 plus a different/similar object, reload, replace with explicit consent and delete/reload. Record device/browser, scores and timings. Then continue this lane's backlog; hand Context 2 to the other contributor now.
+Finish the independent app review and private checkpoint release, then ask for batch manual testing of object registration and `/workspace/` invoice preparation. Share the adapter handoff with the other contributor. Keep engine-dependent backlog items unaccepted until its real implementations and joint tests exist.

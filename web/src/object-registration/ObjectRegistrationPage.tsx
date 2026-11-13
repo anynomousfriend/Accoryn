@@ -317,6 +317,7 @@ export default function ObjectRegistrationPage() {
           considering object-based account access.
         </p>
         <div className="mt-8 border-t border-line pt-5">
+          <ActionLink href="/workspace/" variant="secondary">Prepare a team payment</ActionLink>
           <ActionLink href="/device-check/" variant="quiet">
             Back to device checks
           </ActionLink>

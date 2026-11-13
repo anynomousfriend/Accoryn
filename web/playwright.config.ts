@@ -4,6 +4,8 @@ export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.ts',
   fullyParallel: true,
+  // Real WASM inference and native Chrome visibility checks share device resources.
+  workers: 2,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: 'list',
