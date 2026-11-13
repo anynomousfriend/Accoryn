@@ -1,6 +1,6 @@
 # Vision and acoustic baselines
 
-Date: 2026-11-12. Status: recommended experiments, not integrated dependencies or measured results. The working application currently uses native camera access, a live microphone analyser and a Web Audio test tone. It has no object matcher or acoustic data codec installed.
+Research date: 2026-11-12. Status update 2026-11-13: DINOv2-small q8/WASM is now integrated for local registration and score-only fresh-scan comparison; no acoustic data codec or account authorization is installed. See ../testing/feature-02-object-registration.md for measured evidence and ../../CONTEXT_1.md / ../../CONTEXT_2.md for current ownership. The experiments below are recommendations; challenger models and authorization thresholds are not implemented.
 
 ## Object instance verification
 

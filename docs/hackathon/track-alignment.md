@@ -6,7 +6,7 @@ Reviewed: 2026-11-12. Product: a new team treasury interface exploring personal-
 
 Target **Social Money** first and **Open Innovation** alongside it once the core NEAR flow is demonstrated. Add **Real-World Money** when a complete business invoice/payment flow works. This is a product-fit assessment, not an eligibility decision by the organizers.
 
-The current application has real camera, microphone and speaker readiness checks. The visual design is approved. It does not yet have an integrated NEAR treasury, object matcher, acoustic challenge protocol or payment settlement. Therefore none of these tracks is demonstrated by the shipped application yet. The UI plan is an enabling phase, not the track-qualified end product.
+Status update 2026-11-13: the application has real device checks and a local DINOv2 object-registration/score-comparison experiment ready for manual testing. It has no integrated NEAR treasury, calibrated object authorization, acoustic challenge protocol or payment settlement. Visual redesign is paused; work ownership is split in Context 1 and Context 2 at the repository root. Therefore none of these tracks is demonstrated by the shipped application yet. The UI plan is an enabling phase, not the track-qualified end product.
 
 ## Interpret the sources correctly
 
@@ -58,7 +58,7 @@ This roadmap orders later designs; it is not authorization to skip the feature-b
 
 | Gate | Deliverable | Automated/integration evidence | Manual evidence |
 | --- | --- | --- | --- |
-| 0 — current readiness | Existing real device checks | Native browser permission denial/retry, real Web Audio and explicit confirmation, reset/layout tests | Phone and laptop camera, mic, audibility and cleanup; still pending |
+| 0 — current readiness | Existing real device checks | Native browser permission denial/retry, real Web Audio and explicit confirmation, reset/layout tests | Three device-check happy paths accepted by user; device/browser matrix and extra failure/lifecycle cases unverified |
 | 1 — approved UI foundation | Tokens/assets, reference page, landing and restyled real readiness | Responsive/reduced-motion/keyboard/link tests; existing media regressions; no synthetic money states in the working app | Visual hierarchy, touch feel, motion interruption and physical sensor regression |
 | 2 — real NEAR treasury slice | Read one testnet treasury/policy, create a proposal and execute eligible votes | Actual RPC/contract outputs; rejected/unauthorized/duplicate votes; insufficient approvals; receipt and receiver-balance checks | Two independent members review the same proposal and observe the result; consent needed for signed transactions |
 | 3 — object-only research access | Guided enrollment, instance verification and disclosed key/recovery model | Held-out real captures, same-category/wrong-object/spoof tests, cold/warm timings | Re-enrollment and cross-device scans with ordinary objects |

@@ -1,6 +1,6 @@
 # Feature 01 — manual device acceptance
 
-Status: ready for manual testing; physical-device acceptance is pending.
+Status: user confirmed camera, microphone and speaker happy-path checks on 2026-11-12. Additional physical-device cases remain unverified.
 
 This release tests device access. It does not create a wallet, recognize an object, decode proximity audio, or execute a payment. All capture data is held in memory on the device, with no application upload or storage path.
 
@@ -33,11 +33,13 @@ Record browser/device versions, pass/fail per step, and the exact error wording.
 
 No fake media flags, injected streams, mocked getUserMedia, mocked responses, or simulated success states were used. Native browser permission controls were used to exercise denial. Automated confirmation exercises the button behavior; it does not establish that a human physically heard the tone.
 
-## Pending evidence
+## Manual feedback and remaining evidence
 
-Successful physical camera/microphone capture, phone Safari/Chrome behavior, speaker audibility, canceled permission prompts, tab suspension, and OS privacy indicators require the manual steps above. They are not covered by a generic “all tests passed” claim.
+On 2026-11-12 the user reported: “yes the three device is checked.” Treat the three primary checks as manually accepted, with no reported failure. The message did not identify device/browser versions or establish completion of every step above.
 
-Feature 02 waits for the user's feedback on this checklist.
+Phone and laptop coverage, browser versions, canceled permission prompts, denial/retry, tab suspension, reset and OS privacy indicators still need explicit evidence. They are not covered by a generic “all tests passed” claim.
+
+The happy-path feedback permits preparing Feature 02. Its design and implementation remain separate from this acceptance record.
 
 For a quick happy-path check, capture a frame and stop the camera without discarding it, detect microphone input and stop it, then confirm the speaker only if heard. The count should reach 3 of 3. Reset should return it to 0 and remove the capture. Discarding a capture intentionally clears camera confirmation.
 

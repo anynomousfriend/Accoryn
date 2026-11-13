@@ -1,3 +1,4 @@
+import { ReadinessContinuation } from "./object-registration/ReadinessContinuation.tsx";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowDownLeft,
@@ -400,6 +401,8 @@ export default function App() {
           </button>
         </div>
 
+        <ReadinessContinuation confirmedCount={confirmed} />
+
         <section className="mt-10 grid overflow-hidden rounded-2xl border border-ink/10 bg-sky md:grid-cols-[1.1fr_1fr]">
           <div className="p-6 sm:p-8">
             <span className="eyebrow text-muted">Built on the essentials</span>
@@ -428,8 +431,8 @@ export default function App() {
                 <strong className="block font-medium text-ink">
                   One step at a time
                 </strong>
-                This release checks device access. Object enrollment and
-                acoustic approvals come next.
+                Continue into local object registration and scan comparison.
+                Acoustic approvals come in a later feature.
               </p>
             </div>
           </div>
