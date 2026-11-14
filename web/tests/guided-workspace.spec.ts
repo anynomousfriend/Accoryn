@@ -253,3 +253,28 @@ test("a saved local key cannot sign until its own object is registered and match
     page.getByText("No account selected", { exact: true }),
   ).toBeVisible();
 });
+
+test("the overview offers your vaults and waiting payments instead of asking for IDs", async ({
+  page,
+}) => {
+  await page.goto("/treasury/#vault");
+  await expect(
+    page.getByRole("heading", { name: "Your vaults and payments" }),
+  ).toBeVisible();
+  const panel = (heading: string) =>
+    page.locator("section.workspace-panel", {
+      has: page.getByRole("heading", { name: heading }),
+    });
+  // Discovery runs for the signed-in account only.
+  await expect(
+    panel("Your vaults and payments").getByText(
+      /Sign in with your object to see the vaults you belong to/,
+    ),
+  ).toBeVisible();
+  await page.goto("/treasury/#approvals");
+  await expect(
+    panel("Payment review and approvals").getByText(
+      /Sign in with your object to see the vaults you belong to/,
+    ),
+  ).toBeVisible();
+});

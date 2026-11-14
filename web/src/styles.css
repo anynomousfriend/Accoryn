@@ -202,6 +202,25 @@
   .ui-button-quiet {
     @apply text-ink;
   }
+  .inbox-item {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface p-3;
+  }
+  .sound-panel {
+    @apply mt-3 rounded-lg border border-line p-4;
+  }
+  .sound-panel-neutral {
+    @apply bg-canvas text-muted;
+  }
+  /* In progress (amber), done (green, outlined), failed (red): distinct in the green theme. */
+  .sound-panel-active {
+    @apply border-warning bg-warning-tint text-warning;
+  }
+  .sound-panel-success {
+    @apply border-success bg-success-tint text-success;
+  }
+  .sound-panel-danger {
+    @apply border-danger bg-danger-tint text-danger;
+  }
   .ui-status {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium;
   }
