@@ -11,25 +11,33 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: Cormorant;
+  src: url("/fonts/CormorantGaramond-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: Inter, "Avenir Next", "Segoe UI", sans-serif;
-  --font-serif: Newsreader, Georgia, serif;
-  --color-canvas: #f7f9fc;
-  --color-surface: #ffffff;
-  --color-ink: #14263d;
-  --color-muted: #53657b;
-  --color-line: #d1dceb;
-  --color-cobalt: #245bdb;
-  --color-cobalt-strong: #1947b5;
-  --color-sky: #ddebff;
-  --color-coral: #f58e7a;
-  --color-coral-tint: #fff0e9;
-  --color-success: #126847;
-  --color-success-tint: #e8f6ee;
-  --color-warning: #805400;
-  --color-warning-tint: #fff3d6;
-  --color-danger: #b4333d;
-  --color-danger-tint: #fdecef;
+  --font-serif: Cormorant, Georgia, serif;
+  --color-canvas: #090c0a;
+  --color-surface: #111712;
+  --color-ink: #f0f3eb;
+  --color-muted: #a3afa5;
+  --color-line: #344237;
+  --color-cobalt: #bad4a5;
+  --color-cobalt-strong: #d4e7c4;
+  --color-sky: #213326;
+  --color-gold: #d9ce8a;
+  --color-coral: #d9ce8a;
+  --color-coral-tint: #302d20;
+  --color-success: #b9dcae;
+  --color-success-tint: #203724;
+  --color-warning: #e9d899;
+  --color-warning-tint: #332e1b;
+  --color-danger: #ffb3a8;
+  --color-danger-tint: #3a2423;
 }
 
 :root {

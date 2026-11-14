@@ -6,7 +6,7 @@ export function ReadinessContinuation({
 }) {
   return (
     <section
-      className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-7"
+      className="mt-8 rounded-2xl border border-line bg-surface p-5 sm:p-7"
       aria-labelledby="next-step-heading"
     >
       <h2 id="next-step-heading" className="font-serif text-2xl text-ink">

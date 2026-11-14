@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  MemberRoster,
+  PaymentFacts,
+  ApprovalProgress,
+} from "../../design/WorkflowPreview.tsx";
 import { Button, ActionLink } from "../../design/primitives.tsx";
 import { Keystore } from "../near/keystore.ts";
 import { TxJournal } from "../near/txjournal.ts";
@@ -52,6 +57,7 @@ import {
 } from "../../workspace/storage.ts";
 import {
   formatNearAmount,
+  totalAtomic,
   parseNearAmount,
   type PaymentDraft,
 } from "../../workspace/drafts.ts";
@@ -76,13 +82,13 @@ const blankInvoice = (treasuryId = ""): PaymentDraft => ({
   updatedAt: new Date().toISOString(),
 });
 const field =
-  "mt-1 min-h-12 w-full rounded-lg border border-line bg-white p-3 text-base";
+  "mt-1 min-h-12 w-full rounded-lg border border-line bg-surface p-3 text-base";
 const writesEnabled =
   (import.meta as ImportMeta & { env: { VITE_ENABLE_TESTNET_WRITES?: string } })
     .env.VITE_ENABLE_TESTNET_WRITES === "1";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="my-5 rounded-xl border border-line bg-white p-5">
+    <section className="workspace-panel">
       <h2 className="mb-4 font-serif text-2xl">{title}</h2>
       <div className="space-y-4">{children}</div>
     </section>
@@ -93,6 +99,7 @@ export default function TreasuryPage() {
   const activeUntil = useRef(0);
   const approvalGuard = useRef<(() => Promise<boolean>) | null>(null);
   const [task, setTask] = useState<Task>(() => taskFromHash(location.hash));
+  const [accountPath, setAccountPath] = useState<"create" | "saved">("create");
   const [vaultStep, setVaultStep] = useState<
     "open" | "name" | "members" | "review"
   >("open");
@@ -104,7 +111,7 @@ export default function TreasuryPage() {
   checkRef.current = objectCheck;
   function showTask(next: Task) {
     setTask(next);
-    history.replaceState(
+    history.pushState(
       null,
       "",
       location.pathname + location.search + "#" + next,
@@ -256,7 +263,7 @@ export default function TreasuryPage() {
       .catch(() => {
         if (!disposed)
           setMessage(
-            "Member object storage could not be read. Open Member object to repair it.",
+            "Member object storage could not be read. Open Members to repair it.",
           );
       })
       .finally(() => scoped.close());
@@ -275,7 +282,11 @@ export default function TreasuryPage() {
       }
     };
     window.addEventListener("hashchange", changed);
-    return () => window.removeEventListener("hashchange", changed);
+    window.addEventListener("popstate", changed);
+    return () => {
+      window.removeEventListener("hashchange", changed);
+      window.removeEventListener("popstate", changed);
+    };
   }, []);
   useEffect(() => {
     document.title = task[0].toUpperCase() + task.slice(1) + " · Team Treasury";
@@ -556,15 +567,15 @@ export default function TreasuryPage() {
       <div className="workspace-heading">
         <p className="eyebrow-label">
           {task === "account"
-            ? "A shared treasury, a clear next step"
-            : "Team treasury / " + task}
+            ? "Begin with your own account"
+            : "Your workspace / NEAR testnet"}
         </p>
         <h1>
           {
             {
-              account: "Your team. One shared vault.",
-              vault: "A home for your team’s funds.",
-              object: "A personal object for your vault.",
+              account: "Your account",
+              vault: "A home for shared decisions.",
+              object: "Members & verification",
               payment: "Prepare a payment.",
               approvals: "Approve together.",
               activity: "Every payment, accounted for.",
@@ -576,11 +587,11 @@ export default function TreasuryPage() {
           {
             {
               account:
-                "Create your account, bring your team together, and approve payments in person.",
+                "Create a testnet account or continue with one saved on this device.",
               vault:
                 "Open an existing vault or create one with your partners. Each member uses their own account.",
               object:
-                "Enroll your own object here. When you approve a payment, the app will ask for a fresh comparison.",
+                "Your vault partners, and your personal object. Each member enrolls on their own device.",
               payment:
                 "Choose a recipient and explain the payment. You review the exact details before anything is submitted.",
               approvals:
@@ -602,7 +613,7 @@ export default function TreasuryPage() {
       <div className="workspace-session">
         <span className={unlocked ? "session-dot active" : "session-dot"} />
         <span>
-          {unlocked ? "Browser session active" : "Browser session not started"}
+          {unlocked ? "Browser session active" : "Start a session to continue"}
         </span>
         <span className="text-muted">{account || "No account selected"}</span>
       </div>
@@ -718,14 +729,30 @@ export default function TreasuryPage() {
         </Section>
       )}
       <div hidden={task !== "account"}>
-        <Section title="Your testnet account">
+        <Section title="Choose how to continue">
+          <div className="account-paths" aria-label="Account options">
+            <Button
+              variant={accountPath === "create" ? "primary" : "secondary"}
+              onClick={() => setAccountPath("create")}
+              aria-pressed={accountPath === "create"}
+            >
+              Create account
+            </Button>
+            <Button
+              variant={accountPath === "saved" ? "primary" : "secondary"}
+              onClick={() => setAccountPath("saved")}
+              aria-pressed={accountPath === "saved"}
+            >
+              Use saved account
+            </Button>
+          </div>
           {!unlocked && (
             <div className="onboarding-notice">
               <h3>Start with this browser</h3>
               <p>
-                This testnet prototype keeps signing keys in this browser,
-                unencrypted and without cross-device recovery. Object scans are
-                a later vault research step; they do not generate these keys.
+                Testnet signing keys stay unencrypted in this browser. Clearing
+                its data loses access; there is no cross-device recovery. Object
+                scans do not create these keys.
               </p>
               <Button onClick={startBrowserSession}>
                 Start browser session
@@ -739,75 +766,80 @@ export default function TreasuryPage() {
             </p>
           )}
           <p>
-            Username is your NEAR testnet account name. Clearing browser data
-            loses this browser’s keys. Existing accounts require their local
-            key; this screen cannot recover a lost secret.
+            Use a unique name for a new NEAR testnet account. Saved accounts
+            need their signing key on this device.
           </p>
-          <label className="block">
-            New username
-            <input
-              className={field}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoCapitalize="none"
-              placeholder="your-name"
-            />
-          </label>
-          <Button
-            disabled={blocked || !name}
-            onClick={() =>
-              buttonOp(() => {
-                const parsed = validateNewAccountId(name);
-                if (!parsed.ok) throw new Error("Invalid username.");
-                return {
-                  requestId: crypto.randomUUID(),
-                  kind: "account",
-                  actor: parsed.accountId,
-                  receiver: parsed.accountId,
-                  args: { accountId: parsed.accountId },
-                  deposit: "0",
-                };
-              })
-            }
-          >
-            Create testnet account
-          </Button>
-          <label className="block">
-            Local account
-            <select
-              aria-label="Local account"
-              className={field}
-              value={selected}
-              onChange={(e) => {
-                stop();
-                engine.accountId = null;
-                setAccount("");
-                setSelected(e.target.value);
-              }}
+          <div hidden={accountPath !== "create"} className="space-y-4">
+            <label className="block">
+              New username
+              <input
+                className={field}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoCapitalize="none"
+                placeholder="your-name"
+              />
+            </label>
+            <Button
+              disabled={blocked || !name}
+              onClick={() =>
+                buttonOp(() => {
+                  const parsed = validateNewAccountId(name);
+                  if (!parsed.ok) throw new Error("Invalid username.");
+                  return {
+                    requestId: crypto.randomUUID(),
+                    kind: "account",
+                    actor: parsed.accountId,
+                    receiver: parsed.accountId,
+                    args: { accountId: parsed.accountId },
+                    deposit: "0",
+                  };
+                })
+              }
             >
-              <option value="">Choose an account</option>
-              {localAccounts.map((a) => (
-                <option key={a}>{a}</option>
-              ))}
-            </select>
-          </label>
-          <Button
-            disabled={busy || damaged || !unlocked || !selected}
-            onClick={() =>
-              void run(async (s, id) => {
-                const a = await engine.selectAccount(selected, s);
-                if (sequence.current === id) {
-                  setAccount(a);
-                  shareDemoUser(a);
-                  setMessage("Local key confirmed as FullAccess on testnet.");
-                  showTask("vault");
-                }
-              })
-            }
-          >
-            Use local account
-          </Button>
-          <p className="break-all">Current signer: {account || "none"}</p>
+              Create testnet account
+            </Button>
+          </div>
+          <div hidden={accountPath !== "saved"} className="space-y-4">
+            <label className="block">
+              Local account
+              <select
+                aria-label="Local account"
+                className={field}
+                value={selected}
+                onChange={(e) => {
+                  stop();
+                  engine.accountId = null;
+                  setAccount("");
+                  setSelected(e.target.value);
+                }}
+              >
+                <option value="">Choose an account</option>
+                {localAccounts.map((a) => (
+                  <option key={a}>{a}</option>
+                ))}
+              </select>
+            </label>
+            <Button
+              disabled={busy || damaged || !unlocked || !selected}
+              onClick={() =>
+                void run(async (s, id) => {
+                  const a = await engine.selectAccount(selected, s);
+                  if (sequence.current === id) {
+                    setAccount(a);
+                    shareDemoUser(a);
+                    setMessage("Local key confirmed as FullAccess on testnet.");
+                    showTask("vault");
+                  }
+                })
+              }
+            >
+              Use local account
+            </Button>
+          </div>
+          <p className="break-all text-sm text-muted">
+            Current signer: {account || "none"}
+          </p>
         </Section>
       </div>
       <div hidden={task !== "vault"}>
@@ -1087,6 +1119,18 @@ export default function TreasuryPage() {
       </div>
       <div hidden={task !== "object"}>
         <Section title="Your member enrollment">
+          {treasury && (
+            <>
+              <MemberRoster
+                members={treasury.members}
+                currentAccount={account}
+              />
+              <p className="text-sm text-muted">
+                Each member enrolls on their own device. Other members’ local
+                scan status is not shared.
+              </p>
+            </>
+          )}
           {!isMember ? (
             <p>
               Select your account and open a vault to enroll your member object.
@@ -1124,8 +1168,8 @@ export default function TreasuryPage() {
         <Section title="Invoice payment">
           {(!account || !treasury) && (
             <p className="next-step-note">
-              Start with Account, then open your Vault. The payment form will
-              use that vault automatically.
+              Select your Account, then open a vault in Overview. The payment
+              form will use that vault automatically.
             </p>
           )}
           {isMember && !memberTemplate && (
@@ -1133,7 +1177,7 @@ export default function TreasuryPage() {
               Enroll your member object before submitting a payment from this
               workspace.{" "}
               <button className="underline" onClick={() => navigate("object")}>
-                Go to Member object
+                Go to Members
               </button>
             </p>
           )}
@@ -1237,13 +1281,14 @@ export default function TreasuryPage() {
                   on-chain outcome.
                 </p>
               )}
+              <PaymentFacts
+                recipient={draft.recipient}
+                amount={formatNearAmount(totalAtomic(draft))}
+                purpose={draft.purpose}
+              />
               <dl className="break-all text-sm">
                 <dt>Treasury</dt>
                 <dd>{draft.treasuryId}</dd>
-                <dt>Recipient</dt>
-                <dd>{draft.recipient}</dd>
-                <dt>Purpose</dt>
-                <dd>{draft.purpose}</dd>
                 <dt>Line items</dt>
                 <dd>
                   {draft.lines
@@ -1314,12 +1359,14 @@ export default function TreasuryPage() {
               <p>
                 Proposal {payment.proposal.id}: {payment.proposal.status}
               </p>
-              <p>
-                Pay {formatNearAmount(payment.proposal.amountAtomic)} native
-                NEAR ({payment.proposal.amountAtomic} atomic) to{" "}
-                {payment.proposal.recipient}
+              <PaymentFacts
+                recipient={payment.proposal.recipient}
+                amount={formatNearAmount(payment.proposal.amountAtomic)}
+                purpose={payment.proposal.purpose}
+              />
+              <p className="mt-3 text-xs text-muted">
+                Atomic amount: {payment.proposal.amountAtomic}
               </p>
-              <p>Purpose: {payment.proposal.purpose}</p>
               <p>Hash: {payment.proposal.contentHash}</p>
               <p>Expires: {payment.proposal.expiresAt}</p>
               <p>
@@ -1342,15 +1389,15 @@ export default function TreasuryPage() {
           {!payment && <p className="next-step-note">No payment loaded</p>}
           {payment && (
             <div className="next-step-note">
-              <p className="font-semibold">
-                {payment.proposal.approvals.length} of{" "}
-                {payment.proposal.requiredApprovals} member approvals
-              </p>
+              <ApprovalProgress
+                approvals={payment.proposal.approvals.length}
+                required={payment.proposal.requiredApprovals}
+              />
               <p className="mt-2">
                 {payment.proposal.status === "settled"
-                  ? "Payout verified. Publish its evidence below, then open Activity to share the receipt."
+                  ? "Payout verified. Publish its evidence below, then open Completed & records to share the receipt."
                   : !paymentOpen
-                    ? "This payment is no longer open. Check Activity for its authoritative outcome."
+                    ? "This payment is no longer open. Check Completed & records for its authoritative outcome."
                     : !sessionOpen
                       ? "Next: a member opens the host session. Partners then load this payment on their own devices."
                       : payment.proposal.approvals.length >=
@@ -1516,61 +1563,63 @@ export default function TreasuryPage() {
             I approve this exact recipient, amount and purpose as a vault
             member.
           </label>
-          <Button
-            disabled={
-              blocked ||
-              !account ||
-              !heard ||
-              !consent ||
-              !sessionOpen ||
-              !contextRef.current ||
-              !validObjectCheck(objectCheck, contextRef.current, now) ||
-              !!payment?.proposal.approvals.includes(account)
-            }
-            onClick={() =>
-              void run(async (s, id) => {
-                if (!consent) throw new Error("Explicit consent required.");
-                const op = await engine.planAttest(
-                  payment!,
-                  crypto.randomUUID(),
-                  s,
-                );
-                await transact(op, s, id);
-              })
-            }
-          >
-            Sign member approval
-          </Button>
-          <Button
-            disabled={
-              blocked ||
-              !account ||
-              !sessionOpen ||
-              !payment ||
-              payment.proposal.approvals.length <
-                payment.proposal.requiredApprovals
-            }
-            onClick={() =>
-              buttonOp(() =>
-                engine.planGate("execute", payment!, crypto.randomUUID()),
-              )
-            }
-          >
-            Execute approved payment
-          </Button>
-          <Button
-            variant="secondary"
-            disabled={
-              blocked || !sessionOpen || payment?.session?.host !== account
-            }
-            onClick={() =>
-              buttonOp(() =>
-                engine.planGate("cancel", payment!, crypto.randomUUID()),
-              )
-            }
-          >
-            Cancel host session
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              disabled={
+                blocked ||
+                !account ||
+                !heard ||
+                !consent ||
+                !sessionOpen ||
+                !contextRef.current ||
+                !validObjectCheck(objectCheck, contextRef.current, now) ||
+                !!payment?.proposal.approvals.includes(account)
+              }
+              onClick={() =>
+                void run(async (s, id) => {
+                  if (!consent) throw new Error("Explicit consent required.");
+                  const op = await engine.planAttest(
+                    payment!,
+                    crypto.randomUUID(),
+                    s,
+                  );
+                  await transact(op, s, id);
+                })
+              }
+            >
+              Sign member approval
+            </Button>
+            <Button
+              disabled={
+                blocked ||
+                !account ||
+                !sessionOpen ||
+                !payment ||
+                payment.proposal.approvals.length <
+                  payment.proposal.requiredApprovals
+              }
+              onClick={() =>
+                buttonOp(() =>
+                  engine.planGate("execute", payment!, crypto.randomUUID()),
+                )
+              }
+            >
+              Execute approved payment
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={
+                blocked || !sessionOpen || payment?.session?.host !== account
+              }
+              onClick={() =>
+                buttonOp(() =>
+                  engine.planGate("cancel", payment!, crypto.randomUUID()),
+                )
+              }
+            >
+              Cancel host session
+            </Button>
+          </div>
           {payment?.transactionIds[0] && (
             <Button
               disabled={blocked || !account}

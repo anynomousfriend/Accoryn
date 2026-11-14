@@ -3,56 +3,32 @@ import { BrandLink, Button } from "../../design/primitives.tsx";
 import {
   UserRound,
   Landmark,
-  ScanLine,
   ArrowUpRight,
-  Radio,
-  History,
+  UsersRound,
   Settings2,
   ChevronRight,
 } from "lucide-react";
 export const tasks = [
-  {
-    id: "account",
-    label: "Account",
-    icon: UserRound,
-    hint: "Your browser account",
-  },
-  { id: "vault", label: "Vault", icon: Landmark, hint: "Your shared treasury" },
-  {
-    id: "object",
-    label: "Member object",
-    icon: ScanLine,
-    hint: "Enroll on this device",
-  },
-  {
-    id: "payment",
-    label: "Payment",
-    icon: ArrowUpRight,
-    hint: "Prepare and review",
-  },
-  {
-    id: "approvals",
-    label: "Approvals",
-    icon: Radio,
-    hint: "Meet, scan and approve",
-  },
-  {
-    id: "activity",
-    label: "Activity",
-    icon: History,
-    hint: "Receipts and sharing",
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    icon: Settings2,
-    hint: "Governance and recovery",
-  },
+  { id: "account", label: "Account" },
+  { id: "vault", label: "Overview" },
+  { id: "object", label: "Members" },
+  { id: "payment", label: "New payment" },
+  { id: "approvals", label: "Approvals" },
+  { id: "activity", label: "Completed & records" },
+  { id: "settings", label: "Vault settings" },
 ] as const;
 export type Task = (typeof tasks)[number]["id"];
 export function taskFromHash(hash: string): Task {
+  if (hash === "#overview") return "vault";
+  if (hash === "#members") return "object";
   return tasks.find((t) => "#" + t.id === hash)?.id ?? "account";
 }
+const navigation = [
+  { id: "vault", label: "Overview", icon: Landmark },
+  { id: "payment", label: "Payments", icon: ArrowUpRight },
+  { id: "object", label: "Members", icon: UsersRound },
+  { id: "settings", label: "Vault settings", icon: Settings2 },
+] as const;
 export function GuidedWorkspace({
   task,
   account,
@@ -70,6 +46,7 @@ export function GuidedWorkspace({
   onLock: () => void;
   children: ReactNode;
 }) {
+  const payments = ["payment", "approvals", "activity"].includes(task);
   return (
     <div className="treasury-app">
       <a href="#main" className="skip-link">
@@ -77,11 +54,24 @@ export function GuidedWorkspace({
       </a>
       <header className="treasury-topbar">
         <BrandLink />
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="topbar-vault">
+          <span className="eyebrow-label">Current vault</span>
+          <span>{vault || "Choose your shared vault"}</span>
+        </div>
+        <div className="account-controls">
           <span className="network-label">
             <span />
             NEAR testnet
           </span>
+          <Button
+            variant="quiet"
+            disabled={busy}
+            onClick={() => onNavigate("account")}
+            aria-current={task === "account" ? "page" : undefined}
+          >
+            <UserRound size={15} />
+            <span className="account-label">{account || "Account"}</span>
+          </Button>
           {account && (
             <Button variant="quiet" disabled={busy} onClick={onLock}>
               End session
@@ -91,26 +81,23 @@ export function GuidedWorkspace({
       </header>
       <div className="treasury-layout">
         <aside className="treasury-sidebar">
-          <p className="eyebrow-label mb-4 hidden lg:block">Your workspace</p>
-          <nav aria-label="Workspace tasks" className="task-navigation">
-            {tasks.map(({ id, label, hint, icon: Icon }, i) => (
+          <p className="eyebrow-label mb-5 hidden lg:block">Your treasury</p>
+          <nav aria-label="Workspace navigation" className="task-navigation">
+            {navigation.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
-                aria-label={label}
                 disabled={busy}
-                aria-current={task === id ? "step" : undefined}
+                aria-current={
+                  task === id || (id === "payment" && payments)
+                    ? "page"
+                    : undefined
+                }
                 onClick={() => onNavigate(id)}
                 className="task-link"
               >
-                <Icon size={19} aria-hidden="true" />
-                <span className="min-w-0">
-                  <span className="block font-semibold">{label}</span>
-                  <span className="task-hint">{hint}</span>
-                </span>
-                <span className="task-number">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
+                <Icon size={18} aria-hidden="true" />
+                <span>{label}</span>
               </button>
             ))}
           </nav>
@@ -118,20 +105,25 @@ export function GuidedWorkspace({
             href="/device-check/"
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex min-h-12 items-center text-xs underline lg:hidden"
+            className="nav-link min-h-11 w-full justify-end text-xs lg:hidden"
           >
-            Camera or sound help ↗
+            Device help <ChevronRight size={14} aria-hidden="true" />
           </a>
           <div className="sidebar-context">
-            <p className="eyebrow-label">Current signer</p>
-            <p>{account || "No account selected"}</p>
-            <p className="eyebrow-label mt-5">Current vault</p>
-            <p>{vault || "No vault opened"}</p>
+            <span className="sidebar-emblem" aria-hidden="true">
+              ◎
+            </span>
+            <p className="font-serif text-2xl text-ink">
+              Shared funds.
+              <br />
+              <em>Individual consent.</em>
+            </p>
+            <p className="mt-4">Every member signs their own decision.</p>
             <a
               href="/device-check/"
               target="_blank"
               rel="noreferrer"
-              className="mt-5 inline-flex min-h-12 items-center gap-2 text-sm underline"
+              className="nav-link mt-5"
             >
               Device help <ChevronRight size={14} />
             </a>
@@ -140,9 +132,29 @@ export function GuidedWorkspace({
         <main id="main" className="treasury-content [overflow-wrap:anywhere]">
           <div className="workspace-breadcrumb">
             <span>Workspace</span>
-            <ChevronRight size={14} aria-hidden="true" />
-            <span>{tasks.find((t) => t.id === task)?.label}</span>
+            <ChevronRight size={12} aria-hidden="true" />
+            <span>
+              {payments ? "Payments" : tasks.find((t) => t.id === task)?.label}
+            </span>
           </div>
+          {payments && (
+            <nav className="payment-navigation" aria-label="Payment views">
+              {tasks
+                .filter((t) =>
+                  ["payment", "approvals", "activity"].includes(t.id),
+                )
+                .map((t) => (
+                  <button
+                    key={t.id}
+                    disabled={busy}
+                    aria-current={task === t.id ? "page" : undefined}
+                    onClick={() => onNavigate(t.id)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+            </nav>
+          )}
           {children}
           <footer className="workspace-footer">
             Testnet research prototype · native NEAR only.

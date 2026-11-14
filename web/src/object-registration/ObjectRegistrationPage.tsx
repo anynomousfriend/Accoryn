@@ -168,7 +168,7 @@ export default function ObjectRegistrationPage({
             recovery. Photos are not secret keys.
           </p>
         </section>
-        <div className="mt-6 rounded-xl border border-line bg-white p-4">
+        <div className="mt-6 rounded-xl border border-line bg-surface p-4">
           <p
             role={error ? "alert" : "status"}
             aria-live={error ? "assertive" : "polite"}
@@ -206,7 +206,7 @@ export default function ObjectRegistrationPage({
         {state.template && (
           <section
             aria-label="Saved registration"
-            className="mt-5 rounded-xl border border-line bg-white p-5"
+            className="mt-5 rounded-xl border border-line bg-surface p-5"
           >
             <p className="eyebrow-label">Saved in this browser</p>
             <h2 className="mt-2 break-words font-serif text-2xl text-ink">
@@ -284,7 +284,7 @@ export default function ObjectRegistrationPage({
         )}
         {readyToSave && (
           <form
-            className="mt-6 rounded-2xl border border-line bg-white p-5"
+            className="mt-6 rounded-2xl border border-line bg-surface p-5"
             onSubmit={(event) => {
               event.preventDefault();
               void controller.save(label, replaceConfirmed);
@@ -306,7 +306,7 @@ export default function ObjectRegistrationPage({
               value={label}
               disabled={busy}
               onChange={(e) => setLabel(e.target.value)}
-              className="mt-2 min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base text-ink"
+              className="mt-2 min-h-12 w-full rounded-lg border border-line bg-surface px-3 text-base text-ink"
               aria-describedby="object-label-help"
             />
             <p id="object-label-help" className="mt-2 text-xs text-muted">

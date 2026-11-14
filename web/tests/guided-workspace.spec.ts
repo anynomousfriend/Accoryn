@@ -4,7 +4,7 @@ test("the first mobile action is visible without hunting below the fold", async 
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/treasury/");
   await expect(
     page.getByRole("button", { name: "Start browser session", exact: true }),
   ).toBeInViewport();
@@ -13,9 +13,9 @@ test("the first mobile action is visible without hunting below the fold", async 
 test("home starts the account journey and exposes one task at a time", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/treasury/");
   await expect(
-    page.getByRole("heading", { name: "Your team. One shared vault." }),
+    page.getByRole("heading", { name: "Your account" }),
   ).toBeVisible();
   await expect(page.getByLabel("New username", { exact: true })).toBeVisible();
   await expect(
@@ -35,7 +35,7 @@ test("home starts the account journey and exposes one task at a time", async ({
   await expect(
     page.getByRole("button", { name: "Sign member approval", exact: true }),
   ).not.toBeVisible();
-  await page.getByRole("button", { name: "Vault", exact: true }).click();
+  await page.getByRole("button", { name: "Overview", exact: true }).click();
   await expect(
     page.getByLabel("Treasury account", { exact: true }),
   ).toBeVisible();
@@ -86,6 +86,7 @@ test("member object and approvals explain missing prerequisites without exposing
       { exact: true },
     ),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Payments", exact: true }).click();
   await page.getByRole("button", { name: "Approvals", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Sign member approval", exact: true }),
@@ -117,7 +118,8 @@ test("mobile task navigation fits and preserves a pending request outside its or
     ),
   );
   await page.reload();
-  await page.getByRole("button", { name: "Activity", exact: true }).click();
+  await page.getByRole("button", { name: "Payments", exact: true }).click();
+  await page.getByRole("button", { name: "Completed & records", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Pending request", exact: true }),
   ).toBeVisible();
@@ -170,10 +172,10 @@ test("blocked browser storage does not crash the workspace", async ({
       throw new DOMException("Blocked", "SecurityError");
     };
   });
-  await page.goto("/");
+  await page.goto("/treasury/");
   await expect(
     page.getByRole("heading", {
-      name: "Your team. One shared vault.",
+      name: "Your account",
       exact: true,
     }),
   ).toBeVisible();

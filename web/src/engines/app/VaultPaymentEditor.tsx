@@ -18,7 +18,7 @@ type Props = {
   onReview: () => void;
 };
 const field =
-  "mt-2 min-h-12 w-full rounded-lg border border-line bg-white p-3 text-base";
+  "mt-2 min-h-12 w-full rounded-lg border border-line bg-surface p-3 text-base";
 export function VaultPaymentEditor(props: Props) {
   const { draft, disabled, readOnly, onChange, onSave, onReview, directory } =
     props;

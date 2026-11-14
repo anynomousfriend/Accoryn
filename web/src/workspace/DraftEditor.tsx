@@ -1,7 +1,7 @@
 import { Button } from "../design/primitives.tsx";
 import { formatNearAmount, totalAtomic, type PaymentDraft } from "./drafts.ts";
 const field =
-  "mt-1 min-h-12 w-full min-w-0 rounded-lg border border-line bg-white px-3 text-base text-ink";
+  "mt-1 min-h-12 w-full min-w-0 rounded-lg border border-line bg-surface px-3 text-base text-ink";
 export function DraftEditor({
   draft,
   onChange,
@@ -27,7 +27,7 @@ export function DraftEditor({
   } catch {}
   return (
     <section
-      className="rounded-2xl border border-line bg-white p-5 sm:p-7"
+      className="rounded-2xl border border-line bg-surface p-5 sm:p-7"
       aria-labelledby="draft-heading"
     >
       <h2 id="draft-heading" className="font-serif text-2xl">

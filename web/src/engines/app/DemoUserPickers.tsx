@@ -1,7 +1,7 @@
 import { Button } from "../../design/primitives.tsx";
 import type { DemoDirectoryState } from "./useDemoUsers.ts";
 const field =
-  "mt-2 min-h-12 w-full rounded-lg border border-line bg-white p-3 text-base";
+  "mt-2 min-h-12 w-full rounded-lg border border-line bg-surface p-3 text-base";
 function DirectoryFeedback({ directory }: { directory: DemoDirectoryState }) {
   return (
     <div className="my-3 text-sm">

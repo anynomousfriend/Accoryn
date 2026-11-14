@@ -18,7 +18,7 @@ export function CapturePanel({
   return (
     <section
       aria-label="Object capture"
-      className="rounded-2xl border border-line bg-white p-4 sm:p-6"
+      className="rounded-2xl border border-line bg-surface p-4 sm:p-6"
     >
       <h2 className="font-serif text-2xl text-ink">
         {state.mode === "comparison"

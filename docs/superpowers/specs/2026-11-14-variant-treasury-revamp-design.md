@@ -1,6 +1,6 @@
 # Reference-led treasury experience revamp
 
-Status: proposed for user review; no application behavior changed.
+Status: approved and implemented on the local redesign branch. Automated release verification passed; user manual acceptance is pending.
 
 ## Intent and scope
 
@@ -112,16 +112,16 @@ Restyle supporting routes (`/device-check/`, `/object-registration/`, `/acoustic
 
 Release this as one integrated redesign feature with internal implementation phases; manual user sign-off follows the integrated release, not every styling file.
 
-- [ ] Written design approved, implementation plan recorded, failing behavioral tests added before new behavior.
-- [ ] Landing and treasury use one coherent reference-led visual system at desktop and mobile widths.
-- [ ] Landing provides original animated motifs and accurately labeled shared-component walkthroughs, reduced-motion/static access and no device permission or signing side effects.
-- [ ] Account creation/selection, vault setup, demo member/recipient choices, enrollment, funding, payment review, acoustic approvals, execution and receipts remain connected to existing engines.
-- [ ] Global navigation groups functionality correctly; legacy links and browser Back/Forward work.
-- [ ] Exact amounts/IDs, custody consent, security disclosures, request reconciliation and duplicate-submission safeguards are preserved.
-- [ ] Keyboard focus, semantic navigation, touch targets, long IDs, narrow screens, loading/error/empty/expired/unknown states verified with appropriate tests.
-- [ ] Run relevant unit/integration tests, complete browser regression suite, typecheck, production build and production route checks. Distinguish fixture coverage from live testnet verification.
-- [ ] Inspect rendered desktop/mobile screenshots and actual motion, including reduced motion. No claimed physical camera/audio success based on simulated media.
-- [ ] Provide local laptop/phone URLs and exact two-device manual steps, plus honest remaining coverage limits. Wait for user results before further feature work.
+- [x] Written design approved, implementation plan recorded, failing behavioral tests added before new behavior.
+- [x] Landing and treasury use one coherent reference-led visual system at desktop and mobile widths.
+- [x] Landing provides original animated motifs and accurately labeled shared-component walkthroughs, reduced-motion/static access and no device permission or signing side effects.
+- [x] Account creation/selection, vault setup, demo member/recipient choices, enrollment, funding, payment review, acoustic approvals, execution and receipts remain connected to existing engines.
+- [x] Global navigation groups functionality correctly; legacy links and browser Back/Forward work.
+- [x] Exact amounts/IDs, custody consent, security disclosures, request reconciliation and duplicate-submission safeguards are preserved.
+- [x] Keyboard focus, semantic navigation, touch targets, long IDs, narrow screens, loading/error/empty/expired/unknown states verified with appropriate tests.
+- [x] Run relevant unit/integration tests, complete browser regression suite, typecheck, production build and production route checks. Distinguish fixture coverage from live testnet verification.
+- [x] Inspect rendered desktop/mobile screenshots and actual motion, including reduced motion. No claimed physical camera/audio success based on simulated media.
+- [x] Provide local laptop/phone URLs and exact two-device manual steps, plus honest remaining coverage limits. Wait for user results before further feature work.
 
 ## Builder decisions
 

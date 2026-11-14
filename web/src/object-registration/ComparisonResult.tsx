@@ -6,7 +6,7 @@ export function ComparisonResult({ comparison }: { comparison: Comparison }) {
   return (
     <section
       aria-labelledby="comparison-heading"
-      className="rounded-2xl border border-line bg-white p-5 sm:p-7"
+      className="rounded-2xl border border-line bg-surface p-5 sm:p-7"
     >
       <p className="eyebrow-label">Demo object comparison</p>
       <h2

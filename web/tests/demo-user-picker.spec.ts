@@ -57,7 +57,7 @@ test("separate browser sessions share real testnet users for member and recipien
     await expect(
       p.getByLabel("Local account", { exact: true }).locator("option"),
     ).toHaveCount(1);
-    await p.getByRole("button", { name: "Vault", exact: true }).click();
+    await p.getByRole("button", { name: "Overview", exact: true }).click();
     await p.getByRole("button", { name: "Open a vault", exact: true }).click();
     await p
       .getByLabel("Treasury account", { exact: true })
@@ -66,7 +66,7 @@ test("separate browser sessions share real testnet users for member and recipien
     await expect(p.locator("#workspace-status")).toContainText("loaded", {
       timeout: 45000,
     });
-    await p.getByRole("button", { name: "Payment", exact: true }).click();
+    await p.getByRole("button", { name: "Payments", exact: true }).click();
     await p.getByRole("button", { name: "New invoice", exact: true }).click();
     await p.getByLabel("Choose recipient", { exact: true }).selectOption(bob);
     await p
@@ -96,7 +96,7 @@ test("separate browser sessions share real testnet users for member and recipien
         exact: true,
       }),
     ).toBeDisabled();
-    await p.getByRole("button", { name: "Settings", exact: true }).click();
+    await p.getByRole("button", { name: "Vault settings", exact: true }).click();
     await expect(
       p.getByRole("checkbox", { name: `Add ${alice}`, exact: true }),
     ).toBeChecked();

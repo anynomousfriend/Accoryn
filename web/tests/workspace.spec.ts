@@ -8,7 +8,7 @@ test("standalone object research returns to the connected account journey", asyn
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "Your team. One shared vault.",
+      name: "Your account",
       exact: true,
     }),
   ).toBeVisible();

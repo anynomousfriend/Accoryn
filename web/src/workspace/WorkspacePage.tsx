@@ -52,7 +52,7 @@ import {
   type ReceiptExportRow,
 } from "../payments/receipt-csv.ts";
 const field =
-  "mt-1 min-h-12 w-full min-w-0 rounded-lg border border-line bg-white px-3 text-base";
+  "mt-1 min-h-12 w-full min-w-0 rounded-lg border border-line bg-surface px-3 text-base";
 const blank = (): PaymentDraft => ({
   id: crypto.randomUUID(),
   reference: "",
@@ -63,7 +63,7 @@ const blank = (): PaymentDraft => ({
   lines: [{ description: "", quantity: 1, unitAmount: "" }],
   updatedAt: new Date().toISOString(),
 });
-const card = "rounded-2xl border border-line bg-white p-5 sm:p-7";
+const card = "rounded-2xl border border-line bg-surface p-5 sm:p-7";
 export default function WorkspacePage() {
   const [services] = useState(getAppServices);
   const [tab, setTab] = useState("Payment draft");
@@ -370,7 +370,7 @@ export default function WorkspacePage() {
         </nav>
         <p
           role={error ? "alert" : "status"}
-          className={`mb-5 rounded-xl border border-line bg-white p-4 text-sm leading-6 ${error ? "text-danger" : "text-ink"}`}
+          className={`mb-5 rounded-xl border border-line bg-surface p-4 text-sm leading-6 ${error ? "text-danger" : "text-ink"}`}
         >
           {message}
         </p>

@@ -1,255 +1,248 @@
-import {
-  ArrowRight,
-  ArrowUpRight,
-  AudioLines,
-  Camera,
-  CheckCheck,
-  UsersRound,
-} from "lucide-react";
-import { ActionLink, BrandLink, SiteHeader } from "../design/primitives.tsx";
-import { SharedFrame } from "../design/SharedFrame.tsx";
+import { useEffect, useRef, useState } from "react";
+import { ArrowDown, ArrowUpRight, Pause, Play } from "lucide-react";
+import { ActionLink, BrandLink } from "../design/primitives.tsx";
+import { WorkflowPreview } from "../design/WorkflowPreview.tsx";
+import { TreasuryArtwork } from "./TreasuryArtwork.tsx";
 
-const workflow = [
+const chapters = [
   {
-    number: "01",
-    title: "Your object.",
-    label: "A familiar beginning",
-    description:
-      "Explore access with something personal. Guided captures will help check whether an object is distinctive enough.",
+    id: "account",
+    name: "01 Assemble your team",
+    title: "A shared vault. Your own say.",
+    text: "Create your account, open a vault and bring your partners in. Each person keeps their own signing key and enrolls their personal object on their device.",
   },
   {
-    number: "02",
-    title: "One proposal.",
-    label: "The same details",
-    description:
-      "Review the recipient, amount and approval policy together. Everyone should know exactly what they are approving.",
+    id: "payment",
+    name: "02 Prepare a payment",
+    title: "Know what you’re agreeing to.",
+    text: "Choose the recipient, enter the amount and explain the payment. Review the same exact details before submitting the request. Preparing a proposal does not move funds.",
   },
   {
-    number: "03",
-    title: "Team approval.",
-    label: "An explicit decision",
-    description:
-      "Check acoustic participation, approve independently, and follow the payment through to its verified result.",
+    id: "approval",
+    name: "03 Verify & approve",
+    title: "Come together. Decide independently.",
+    text: "Review a fresh object comparison, exchange an acoustic challenge using your devices, and sign your own approval. Execute when the required approvals are complete; share the confirmed receipt.",
   },
-];
+] as const;
 
 export default function LandingPage() {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const visibility = () => setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", visibility);
+    const hero = root.current?.querySelector(".nocturne-hero");
+    const observer = new IntersectionObserver((entries) => {
+      if (root.current)
+        root.current.dataset.heroVisible = String(entries[0].isIntersecting);
+    });
+    if (hero) observer.observe(hero);
+    const chaptersObserver = new IntersectionObserver(
+      (entries) => {
+        const entry = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (entry)
+          setActive(Number((entry.target as HTMLElement).dataset.chapter));
+      },
+      { rootMargin: "-20% 0px -35% 0px", threshold: [0, 0.3, 0.6] },
+    );
+    root.current
+      ?.querySelectorAll("[data-chapter]")
+      .forEach((e) => chaptersObserver.observe(e));
+    return () => {
+      observer.disconnect();
+      chaptersObserver.disconnect();
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, []);
   return (
-    <>
-      <SiteHeader />
+    <div
+      ref={root}
+      className="nocturne-landing"
+      data-paused={paused || !visible}
+    >
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      <header className="nocturne-header page-shell">
+        <BrandLink />
+        <a href="#how-it-works" className="nav-link hidden sm:inline-flex">
+          The way it works
+        </a>
+        <ActionLink href="/treasury/" variant="secondary">
+          Open treasury <ArrowUpRight size={15} />
+        </ActionLink>
+      </header>
       <main id="main">
-        <section className="page-shell grid items-center gap-10 pb-14 pt-12 sm:gap-14 sm:pb-20 sm:pt-20 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:py-24">
-          <div>
-            <p className="mb-6 flex items-center gap-2 text-xs font-medium tracking-wide text-cobalt">
-              <span className="size-1.5 rounded-full bg-cobalt" />
-              Research prototype
-            </p>
-            <h1 className="text-[44px] leading-[1.07] font-semibold tracking-[-.045em] sm:text-[64px] lg:text-[72px] xl:text-[88px]">
-              One decision.{" "}
-              <span className="block font-serif font-normal tracking-[-.04em]">
-                Made together.
-              </span>
+        <section className="nocturne-hero">
+          <TreasuryArtwork />
+          <div className="hero-copy">
+            <p className="eyebrow-label">A shared treasury / Built on NEAR</p>
+            <h1>
+              Shared funds.
+              <br />
+              <em>Considered together.</em>
             </h1>
-            <p className="mt-7 max-w-lg text-lg leading-8 text-muted">
-              A shared treasury for teams that want to review payments together.
+            <p className="hero-description">
+              For teams who want every payment
+              <br className="hidden sm:block" /> to be a shared decision.
             </p>
-            <p className="mt-4 max-w-md text-sm leading-6 text-muted">
-              Exploring personal-object access and acoustic participation on
-              NEAR.
-            </p>
-            <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-              <ActionLink href="/treasury/">
-                Open workspace
-                <ArrowRight size={17} aria-hidden="true" />
-              </ActionLink>
-              <ActionLink href="#how-it-works" variant="quiet">
-                How it works
-                <ArrowUpRight size={16} aria-hidden="true" />
-              </ActionLink>
-            </div>
-            <p className="mt-5 text-xs leading-5 text-muted">
-              Start with your account, then create or open a shared vault.
-            </p>
+            <ActionLink href="/treasury/">
+              Open treasury <ArrowUpRight size={17} />
+            </ActionLink>
+            <span className="hero-caption">
+              NEAR testnet · native NEAR · research prototype
+            </span>
           </div>
-          <div className="min-w-0 rounded-[28px] bg-ink p-6 sm:p-8">
-            <p className="text-xs tracking-[.15em] text-white">
-              INDEPENDENT PEOPLE
-            </p>
-            <SharedFrame />
+          <div className="hero-bottom page-shell">
+            <a href="#how-it-works" className="nav-link">
+              Explore the flow <ArrowDown size={15} />
+            </a>
+            <button
+              className="motion-control"
+              onClick={() => setPaused(!paused)}
+            >
+              {paused ? <Play size={13} /> : <Pause size={13} />}{" "}
+              {paused ? "Resume motion" : "Pause motion"}
+            </button>
           </div>
         </section>
-
+        <section className="editorial-intro page-shell" id="how-it-works">
+          <div className="intro-facts">
+            <div>
+              <span className="eyebrow-label">The idea</span>
+              <p>
+                Shared money.
+                <br />
+                Individual consent.
+              </p>
+            </div>
+            <div>
+              <span className="eyebrow-label">The essentials</span>
+              <p>
+                Your camera.
+                <br />
+                Your speaker. Your mic.
+              </p>
+            </div>
+            <div>
+              <span className="eyebrow-label">The network</span>
+              <p>NEAR testnet</p>
+            </div>
+          </div>
+          <h2>
+            Some decisions deserve
+            <br className="hidden lg:block" /> to be made together.
+            <br />
+            <em>
+              A treasury that makes
+              <br className="hidden lg:block" /> room for everyone’s say.
+            </em>
+          </h2>
+        </section>
         <section
-          id="how-it-works"
-          className="page-shell scroll-mt-8 border-t border-line py-14 sm:py-20"
-          aria-labelledby="workflow-title"
+          className="walkthrough-section page-shell"
+          aria-label="Product walkthrough"
         >
-          <div className="mb-10 grid gap-5 md:grid-cols-2">
-            <div>
-              <p className="eyebrow-label">The planned workflow</p>
-              <h2
-                id="workflow-title"
-                className="mt-4 max-w-xl text-3xl leading-tight font-semibold tracking-tight sm:text-4xl"
-              >
-                One proposal.
-                <br />
-                Everyone on the same page.
-              </h2>
-            </div>
-            <p className="max-w-md self-end leading-7 text-muted">
-              For teams that choose to review important spending together. We’re
-              building around the decision first: who is paying, who receives
-              it, and whose agreement is needed.
+          <div className="walkthrough-heading">
+            <p className="eyebrow-label">
+              From your first account to the final receipt
             </p>
+            <h2>
+              The way
+              <br />
+              <em>it comes together.</em>
+            </h2>
           </div>
-          <ol className="grid gap-8 md:grid-cols-3 md:gap-0">
-            {workflow.map((item) => (
-              <li
-                key={item.number}
-                className="min-w-0 border-t border-line pt-6 md:border-t-0 md:border-r md:pr-8 md:pl-8 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
+          <div className="walkthrough-grid">
+            <div className="walkthrough-sticky">
+              <div
+                className="chapter-controls"
+                aria-label="Walkthrough chapters"
               >
-                <span className="font-mono text-xs text-cobalt">
-                  {item.number} / {item.label.toUpperCase()}
-                </span>
-                <h3 className="mt-5 font-serif text-3xl">{item.title}</h3>
-                <p className="mt-3 max-w-sm text-sm leading-7 text-muted">
-                  {item.description}
-                </p>
-              </li>
-            ))}
-          </ol>
+                {chapters.map((c, i) => (
+                  <button
+                    key={c.id}
+                    aria-pressed={active === i}
+                    onClick={() => setActive(i)}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+              <WorkflowPreview chapter={chapters[active].id} />
+            </div>
+            <div className="walkthrough-chapters">
+              {chapters.map((c, i) => (
+                <article key={c.id} data-chapter={i}>
+                  <span className="chapter-number">0{i + 1}</span>
+                  <h3>{c.title}</h3>
+                  <p>{c.text}</p>
+                  <div className="mobile-preview">
+                    <WorkflowPreview chapter={c.id} />
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
         </section>
-
-        <section className="border-y border-line bg-surface">
-          <div className="page-shell grid items-center gap-10 py-14 sm:py-20 lg:grid-cols-2 lg:gap-20">
-            <figure className="m-0 rounded-[28px] bg-sky p-6">
-              <img
-                src="/assets/experience/object-study.svg"
-                alt="Abstract personal object inside camera framing marks"
-                width="440"
-                height="380"
-                loading="lazy"
-                className="mx-auto w-full max-w-sm"
-              />
-              <figcaption className="flex items-center justify-between gap-4 border-t border-muted/30 pt-5 text-xs text-muted">
-                <span>Something familiar. A new possibility.</span>
-                <Camera size={17} aria-hidden="true" />
-              </figcaption>
-            </figure>
+        <section className="honest-section page-shell">
+          <p className="eyebrow-label">
+            Thoughtful by design. Honest about the limits.
+          </p>
+          <div className="honest-grid">
+            <h2>
+              People approve.
+              <br />
+              <em>The chain records.</em>
+            </h2>
             <div>
-              <p className="eyebrow-label">Personal, by design</p>
-              <h2 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">
-                Familiar can
-                <br />
-                feel simpler.
-              </h2>
-              <p className="mt-6 max-w-lg leading-7 text-muted">
-                A keychain. An everyday keepsake. An object with a story. We’re
-                researching whether a guided scan can make wallet access feel
-                more familiar.
+              <p>
+                Your vault’s rules determine the approvals required. A payment
+                is complete only after its on-chain outcome is verified.
               </p>
-              <p className="mt-4 max-w-lg text-sm leading-7 text-muted">
-                A photograph is copyable, and some objects lack distinctive
-                detail. Object-only access is an experiment; the matching, key
-                custody and recovery still need to be proven.
-              </p>
-              <a
-                href="/device-check/"
-                className="nav-link mt-5 gap-2 font-medium text-cobalt"
-              >
-                Try the camera check
-                <ArrowRight size={16} aria-hidden="true" />
+              <details>
+                <summary>About objects, sound & security</summary>
+                <p>
+                  Object comparisons are experimental visual checks, not
+                  identity verification or cryptographic keys. Audio can be
+                  relayed and cannot guarantee that devices are in the same
+                  room. This testnet app stores signing keys in your browser,
+                  unencrypted and without cross-device recovery. Objects are not
+                  enforced by the deployed contracts.
+                </p>
+              </details>
+              <a className="nav-link" href="/device-check/">
+                Check your device <ArrowUpRight size={15} />
               </a>
             </div>
           </div>
         </section>
-
-        <section className="page-shell py-14 sm:py-20">
-          <div className="grid overflow-hidden rounded-[28px] bg-ink lg:grid-cols-[1.1fr_1fr]">
-            <div className="p-6 sm:p-10">
-              <p className="font-mono text-xs tracking-[.13em] text-sky">
-                A SHARED MOMENT
-              </p>
-              <h2 className="mt-5 font-serif text-4xl leading-tight text-white sm:text-5xl">
-                Sound connects devices.
-                <br />
-                People make decisions.
-              </h2>
-              <p className="mt-6 max-w-lg leading-7 text-sky">
-                A fresh acoustic challenge can connect a review session using
-                the speakers and microphones already in your devices. Each
-                member still chooses whether to approve.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white">
-                <span className="inline-flex min-h-11 items-center gap-2">
-                  <AudioLines size={17} aria-hidden="true" />
-                  Built-in sound
-                </span>
-                <span className="inline-flex min-h-11 items-center gap-2">
-                  <UsersRound size={17} aria-hidden="true" />
-                  Independent consent
-                </span>
-              </div>
-              <p className="mt-5 max-w-lg border-t border-white/20 pt-5 text-sm leading-6 text-sky">
-                No location tracking or extra hardware. Audio can be replayed or
-                relayed, so it cannot guarantee that people are in the same
-                room.
-              </p>
-            </div>
-            <div className="flex flex-col justify-center border-t border-white/20 p-6 sm:p-10 lg:border-t-0 lg:border-l">
-              <figure className="m-0 rounded-[20px] bg-canvas p-4 sm:p-6">
-                <img
-                  src="/assets/experience/signal-bridge.svg"
-                  alt="Sender and listener exchanging an acoustic challenge"
-                  width="440"
-                  height="240"
-                  loading="lazy"
-                  className="w-full"
-                />
-                <figcaption className="border-t border-line pt-4 text-center text-xs leading-5 text-muted">
-                  Planned exchange illustration.
-                  <br />
-                  This is not a live microphone reading.
-                </figcaption>
-              </figure>
-              <p className="mt-5 text-center text-xs leading-5 text-sky">
-                Participation and payment approval are separate steps.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="page-shell pb-14 sm:pb-20">
-          <div className="flex flex-col justify-between gap-7 rounded-[28px] bg-sky p-6 sm:p-10 md:flex-row md:items-center">
-            <div>
-              <span className="eyebrow-label">Begin with the essentials</span>
-              <h2 className="mt-3 font-serif text-3xl sm:text-4xl">
-                See, hear, and be heard.
-              </h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
-                Check your actual device before the next feature. Access starts
-                only when you choose a check.
-              </p>
-            </div>
-            <ActionLink href="/device-check/" className="shrink-0">
-              Check your device
-              <CheckCheck size={17} aria-hidden="true" />
-            </ActionLink>
+        <section className="closing-section page-shell">
+          <p className="eyebrow-label">Your team. Your next decision.</p>
+          <h2>
+            Make room
+            <br />
+            for <em>agreement.</em>
+          </h2>
+          <ActionLink href="/treasury/">
+            Open treasury <ArrowUpRight size={17} />
+          </ActionLink>
+          <div className="closing-rings" aria-hidden="true">
+            ◎
           </div>
         </section>
       </main>
-      <footer className="page-shell pb-8">
-        <div className="flex flex-wrap items-center justify-between gap-5 border-t border-line pt-6">
-          <BrandLink />
-          <div className="flex flex-wrap items-center gap-5 text-xs text-muted">
-            <span>NEAR treasury research prototype</span>
-            <a href="/design/" className="nav-link">
-              UI reference
-              <ArrowUpRight size={14} aria-hidden="true" />
-            </a>
-          </div>
-        </div>
+      <footer className="landing-footer page-shell">
+        <BrandLink />
+        <span>Built on NEAR · Testnet research prototype</span>
+        <a href="/treasury/" className="nav-link">
+          Enter workspace ↗
+        </a>
       </footer>
-    </>
+    </div>
   );
 }

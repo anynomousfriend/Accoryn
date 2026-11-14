@@ -4,28 +4,28 @@ import { test, expect } from "@playwright/test";
 test("landing leads to the guided workspace", async ({ page }) => {
   await page.goto("/landing/");
   await expect(
-    page.getByRole("heading", { name: "One decision. Made together." }),
+    page.getByRole("heading", { name: "Shared funds. Considered together." }),
   ).toBeVisible();
   await expect(
-    page.getByText("Research prototype", { exact: true }),
+    page.getByText("NEAR testnet · native NEAR · research prototype", { exact: true }),
   ).toBeVisible();
   const start = page
-    .getByRole("link", { name: "Open workspace", exact: true })
+    .getByRole("link", { name: "Open treasury", exact: true })
     .first();
   await expect(start).toHaveAttribute("href", "/treasury/");
   await page
-    .getByRole("link", { name: "How it works", exact: true })
+    .getByRole("link", { name: "The way it works", exact: true })
     .first()
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "One proposal. Everyone on the same page.",
+      name: "Some decisions deserve to be made together. A treasury that makes room for everyone’s say.",
     }),
   ).toBeInViewport();
   await start.click();
   await expect(
     page.getByRole("heading", {
-      name: "Your team. One shared vault.",
+      name: "Your account",
       exact: true,
     }),
   ).toBeVisible();

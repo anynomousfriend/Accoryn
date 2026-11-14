@@ -5,17 +5,17 @@ test("connected treasury screen keeps writes locked and exposes real read-only l
   await page.goto("/treasury/");
   await expect(
     page.getByRole("heading", {
-      name: "Your team. One shared vault.",
+      name: "Your account",
       exact: true,
     }),
   ).toBeVisible();
   await expect(
-    page.getByText("Browser session not started", { exact: true }),
+    page.getByText("Start a session to continue", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Create testnet account", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("button", { name: "Vault", exact: true }).click();
+  await page.getByRole("button", { name: "Overview", exact: true }).click();
   await page
     .getByLabel("Treasury account")
     .fill("accoryn-spike.sputnikv2.testnet");
@@ -29,7 +29,7 @@ test("connected treasury screen keeps writes locked and exposes real read-only l
     page.getByText("Governance approvals:", { exact: false }),
   ).toBeVisible({ timeout: 45000 });
   await expect(
-    page.getByText("accoryn-alice.testnet", { exact: true }),
+    page.getByRole("list").getByText("accoryn-alice.testnet", { exact: true }),
   ).toBeVisible();
 });
 test("reload preserves a pending request and blocks a second submission", async ({
@@ -164,7 +164,7 @@ test("a legacy object handoff never substitutes for browser session consent", as
   });
   await page.reload();
   await expect(
-    page.getByText("Browser session not started", { exact: true }),
+    page.getByText("Start a session to continue", { exact: true }),
   ).toBeVisible();
 });
 test("an invoice can be prepared and saved inside the connected flow with vault context carried forward", async ({
@@ -180,7 +180,7 @@ test("an invoice can be prepared and saved inside the connected flow with vault 
   await expect(page.getByRole("status")).toContainText("loaded", {
     timeout: 45000,
   });
-  await page.getByRole("button", { name: "Payment", exact: true }).click();
+  await page.getByRole("button", { name: "Payments", exact: true }).click();
   await page.getByRole("button", { name: "New invoice", exact: true }).click();
   const editor = page.getByRole("region", {
     name: "Prepare invoice payment",

@@ -46,11 +46,11 @@ test("real guided account → member object → vault invoice → acoustic appro
       page.getByRole("heading", { name: "Pending request", exact: true }),
     ).toHaveCount(0);
   }
-  const task = (page: Page, name: string) =>
-    page
-      .getByRole("navigation", { name: "Workspace tasks" })
-      .getByRole("button", { name, exact: true })
-      .click();
+  const task = async (page: Page, name: string) => {
+    const names: Record<string,string> = { "Member object": "Members", "Vault": "Overview", "Payment": "Payments", "Settings": "Vault settings", "Activity": "Completed & records" };
+    if (["Approvals", "Activity"].includes(name)) await page.getByRole("button", {name:"Payments",exact:true}).click();
+    await page.getByRole("button", {name:names[name] ?? name,exact:true}).click();
+  };
   async function enrollCamera(page: Page) {
     await task(page, "Member object");
     await page
@@ -122,7 +122,7 @@ test("real guided account → member object → vault invoice → acoustic appro
       [p, alice],
       [q, bob],
     ] as const) {
-      await page.goto("/");
+      await page.goto("/treasury/");
       await page
         .getByRole("button", { name: "Start browser session", exact: true })
         .click();

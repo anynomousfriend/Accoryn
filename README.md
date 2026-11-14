@@ -22,7 +22,7 @@ Teams need a shared answer to three questions before money moves: **What are we 
 The browser also provides a personal-object enrollment experiment, device checks and invoice preparation. Only built-in cameras, microphones and speakers are needed. No external tags, readers or security keys.
 
 > [!IMPORTANT]
-> **Guided-flow branch:** on `feat/near-tooling-testnet-rate-limit`, `/` and `/treasury/` now start with **Account → Vault → Member object → Payment → Approvals → Activity**. Each member enrolls locally for their own vault/account and compares a fresh scan before an app approval. The scan is an uncalibrated research checkpoint, not authentication or an on-chain object requirement. See the [exact two-device manual guide](docs/testing/2026-11-14-guided-vault-flow.md). The older `/workspace/` remains a compatibility draft editor. Payments currently support **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
+> **Interface:** `/` is the product landing page; `/treasury/` opens account setup and the connected vault workspace. Navigation groups **Overview, Payments, Members and Vault settings**, with Account in the header. Each member enrolls locally for their own vault/account and compares a fresh scan before an app approval. Scans remain research checks, not authentication or an on-chain object requirement. See the [redesign and two-device testing guide](docs/testing/2026-11-14-reference-redesign.md). Payments support **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
 
 ## Features and current status
 
@@ -173,7 +173,7 @@ Use the printed **`https://<LAN-IP>:5173/`** address on both phone and laptop wh
 
 | Route | Purpose |
 |---|---|
-| `/` or `/treasury/` | Guided account, vault, member object, payment, approval and receipt workspace |
+| `/` | Product landing page with an explicitly illustrative workflow |
 | `/device-check/` | Optional camera, microphone and speaker diagnostics |
 | `/object-registration/` | Register, compare, replace or delete a local visual template |
 | `/treasury/` | Connected account → vault → invoice → member ceremony → verified settlement |
@@ -189,7 +189,7 @@ Use the same origin throughout a local session: `localhost`, `127.0.0.1` and the
 
 ### 1. Open the guided workspace
 
-Start at `/`, read the browser-key notice and choose **Start browser session**. Create a testnet username or select a locally stored account. You then move to **Vault**. Account creation no longer depends on a global object template.
+Start at `/`, click **Open treasury**, choose **Create account** or **Use saved account**, read the browser-key notice and choose **Start browser session**. Create a testnet username or select a locally stored account. You then move to **Overview**. Account creation no longer depends on a global object template.
 
 Use **Create a vault → Name → Members → Review**. The selected creator is included automatically; add a partner’s full `name.testnet` ID and review the **6 NEAR** creation attachment. Share the public member invitation link so the partner opens the same vault with their own account.
 
@@ -197,15 +197,15 @@ The local demo server shares public account IDs across devices: after each perso
 
 ### 2. Member object → payment → receipt
 
-On each device open **Member object**, capture and accept three views, name the object and save the local template. Each enrollment is scoped to that exact member/vault/browser; no remote enrollment status or cross-device recovery is claimed.
+On each device open **Members**, capture and accept three views, name the object and save the local template. Each enrollment is scoped to that exact member/vault/browser; no remote enrollment status or cross-device recovery is claimed.
 
-Fund the vault, then open **Payment → New invoice**. Select the recipient, enter purpose and amount (try **0.05 testnet NEAR**), save, review and explicitly submit. The loaded vault is carried forward. Optional invoice reference/date and itemized editing remain available.
+Fund the vault, then open **Payments → New payment → New invoice**. Select the recipient, enter purpose and amount (try **0.05 testnet NEAR**), save, review and explicitly submit. The loaded vault is carried forward. Optional invoice reference/date and itemized editing remain available.
 
-In **Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Each member compares a fresh scan. A **Match** above 0.50 enables **I reviewed this matched scan → Use matched scan for this payment**; **No match** blocks continuation. The local research check lasts at most two minutes and is bound to the exact payment/session/template. It does not prove same-object identity or protect an extracted browser key.
+In **Payments → Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Each member compares a fresh scan. A **Match** above 0.50 enables **I reviewed this matched scan → Use matched scan for this payment**; **No match** blocks continuation. The local research check lasts at most two minutes and is bound to the exact payment/session/template. It does not prove same-object identity or protect an extracted browser key.
 
-Listener taps **Listen to host sound**, then the host taps **Play host sound**. Each member explicitly consents and signs their own approval. Refresh the canonical payment; once the actual threshold is met, execute once. Publish verified payout evidence, open **Activity**, load receipts and share the keyless board. Approval alone is not settlement.
+Listener taps **Listen to host sound**, then the host taps **Play host sound**. Each member explicitly consents and signs their own approval. Refresh the canonical payment; once the actual threshold is met, execute once. Publish verified payout evidence, open **Payments → Completed & records**, load receipts and share the keyless board. Approval alone is not settlement.
 
-Follow the [full two-device checklist and failure cases](docs/testing/2026-11-14-guided-vault-flow.md). Camera permission, object discrimination and laptop-to-phone sound still need physical acceptance. **Settings** contains governance/recovery; the legacy `/workspace/` is not the recommended payment path.
+Follow the [full two-device checklist and failure cases](docs/testing/2026-11-14-guided-vault-flow.md). Camera permission, object discrimination and laptop-to-phone sound still need physical acceptance. **Vault settings** contains governance/recovery; the legacy `/workspace/` is not the recommended payment path.
 
 **Account helper rate limits:** a 429 is the free faucet’s quota, not an image-model failure. Preserve the original account key/request, respect the cooldown, then reconcile/resume that same request. Do not rotate usernames/services to evade the quota or clear storage during an unknown outcome.
 
