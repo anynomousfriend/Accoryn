@@ -78,7 +78,16 @@ async function ownership(rpc: AccountReader, accountId: string, publicKey: strin
     if (error instanceof RpcRequestError && error.type === "UNKNOWN_ACCOUNT") return "absent";
     throw error;
   }
-  return (await accountExists(rpc, accountId, options)) ? "taken" : "absent";
+  try {
+    const account = await rpc.viewAccount(accountId, { ...options, finality: "final" });
+    // Creation can land between the first key query and account query. A missing
+    // key from an older block is not proof that the newly visible account is taken.
+    const key = await rpc.viewAccessKey(accountId, publicKey, { ...options, blockId: account.blockHash });
+    return key ? "ours" : "taken";
+  } catch (error) {
+    if (error instanceof RpcRequestError && error.type === "UNKNOWN_ACCOUNT") return "absent";
+    throw error;
+  }
 }
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
@@ -118,9 +127,27 @@ export type HelperCreateResult =
   /** The account exists with keys that are not ours. */
   | { status: "taken"; accountId: string }
   /** The helper refused (HTTP 4xx) and the chain shows no such account. Retrying later with the same key is safe. */
-  | { status: "rejected"; accountId: string; httpStatus: number }
+  | { status: "rejected"; accountId: string; httpStatus: number; retryAfterSeconds?: number }
   /** The outcome is not yet visible (helper accepted, timed out or was unreachable). Re-check later; do not assume failure. */
   | { status: "unconfirmed"; accountId: string };
+
+/** Bounded provider hints only; never interpolate arbitrary upstream response text. */
+export function helperRetryAfterSeconds(headers: Pick<Headers, "get">, body: string, now = Date.now()): number | undefined {
+  const value = headers.get("retry-after")?.trim();
+  const seconds = value ? (/^\d+$/.test(value) ? Number(value) : Math.ceil((Date.parse(value) - now) / 1000)) : NaN;
+  if (Number.isSafeInteger(seconds) && seconds >= 0 && seconds <= 31_536_000) return seconds;
+  const match = body.trim().slice(0, 256).match(/^Rate limit exceeded, retry in (\d+) (seconds?|minutes?|hours?|days?)\.?$/i);
+  if (!match) return undefined;
+  const unit = match[2].toLowerCase();
+  const delay = Number(match[1]) * (unit.startsWith("day") ? 86400 : unit.startsWith("hour") ? 3600 : unit.startsWith("minute") ? 60 : 1);
+  return Number.isSafeInteger(delay) && delay >= 0 && delay <= 31_536_000 ? delay : undefined;
+}
+export function helperRefusalMessage(result: Extract<HelperCreateResult, {status: "rejected"}>): string {
+  if (result.httpStatus !== 429) return `Testnet helper refused creation (HTTP ${result.httpStatus}). The name and original key are retained; resume this request later.`;
+  const seconds = result.retryAfterSeconds;
+  const wait = seconds === undefined ? "Wait for the faucet cooldown" : seconds >= 3600 ? `Wait about ${Math.ceil(seconds / 3600)} hours` : seconds >= 60 ? `Wait about ${Math.ceil(seconds / 60)} minutes` : `Wait about ${seconds} seconds`;
+  return `The free testnet account faucet is rate-limited (HTTP 429). ${wait} before Resume original request. Your username and original key are retained. This is the funding service's limit, not an object scan failure; changing RPC providers does not remove it. Reconcile the original request before retrying; do not clear browser data.`;
+}
 
 /**
  * Creates `<label>.testnet` for `publicKey` through the testnet helper and
@@ -151,6 +178,7 @@ export async function createViaTestnetHelper(input: {
 
   const doFetch = input.fetch ?? ((url, init) => globalThis.fetch(url, init));
   let httpStatus: number | null = null;
+  let retryAfterSeconds: number | undefined;
   try {
     const response = await doFetch(input.helperUrl ?? TESTNET_HELPER_URL, {
       method: "POST",
@@ -160,7 +188,8 @@ export async function createViaTestnetHelper(input: {
     });
     httpStatus = response.status;
     // The body is not authority and may contain upstream detail; drain and ignore it.
-    await response.text().catch(() => "");
+    const body = await response.text().catch(() => "");
+    if (httpStatus === 429) retryAfterSeconds = helperRetryAfterSeconds(response.headers, body);
   } catch (error) {
     if (signal?.aborted) throw signal.reason ?? error;
     httpStatus = null; // network failure: the helper may still have processed it
@@ -172,7 +201,7 @@ export async function createViaTestnetHelper(input: {
   const after = await waitForOwnership(rpc, accountId, publicKey, windowMs, pollIntervalMs, signal);
   if (after === "ours") return { status: "created", accountId, publicKey, alreadyExisted: false };
   if (after === "taken") return { status: "taken", accountId };
-  if (definitiveRefusal) return { status: "rejected", accountId, httpStatus: httpStatus as number };
+  if (definitiveRefusal) return { status: "rejected", accountId, httpStatus: httpStatus as number, ...(retryAfterSeconds === undefined ? {} : {retryAfterSeconds}) };
   return { status: "unconfirmed", accountId };
 }
 

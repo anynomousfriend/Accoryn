@@ -299,7 +299,7 @@ export default function ExperienceReference() {
               are immediate. Replay can be interrupted.
             </p>
           </div>
-          <div className="rounded-[28px] bg-ink p-6 sm:p-8">
+          <div className="rounded-xl bg-surface p-6 sm:p-8">
             <p className="text-xs tracking-[.15em] text-white">
               INDEPENDENT PEOPLE
             </p>

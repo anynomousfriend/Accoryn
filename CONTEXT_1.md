@@ -1,6 +1,21 @@
 # Context 1 — app delivery and feature integration
 
-Updated: 2026-11-13. Owner: this working session and the user. The other contributor's lane is [Context 2](CONTEXT_2.md). These two tracked files replace the old discovery brief as the shared development context. Read AGENTS.md first.
+Updated: 2026-11-14. Owner: this working session and the user. The other contributor's lane is [Context 2](CONTEXT_2.md). These two tracked files replace the old discovery brief as the shared development context. Read AGENTS.md first.
+
+## Branch-only guided journey — 2026-11-14
+
+The user requested implementation **only on `feat/near-tooling-testnet-rate-limit`**, with UX/aesthetics resumed for this release. This section supersedes the older pre-account global-object continuation on this branch; it does not describe an already merged main release.
+
+- [x] Account-first workspace with responsive task navigation: Account → Vault → Member object → Payment → Approvals → Activity; governance in Settings.
+- [x] Vault creation through Name → Members → Review; creator included automatically; real engine and 6 NEAR creation attachment retained.
+- [x] Per-vault/per-account local templates, reusing the real camera/DINOv2 controller. Legacy global enrollment remains separate.
+- [x] Fresh comparison acknowledgement before app member approval, bound to exact account/vault/proposal/hash/session/template/model and at most two minutes. Revalidated at the actual transaction-signing boundary.
+- [x] Research limits are explicit: **no calibrated same-object verdict, no on-chain object enforcement, no stolen-key or unrelayable proximity guarantee**. No new verifier server/custody model.
+- [x] Simplified payment composer, contextual invitation links, exact financial review, original-intent recovery and duplicate prevention retained.
+- [ ] Physical two-device manual acceptance. The current live attempt created two accounts and a real vault, then camera access was denied in the automated browser; no payout was completed by that run.
+- [ ] Merge/push of this feature. Keep this branch local until instructed.
+
+Manual steps and verification record: [guided vault checkpoint](docs/testing/2026-11-14-guided-vault-flow.md). Existing signed transactions may be reconciled from their original journal; the object restriction is a local research UI checkpoint, not contract authentication.
 
 > **Incoming from Context 2 (2026-11-13), read before continuing this lane.**
 >
@@ -45,6 +60,22 @@ The user explicitly requested merging `feat/end-to-end-integration` (through `e4
 - [ ] User accepts the connected manual journey. Follow [the exact checklist](docs/testing/end-to-end-integration.md); pause further features for results.
 
 The main merge is explicitly user-authorized. No gate-key deletion, mainnet spending or public push/publication is included. The existing origin is public; this checkpoint stays local under the private-development agreement.
+
+## Branch-only demo user picker — 2026-11-14
+
+- [x] Shared local development directory of public testnet account IDs, with chain-existence admission, atomic persistence and no keys/photos/templates.
+- [x] Automatic publication after confirmed account creation or verified local selection; member checkboxes and recipient dropdown across devices. Local signer selection remains local-key-only.
+- [x] Refresh/manual fallback and retained selections on failure; static production builds do not pretend to have the demo API.
+- [ ] User manual acceptance of phone/laptop discovery and selection. See [the picker checklist](docs/testing/2026-11-14-demo-user-picker.md).
+
+## Branch-only explicit demo matching — 2026-11-14
+
+The user selected an explicit demo cutoff, superseding the earlier inconclusive comparison UI on this branch.
+
+- [x] Top-two cosine mean strictly above 0.50: **Match**; at or below 0.50, invalid or out-of-range values: **No match**.
+- [x] Below-threshold continuation and payment-bound object grants are blocked, including validation at signing. Existing expiry/context/template checks remain.
+- [x] Clear demo decision and score; raw measurements and concise calibration limits in details. This is not certainty about the physical object, resistance to copied images, or stolen-key protection.
+- [ ] User manually accepts the new result display and retry flow.
 
 ## Product and fixed decisions
 

@@ -54,8 +54,8 @@ export function BrandLink() {
   return (
     <a href="/" className="brand-link">
       <svg viewBox="0 0 32 32" className="size-9 shrink-0" aria-hidden="true">
-        <rect width="32" height="32" rx="10" fill="currentColor" />
-        <g fill="none" stroke="white" strokeWidth="1.8">
+        <rect width="32" height="32" rx="7" fill="currentColor" />
+        <g fill="none" stroke="var(--color-canvas)" strokeWidth="1.8">
           <rect
             x="8"
             y="8"
@@ -96,8 +96,8 @@ export function SiteHeader({ section }: { section?: string }) {
             <a className="nav-link hidden md:inline-flex" href="/landing/#how-it-works">
               How it works
             </a>
-            <ActionLink href="/device-check/" variant="secondary">
-              Check device<span aria-hidden="true">↗</span>
+            <ActionLink href="/treasury/" variant="secondary">
+              Open workspace<span aria-hidden="true">↗</span>
             </ActionLink>
           </div>
         </nav>

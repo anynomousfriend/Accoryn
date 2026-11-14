@@ -1,22 +1,23 @@
 import { test, expect } from "@playwright/test";
-test("object registration connects to a local payment workspace without pretending to create accounts", async ({
+test("standalone object research returns to the connected account journey", async ({
   page,
 }) => {
   await page.goto("/object-registration/");
-  await page.getByRole("link", { name: "Prepare a team payment" }).click();
+  await page
+    .getByRole("link", { name: "Open team treasury", exact: true })
+    .click();
   await expect(
-    page.getByRole("heading", { name: "Team workspace" }),
+    page.getByRole("heading", {
+      name: "Your account",
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByText(
-      "Local preparation only. No proposal or payment has been submitted.",
-    ),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Account" }).click();
-  await expect(
-    page.getByRole("button", { name: "Create or access account" }),
+    page.getByRole("button", { name: "Create testnet account", exact: true }),
   ).toBeDisabled();
-  await expect(page.getByText("No account connected.")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Start browser session", exact: true }),
+  ).toBeVisible();
 });
 test("invoice drafts save, review exact totals, reload, and delete using real browser storage", async ({
   page,

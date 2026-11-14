@@ -16,6 +16,7 @@ export type FixtureRequest = {
 };
 export type FixtureReply = {
   status?: number;
+  headers?: Record<string, string>;
   json?: unknown;
   text?: string;
   /** Never answer (simulates a stalled endpoint). */
@@ -52,6 +53,7 @@ export async function startFixture(
       const text = reply.text ?? (reply.json === undefined ? "" : JSON.stringify(reply.json));
       res.writeHead(reply.status ?? 200, {
         "content-type": reply.text !== undefined ? "text/plain" : "application/json",
+        ...reply.headers,
       });
       res.end(text);
     });

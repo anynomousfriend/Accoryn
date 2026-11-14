@@ -1,7 +1,7 @@
 import { Button } from "../design/primitives.tsx";
 import { formatNearAmount, totalAtomic, type PaymentDraft } from "./drafts.ts";
 const field =
-  "mt-1 min-h-12 w-full min-w-0 rounded-lg border border-line bg-white px-3 text-base text-ink";
+  "mt-1 min-h-12 w-full min-w-0 rounded-lg border border-line bg-surface px-3 text-base text-ink";
 export function DraftEditor({
   draft,
   onChange,
@@ -9,6 +9,7 @@ export function DraftEditor({
   onReview,
   disabled,
   readOnly = false,
+  fixedTreasuryId,
 }: {
   draft: PaymentDraft;
   onChange: (value: PaymentDraft) => void;
@@ -16,6 +17,7 @@ export function DraftEditor({
   onReview: () => void;
   disabled: boolean;
   readOnly?: boolean;
+  fixedTreasuryId?: string;
 }) {
   const update = (patch: Partial<PaymentDraft>) =>
     onChange({ ...draft, ...patch });
@@ -25,7 +27,7 @@ export function DraftEditor({
   } catch {}
   return (
     <section
-      className="rounded-2xl border border-line bg-white p-5 sm:p-7"
+      className="rounded-2xl border border-line bg-surface p-5 sm:p-7"
       aria-labelledby="draft-heading"
     >
       <h2 id="draft-heading" className="font-serif text-2xl">
@@ -51,7 +53,7 @@ export function DraftEditor({
                 ["Recipient account", "recipient", 64],
                 ["Purpose", "purpose", 500],
               ] as const
-            ).map(([label, key, max]) => (
+            ).filter(([, key]) => !fixedTreasuryId || key !== "treasuryId").map(([label, key, max]) => (
               <label key={key} className="min-w-0 text-sm">
                 {label}
                 <input
@@ -80,6 +82,7 @@ export function DraftEditor({
               />
             </label>
           </div>
+          {fixedTreasuryId && <p className="my-4 break-all text-sm text-muted">From loaded vault: {fixedTreasuryId}</p>}
           <fieldset className="space-y-4">
             <legend className="mb-3 text-sm font-semibold">
               Invoice lines

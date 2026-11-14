@@ -2,14 +2,54 @@ import {
   RESEARCH_HANDOFF,
   researchGrant,
 } from "../engines/app/research-session.ts";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { SiteHeader, Button, ActionLink } from "../design/primitives.tsx";
 import { ObjectRegistrationController } from "./controller.ts";
 import { CapturePanel } from "./CapturePanel.tsx";
-import type { Comparison } from "./types.ts";
+import type { Comparison, ObjectTemplate } from "./types.ts";
+import { isDemoObjectMatch } from "./demo-match.ts";
 import { ComparisonResult } from "./ComparisonResult.tsx";
-export default function ObjectRegistrationPage() {
-  const [controller] = useState(() => new ObjectRegistrationController());
+import { TemplateStore } from "./template-store.ts";
+import { memberTemplateKey } from "../engines/app/member-object.ts";
+export type MemberObjectOptions = {
+  vaultId: string;
+  accountId: string;
+  approval: boolean;
+  onTemplate: (template: ObjectTemplate | null) => void;
+  onComparisonReset: () => void;
+  onAcknowledge: (
+    template: ObjectTemplate,
+    comparison: Comparison,
+    comparedAt: number,
+  ) => void;
+};
+export default function ObjectRegistrationPage({
+  member,
+  registrationController,
+}: {
+  member?: MemberObjectOptions;
+  registrationController?: ObjectRegistrationController;
+} = {}) {
+  const [controller] = useState(
+    () =>
+      registrationController ??
+      new ObjectRegistrationController(
+        member
+          ? new TemplateStore(
+              memberTemplateKey(member.vaultId, member.accountId),
+            )
+          : undefined,
+      ),
+  );
+  const callbacks = useRef(member);
+  callbacks.current = member;
+  const comparedAt = useRef(0);
   const state = useSyncExternalStore(
     controller.subscribe,
     controller.getSnapshot,
@@ -21,6 +61,18 @@ export default function ObjectRegistrationPage() {
   const [label, setLabel] = useState("");
   const [replaceConfirmed, setReplaceConfirmed] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [comparisonExpired, setComparisonExpired] = useState(false);
+  useEffect(() => {
+    callbacks.current?.onTemplate(state.template);
+  }, [state.template]);
+  useEffect(() => {
+    callbacks.current?.onComparisonReset();
+    comparedAt.current = state.comparison ? Date.now() : 0;
+    setComparisonExpired(false);
+    if (!state.comparison) return;
+    const timer = setTimeout(() => setComparisonExpired(true), 120_000);
+    return () => clearTimeout(timer);
+  }, [state.comparison]);
   const attachVideo = useCallback(
     (video: HTMLVideoElement | null) => controller.attachVideo(video),
     [controller],
@@ -66,18 +118,38 @@ export default function ObjectRegistrationPage() {
     state.previews.length === 3 &&
     !state.reviewUrl;
   const error = state.phase === "error";
+  const Container = member ? "div" : "main";
   return (
     <>
-      <SiteHeader />
-      <main id="main" className="page-shell max-w-4xl py-8 sm:py-12">
-        <p className="eyebrow-label">Feature 02 · Local object research</p>
-        <h1 className="mt-4 font-serif text-4xl tracking-tight text-ink sm:text-5xl">
-          Register your object.
-        </h1>
+      {!member && <SiteHeader />}
+      <Container
+        id={member ? undefined : "main"}
+        className={
+          member
+            ? "member-object space-y-5"
+            : "page-shell max-w-4xl py-8 sm:py-12"
+        }
+      >
+        <p className="eyebrow-label">
+          {member
+            ? "Member object · on-device research"
+            : "Feature 02 · Local object research"}
+        </p>
+        <h2 className="mt-4 font-serif text-3xl tracking-tight text-ink sm:text-4xl">
+          {member?.approval
+            ? "Your object, before your approval."
+            : "Register your object."}
+        </h2>
+        {member && (
+          <p className="break-all text-sm text-muted">
+            For {member.accountId} in {member.vaultId}. Each member enrolls on
+            their own device.
+          </p>
+        )}
         <p className="mt-4 max-w-2xl text-sm leading-6 text-muted">
-          Start with something distinctive and textured. Capture three views,
-          then compare a new scan. Your object photos stay on this device and
-          are discarded after saving.
+          {member?.approval && state.template
+            ? "Compare a fresh view of your enrolled object. Keep the object centered and use similar lighting. This comparison stays on your device."
+            : "Start with something distinctive and textured. Capture three views, then compare a new scan. Your object photos stay on this device and are discarded after saving."}
         </p>
         <section
           aria-label="Storage notice"
@@ -85,7 +157,10 @@ export default function ObjectRegistrationPage() {
         >
           <p>
             Save this object's visual template in this browser. Photos are
-            discarded. This does not create a wallet.
+            discarded.{" "}
+            {member
+              ? "This adds a local research step to this member’s vault approval flow."
+              : "This does not create a wallet."}
           </p>
           <p className="mt-2 text-xs leading-5 text-muted">
             A visual template stays until you delete it or clear browser data.
@@ -93,7 +168,7 @@ export default function ObjectRegistrationPage() {
             recovery. Photos are not secret keys.
           </p>
         </section>
-        <div className="mt-6 rounded-xl border border-line bg-white p-4">
+        <div className="mt-6 rounded-xl border border-line bg-surface p-4">
           <p
             role={error ? "alert" : "status"}
             aria-live={error ? "assertive" : "polite"}
@@ -131,7 +206,7 @@ export default function ObjectRegistrationPage() {
         {state.template && (
           <section
             aria-label="Saved registration"
-            className="mt-5 rounded-xl border border-line bg-white p-5"
+            className="mt-5 rounded-xl border border-line bg-surface p-5"
           >
             <p className="eyebrow-label">Saved in this browser</p>
             <h2 className="mt-2 break-words font-serif text-2xl text-ink">
@@ -144,7 +219,7 @@ export default function ObjectRegistrationPage() {
           </section>
         )}
         <div className="mt-5 flex flex-wrap gap-3">
-          {!inCapture && (
+          {!inCapture && (!member?.approval || !state.template) && (
             <Button
               disabled={busy}
               onClick={() => void controller.startEnrollment()}
@@ -209,7 +284,7 @@ export default function ObjectRegistrationPage() {
         )}
         {readyToSave && (
           <form
-            className="mt-6 rounded-2xl border border-line bg-white p-5"
+            className="mt-6 rounded-2xl border border-line bg-surface p-5"
             onSubmit={(event) => {
               event.preventDefault();
               void controller.save(label, replaceConfirmed);
@@ -231,7 +306,7 @@ export default function ObjectRegistrationPage() {
               value={label}
               disabled={busy}
               onChange={(e) => setLabel(e.target.value)}
-              className="mt-2 min-h-12 w-full rounded-lg border border-line bg-white px-3 text-base text-ink"
+              className="mt-2 min-h-12 w-full rounded-lg border border-line bg-surface px-3 text-base text-ink"
               aria-describedby="object-label-help"
             />
             <p id="object-label-help" className="mt-2 text-xs text-muted">
@@ -268,39 +343,66 @@ export default function ObjectRegistrationPage() {
           <div className="mt-6">
             <ComparisonResult comparison={state.comparison} />
             <div className="my-4 rounded-xl border border-line p-4">
-              <p className="text-sm">
-                Research continuation: there is no calibrated match/reject
-                threshold. You must judge this comparison yourself. This does
-                not authenticate you or protect the unencrypted browser wallet
-                keys.
-              </p>
               <label className="my-3 flex gap-3">
                 <input
                   type="checkbox"
                   checked={researchConsent}
-                  onChange={(e) =>
+                  disabled={!isDemoObjectMatch(state.comparison.topTwoMean)}
+                  onChange={(e) => {
+                    if (!e.target.checked)
+                      callbacks.current?.onComparisonReset();
                     setConsentedComparison(
                       e.target.checked ? state.comparison : null,
-                    )
-                  }
+                    );
+                  }}
                 />
-                I reviewed the fresh scan and accept a manual research
-                continuation.
+                I reviewed this matched scan.
               </label>
-              <Button
-                disabled={!researchConsent || !state.template}
-                onClick={() => {
-                  if (!state.template || !state.comparison || !researchConsent)
-                    return;
-                  sessionStorage.setItem(
-                    RESEARCH_HANDOFF,
-                    JSON.stringify(researchGrant(state.template.id)),
-                  );
-                  window.location.assign("/treasury/");
-                }}
-              >
-                Continue to testnet account
-              </Button>
+              {(!member || member.approval) && (
+                <Button
+                  disabled={
+                    !researchConsent ||
+                    !state.template ||
+                    comparisonExpired ||
+                    !isDemoObjectMatch(state.comparison.topTwoMean)
+                  }
+                  onClick={() => {
+                    if (
+                      !state.template ||
+                      !state.comparison ||
+                      !researchConsent ||
+                      !isDemoObjectMatch(state.comparison.topTwoMean)
+                    )
+                      return;
+                    if (member) {
+                      if (Date.now() - comparedAt.current >= 120_000) {
+                        setComparisonExpired(true);
+                        return;
+                      }
+                      member.onAcknowledge(
+                        state.template,
+                        state.comparison,
+                        comparedAt.current,
+                      );
+                      return;
+                    }
+                    sessionStorage.setItem(
+                      RESEARCH_HANDOFF,
+                      JSON.stringify(researchGrant(state.template.id)),
+                    );
+                    window.location.assign("/treasury/");
+                  }}
+                >
+                  {member
+                    ? "Use matched scan for this payment"
+                    : "Continue to testnet account"}
+                </Button>
+              )}
+              {comparisonExpired && (
+                <p className="mt-3 text-sm text-warning">
+                  This comparison expired. Scan again before continuing.
+                </p>
+              )}
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
               <Button onClick={() => void controller.startComparison()}>
@@ -315,7 +417,7 @@ export default function ObjectRegistrationPage() {
             </div>
           </div>
         )}
-        {(state.template || error) && (
+        {(state.template || error) && !member?.approval && (
           <section className="mt-6 rounded-xl border border-line p-4">
             {confirmDelete ? (
               <>
@@ -362,14 +464,21 @@ export default function ObjectRegistrationPage() {
           considering object-based account access.
         </p>
         <div className="mt-8 border-t border-line pt-5">
-          <ActionLink href="/workspace/" variant="secondary">
-            Prepare a team payment
-          </ActionLink>
-          <ActionLink href="/device-check/" variant="quiet">
+          {!member && (
+            <ActionLink href="/treasury/" variant="secondary">
+              Open team treasury
+            </ActionLink>
+          )}
+          <ActionLink
+            href="/device-check/"
+            variant="quiet"
+            target={member ? "_blank" : undefined}
+            rel={member ? "noreferrer" : undefined}
+          >
             Back to device checks
           </ActionLink>
         </div>
-      </main>
+      </Container>
     </>
   );
 }

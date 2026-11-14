@@ -6,17 +6,19 @@ export function ReadinessContinuation({
 }) {
   return (
     <section
-      className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-7"
+      className="mt-8 rounded-2xl border border-line bg-surface p-5 sm:p-7"
       aria-labelledby="next-step-heading"
     >
       <h2 id="next-step-heading" className="font-serif text-2xl text-ink">
-        Next: register your object
+        Return to your workspace
       </h2>
       <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
-        Capture three views, keep a visual template in this browser, then
-        compare a fresh scan. This research step does not create a wallet.
+        If you opened help from the workspace, return to that browser tab to
+        continue. Member objects are enrolled after opening your vault. The
+        standalone research lab below remains available for diagnostics.
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
+        <ActionLink href="/treasury/">Open workspace</ActionLink>
         {confirmedCount === 3 ? (
           <ActionLink href="/object-registration/">
             Continue to object registration

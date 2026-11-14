@@ -1,38 +1,37 @@
 import { test, expect } from "@playwright/test";
 
-// Catch a marketing CTA that does not reach the actual hardware checks.
-test("landing links to real readiness", async ({ page }) => {
+// Marketing must lead into the actual connected account journey.
+test("landing leads to the guided workspace", async ({ page }) => {
   await page.goto("/landing/");
   await expect(
-    page.getByRole("heading", { name: "One decision. Made together." }),
+    page.getByRole("heading", { name: "Shared funds. Considered together." }),
   ).toBeVisible();
   await expect(
-    page.getByText("Research prototype", { exact: true }),
+    page.getByText("NEAR testnet · native NEAR · research prototype", { exact: true }),
   ).toBeVisible();
   const start = page
-    .getByRole("link", { name: "Check your device", exact: true })
+    .getByRole("link", { name: "Open treasury", exact: true })
     .first();
-  await expect(start).toHaveAttribute("href", "/device-check/");
+  await expect(start).toHaveAttribute("href", "/treasury/");
   await page
-    .getByRole("link", { name: "How it works", exact: true })
+    .getByRole("link", { name: "The way it works", exact: true })
     .first()
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "One proposal. Everyone on the same page.",
+      name: "Some decisions deserve to be made together. A treasury that makes room for everyone’s say.",
     }),
   ).toBeInViewport();
   await start.click();
   await expect(
-    page.getByRole("button", { name: "Start camera" }),
+    page.getByRole("heading", {
+      name: "Your account",
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Start microphone" }),
+    page.getByRole("button", { name: "Start browser session", exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Play test tone" }),
-  ).toBeVisible();
-  await expect(page.getByText("0 of 3 checks confirmed")).toBeVisible();
 });
 
 // Catch stale confirmation or a late speaker callback after document navigation.

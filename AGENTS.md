@@ -26,3 +26,7 @@ The approved direction is object-only research sign-in and acoustic team approva
 - Run appropriate checks before commits, pushes, and completion claims. Do not claim checks ran when they did not.
 - Never commit secrets, local certificates, raw captures, generated test reports, dependencies, or build output.
 - Keep exploratory conversation notes out of the published application.
+
+## NEAR development tools
+
+Official NEAR skills near-api-js, near-dapp and near-smart-contracts are installed locally; use relevant guidance while preserving the session's explicit product/custody decisions. Pinned sources and setup: [NEAR tooling guide](docs/testing/near-tooling-and-testnet.md). The `near_testnet` project MCP is read-only/testnet-only. Never import or expose browser/CLI signing keys to it. A helper HTTP 429 is a faucet quota issue; preserve and reconcile the original account/key, respect provider cooldowns, and do not rotate services to evade rate limits.

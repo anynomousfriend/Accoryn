@@ -104,7 +104,7 @@ export default function BoardPage() {
           {message}
         </p>
         {treasury && (
-          <section className="my-5 rounded-xl border border-line bg-white p-5">
+          <section className="my-5 rounded-xl border border-line bg-surface p-5">
             <h2 className="break-all font-serif text-2xl">{treasury.id}</h2>
             <p>Governance: {treasury.governanceApprovals} approvals</p>
             <p>Spendable: {formatNearAmount(treasury.spendableAtomic)} NEAR</p>

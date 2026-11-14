@@ -81,7 +81,7 @@ function Detail({ state }: { state: CheckState }) {
   return (
     <p
       role={["error", "unsupported"].includes(state.phase) ? "alert" : "status"}
-      className={`my-4 min-h-10 text-xs leading-relaxed ${["error", "unsupported"].includes(state.phase) ? "text-red-700" : "text-muted"}`}
+      className={`my-4 min-h-10 text-xs leading-relaxed ${["error", "unsupported"].includes(state.phase) ? "text-danger" : "text-muted"}`}
     >
       {state.detail}
     </p>
@@ -160,9 +160,9 @@ export default function App() {
               be heard before your first shared approval.
             </p>
           </div>
-          <div className="flex items-center gap-3 self-start rounded-full border border-line bg-white px-4 py-2.5 lg:self-auto">
+          <div className="flex items-center gap-3 self-start rounded-full border border-line bg-surface px-4 py-2.5 lg:self-auto">
             <span
-              className={`flex size-7 items-center justify-center rounded-full ${confirmed === 3 ? "bg-cobalt-strong text-white" : "bg-sky text-muted"}`}
+              className={`flex size-7 items-center justify-center rounded-full ${confirmed === 3 ? "bg-cobalt-strong text-canvas" : "bg-sky text-muted"}`}
             >
               <CheckCheck size={15} />
             </span>
@@ -173,7 +173,7 @@ export default function App() {
         </div>
 
         {showHelp && (
-          <aside className="mb-6 rounded-2xl border border-line bg-white p-5 text-sm leading-7 text-muted">
+          <aside className="mb-6 rounded-2xl border border-line bg-surface p-5 text-sm leading-7 text-muted">
             <strong className="text-ink">A few things to know.</strong> Use
             HTTPS or localhost, allow camera and microphone when you choose to
             start, and use your device speakers. If a permission is blocked,
