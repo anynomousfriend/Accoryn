@@ -6,12 +6,14 @@
 
 A mobile and desktop web prototype for teams approving NEAR treasury payments together.
 
+**Live demo: [accoryn.vercel.app](https://accoryn.vercel.app)** · [Public board](https://accoryn.vercel.app/board/?dao=accoryn-demo.sputnikv2.testnet) · [Treasury app](https://accoryn.vercel.app/treasury/)
+
 ![NEAR Testnet](https://img.shields.io/badge/NEAR-Testnet-14263D?style=flat-square)
 ![Research prototype](https://img.shields.io/badge/Status-Research_prototype-245BDB?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/App-TypeScript-3178C6?style=flat-square)
 ![Rust](https://img.shields.io/badge/Contract-Rust-B7410E?style=flat-square)
 
-[Quick start](#quick-start) · [Features](#features-and-current-status) · [Architecture](#how-it-is-built) · [Contracts](#deployed-contracts) · [Test the flow](#test-the-flow) · [Security](#security-and-trust-boundaries)
+[Live demo](https://accoryn.vercel.app) · [Quick start](#quick-start) · [Features](#features-and-current-status) · [Architecture](#how-it-is-built) · [Contracts](#deployed-contracts) · [Test the flow](#test-the-flow) · [Security](#security-and-trust-boundaries)
 
 </div>
 
