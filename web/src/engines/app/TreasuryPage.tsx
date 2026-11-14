@@ -62,6 +62,7 @@ import {
   type PendingAction,
 } from "../../workspace/action-journal.ts";
 import { VaultPaymentEditor } from "./VaultPaymentEditor.tsx";
+import { VaultInbox, useVaultInbox } from "./VaultInbox.tsx";
 import {
   readDrafts,
   saveDraft,
@@ -391,6 +392,68 @@ export default function TreasuryPage() {
       }
     });
   }
+  // Vaults this member belongs to and payments waiting in them, found on chain.
+  const inbox = useVaultInbox(engine.deps.rpc, account, GATE);
+  function openVault(id: string) {
+    if (busyRef.current) return;
+    if (id !== dao) {
+      endCeremony();
+      setTreasury(null);
+      setPayment(null);
+      setReceipts([]);
+      setGovernance(null);
+      setProposalId("");
+    }
+    setDao(id);
+    setVaultStep("open");
+    void run(async (s, seq) => {
+      const t = await engine.treasury(id, s);
+      if (sequence.current !== seq) return;
+      setTreasury(t);
+      setMessage("Vault " + id + " loaded.");
+      showTask("vault");
+    });
+  }
+  function openPayment(daoId: string, pid: string) {
+    if (busyRef.current) return;
+    if (daoId !== dao || pid !== proposalId) {
+      endCeremony();
+      setPayment(null);
+      if (daoId !== dao) setTreasury(null);
+    }
+    setDao(daoId);
+    setProposalId(pid);
+    void run(async (s, seq) => {
+      const [t, p] = await Promise.all([
+        engine.treasury(daoId, s),
+        engine.payment(daoId, pid, s),
+      ]);
+      if (sequence.current !== seq) return;
+      setTreasury(t);
+      setPayment(p);
+      setMessage(
+        p.session?.status === "Open"
+          ? "Payment loaded. A meeting is open: tap Listen to host sound."
+          : "Payment loaded. Any member can open the meeting below.",
+      );
+      showTask("approvals");
+    });
+  }
+  // With exactly one vault and none chosen yet, open it: nothing to pick.
+  const autoOpened = useRef("");
+  useEffect(() => {
+    if (
+      account &&
+      autoOpened.current !== account &&
+      !dao &&
+      inbox.vaults.length === 1 &&
+      !busyRef.current
+    ) {
+      autoOpened.current = account;
+      openVault(inbox.vaults[0].id);
+    }
+    // openVault reads current state through refs and setters only.
+  }, [account, dao, inbox.vaults]);
   // The loaded payment carries the vault's current members, so a partner who
   // opened the payment link counts as a member without a separate vault load.
   const isMember =
@@ -568,6 +631,8 @@ export default function TreasuryPage() {
         showTask("vault");
       }
       if (op.kind === "propose") showTask("approvals");
+      // New vaults, payments and meetings show in every member's list.
+      if (["create", "propose", "open"].includes(op.kind)) inbox.refresh();
     }
   }
   const blocked = busy || !!pending || damaged || !writesEnabled || !unlocked;
@@ -977,6 +1042,18 @@ export default function TreasuryPage() {
         </Section>
       </div>
       <div hidden={task !== "vault"}>
+        <Section title="Your vaults and payments">
+          <VaultInbox
+            inbox={inbox}
+            account={account}
+            currentDao={treasury?.id ?? ""}
+            currentProposal={payment ? proposalId : ""}
+            busy={busy}
+            show="dashboard"
+            onOpenVault={openVault}
+            onOpenPayment={openPayment}
+          />
+        </Section>
         <Section title="Your shared vault">
           <div className="flex flex-wrap gap-3 mb-5">
             <Button
@@ -1095,7 +1172,11 @@ export default function TreasuryPage() {
                     Open approvals
                   </Button>
                 </div>
-                <label className="block pt-4">
+                <p className="pt-4 text-sm text-muted">
+                  Members see this vault automatically after signing in. The
+                  link below is optional.
+                </p>
+                <label className="block">
                   Member invitation link
                   <input
                     className={field}
@@ -1471,6 +1552,16 @@ export default function TreasuryPage() {
       </div>
       <div hidden={task !== "approvals"}>
         <Section title="Payment review and approvals">
+          <VaultInbox
+            inbox={inbox}
+            account={account}
+            currentDao={treasury?.id ?? dao}
+            currentProposal={payment ? proposalId : ""}
+            busy={busy}
+            show="payments"
+            onOpenVault={openVault}
+            onOpenPayment={openPayment}
+          />
           <label className="block">
             Transfer proposal ID
             <input
@@ -1553,7 +1644,8 @@ export default function TreasuryPage() {
           )}
           {payment && (
             <label className="block mt-4 text-sm">
-              Payment invitation link
+              Payment invitation link (optional: members already see this
+              payment in their list)
               <input
                 readOnly
                 className={field}

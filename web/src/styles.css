@@ -202,6 +202,9 @@
   .ui-button-quiet {
     @apply text-ink;
   }
+  .inbox-item {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface p-3;
+  }
   .sound-panel {
     @apply mt-3 rounded-lg border border-line p-4;
   }
