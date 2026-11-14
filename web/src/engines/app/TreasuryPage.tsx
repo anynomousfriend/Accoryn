@@ -66,6 +66,7 @@ import {
   type ReceiptExportRow,
 } from "../../payments/receipt-csv.ts";
 import { membershipPolicy } from "./protocol.ts";
+import { describeTiers } from "./board.ts";
 import {
   encodeDescription,
   parseDescription,
@@ -289,7 +290,7 @@ export default function TreasuryPage() {
     };
   }, []);
   useEffect(() => {
-    document.title = task[0].toUpperCase() + task.slice(1) + " · Team Treasury";
+    document.title = task[0].toUpperCase() + task.slice(1) + " · Accoryn";
   }, [task]);
   function navigate(next: Task) {
     if (busyRef.current) return;
@@ -927,11 +928,11 @@ export default function TreasuryPage() {
                     on-chain for each payment and cumulative spend.
                   </p>
                   <ul>
-                    {treasury.tiers.tiers.map((t, i) => (
-                      <li key={i}>
-                        Up to {formatNearAmount(t.up_to)} NEAR: {t.required}{" "}
-                        attendees (limited by team size).
-                      </li>
+                    {describeTiers(
+                      treasury.tiers.tiers,
+                      treasury.members.length,
+                    ).map((line) => (
+                      <li key={line}>{line}</li>
                     ))}
                   </ul>
                   <p>

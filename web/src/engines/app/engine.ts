@@ -24,6 +24,18 @@ import { guardedSigner } from "./signing-authorization.ts";
 import { parseSession, type Session } from "./protocol.ts";
 import type { Proposal } from "../../integration/services.ts";
 import type { ReceiptExportRow } from "../../payments/receipt-csv.ts";
+import {
+  parseParticipation,
+  gateLockStatus,
+  type Participation,
+  type GateLockStatus,
+} from "./board.ts";
+export type BoardEntry = {
+  row: ReceiptExportRow;
+  attendees: string[];
+  required: number;
+};
+export type MemberParticipation = Participation & { accountId: string };
 export const GATE = "ceremony-gate-v1.accoryn.testnet";
 export const GATE_HASH = "6RyhWz4BnSszxQg88ysQnECuFm2KWUXLUrdqVKtTcfBm";
 export const SPUTNIK_HASH = "AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH";
@@ -309,6 +321,11 @@ export class TreasuryEngine {
     dao: string,
     signal: AbortSignal,
   ): Promise<ReceiptExportRow[]> {
+    return (await this.boardEntries(dao, signal)).map((e) => e.row);
+  }
+  /** Latest 50 transfer proposals with their verified receipt state and the
+   * members whose attestations the gate recorded for the proposal's session. */
+  async boardEntries(dao: string, signal: AbortSignal): Promise<BoardEntry[]> {
     const count = await this.deps.rpc.viewFunction<number>(
       dao,
       "get_last_proposal_id",
@@ -317,7 +334,7 @@ export class TreasuryEngine {
     );
     if (!Number.isSafeInteger(count) || count < 0)
       throw new Error("Invalid proposal count.");
-    const result: ReceiptExportRow[] = [];
+    const result: BoardEntry[] = [];
     for (let id = Math.max(0, count - 50); id < count; id++) {
       const raw = await this.deps.rpc.viewFunction(
         dao,
@@ -328,21 +345,51 @@ export class TreasuryEngine {
       if (parseProposal(raw).kind.kind !== "transfer") continue;
       const p = await this.payment(dao, String(id), signal);
       result.push({
-        network: "testnet",
-        treasuryId: dao,
-        proposalId: String(id),
-        invoiceId: p.invoiceId,
-        recipient: p.proposal.recipient,
-        asset: "native",
-        amountAtomic: p.proposal.amountAtomic,
-        decimals: 24,
-        status: p.proposal.status === "rejected" ? "failed" : p.proposal.status,
-        createdAt: p.createdAt,
-        updatedAt: new Date().toISOString(),
-        transactionIds: p.transactionIds,
+        row: {
+          network: "testnet",
+          treasuryId: dao,
+          proposalId: String(id),
+          invoiceId: p.invoiceId,
+          recipient: p.proposal.recipient,
+          asset: "native",
+          amountAtomic: p.proposal.amountAtomic,
+          decimals: 24,
+          status: p.proposal.status,
+          createdAt: p.createdAt,
+          updatedAt: new Date().toISOString(),
+          transactionIds: p.transactionIds,
+        },
+        attendees: p.session?.attestations.map((a) => a.account_id) ?? [],
+        required: p.proposal.requiredApprovals,
       });
     }
     return result;
+  }
+  /** The gate's per-member ceremony record for this treasury. */
+  async participation(
+    dao: string,
+    members: readonly string[],
+    signal: AbortSignal,
+  ): Promise<MemberParticipation[]> {
+    return Promise.all(
+      members.map(async (accountId) => ({
+        accountId,
+        ...parseParticipation(
+          await this.deps.rpc.viewFunction(
+            GATE,
+            "get_participation",
+            { dao_id: dao, account_id: accountId },
+            { signal },
+          ),
+        ),
+      })),
+    );
+  }
+  /** Whether anyone can still change the deployed gate code. */
+  async gateKeys(signal: AbortSignal): Promise<GateLockStatus> {
+    return gateLockStatus(
+      await this.deps.rpc.viewAccessKeyList(GATE, { signal }),
+    );
   }
   async signer(signal: AbortSignal) {
     await this.authorize(signal);

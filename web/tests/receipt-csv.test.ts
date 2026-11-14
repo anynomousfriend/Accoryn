@@ -35,7 +35,13 @@ test("untrusted CSV values cannot break rows or execute spreadsheet formulas", (
   assert.ok(csv.includes('"\'\t+1"'));
 });
 test("pending and unknown outcomes are not exported as settled", () => {
-  for (const status of ["pending", "unknown", "failed", "refunded"] as const) {
+  for (const status of [
+    "pending",
+    "unknown",
+    "failed",
+    "refunded",
+    "rejected",
+  ] as const) {
     const csv = receiptToCsv([{ ...receipt, status, transactionIds: [] }]);
     assert.ok(csv.includes('"' + status + '"'));
     assert.ok(!csv.includes('"settled"'));
