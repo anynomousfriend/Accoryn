@@ -33,6 +33,8 @@ import {
   type Task,
 } from "./GuidedWorkspace.tsx";
 import { loadedVaultId } from "./vault-context.ts";
+import { useDemoUsers } from "./useDemoUsers.ts";
+import { MemberUserPicker } from "./DemoUserPickers.tsx";
 import {
   readPendingAction,
   beginAction,
@@ -87,6 +89,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 export default function TreasuryPage() {
+  const { directory, publish: shareDemoUser, publication } = useDemoUsers();
   const activeUntil = useRef(0);
   const approvalGuard = useRef<(() => Promise<boolean>) | null>(null);
   const [task, setTask] = useState<Task>(() => taskFromHash(location.hash));
@@ -261,6 +264,9 @@ export default function TreasuryPage() {
       disposed = true;
     };
   }, [account, treasury?.id]);
+  useEffect(() => {
+    setNewMembers(treasury?.members.join("\n") ?? "");
+  }, [treasury?.id]);
   useEffect(() => {
     const changed = () => {
       if (!busyRef.current) {
@@ -498,6 +504,7 @@ export default function TreasuryPage() {
     if (sequence.current !== id) return;
     if (op.kind === "account") {
       setAccount(op.actor);
+      shareDemoUser(op.actor);
       setLocalAccounts((old) => [...new Set([...old, op.actor])]);
       showTask("vault");
     }
@@ -599,6 +606,9 @@ export default function TreasuryPage() {
         </span>
         <span className="text-muted">{account || "No account selected"}</span>
       </div>
+      {publication && (
+        <p className="my-3 text-xs leading-5 text-muted">{publication}</p>
+      )}
       <p
         id="workspace-status"
         role="status"
@@ -656,6 +666,10 @@ export default function TreasuryPage() {
               void run(async (s, id) => {
                 const result = await engine.reconcile(pending.requestId, s);
                 const op = await engine.deps.operations.get(pending.requestId);
+                if (op?.kind === "account" && result.status === "confirmed") {
+                  setLocalAccounts((old) => [...new Set([...old, op.actor])]);
+                  shareDemoUser(op.actor);
+                }
                 if (op) await rememberSubmission(op, result, s);
                 if (
                   result.status === "confirmed" ||
@@ -682,6 +696,8 @@ export default function TreasuryPage() {
                   await finishAction(op.requestId);
                   if (sequence.current === id) {
                     setAccount(op.actor);
+                    setLocalAccounts((old) => [...new Set([...old, op.actor])]);
+                    shareDemoUser(op.actor);
                     setMessage("Original account creation confirmed.");
                   }
                 } else {
@@ -782,6 +798,7 @@ export default function TreasuryPage() {
                 const a = await engine.selectAccount(selected, s);
                 if (sequence.current === id) {
                   setAccount(a);
+                  shareDemoUser(a);
                   setMessage("Local key confirmed as FullAccess on testnet.");
                   showTask("vault");
                 }
@@ -966,16 +983,15 @@ export default function TreasuryPage() {
               automatically. Add at least one partner’s full testnet username
               below.
             </p>
-            <label className="block">
-              Member usernames (full testnet account IDs, one per line)
-              <textarea
-                className={field}
-                rows={3}
+            {task === "vault" && vaultStep === "members" && (
+              <MemberUserPicker
+                directory={directory}
                 value={members}
-                onChange={(e) => setMembers(e.target.value)}
-                placeholder={"alice.testnet\nbob.testnet"}
+                onChange={setMembers}
+                creator={account}
+                disabled={busy}
               />
-            </label>
+            )}
             <div className="flex flex-wrap gap-3">
               <Button variant="secondary" onClick={() => setVaultStep("name")}>
                 Back to name
@@ -1137,6 +1153,7 @@ export default function TreasuryPage() {
             <VaultPaymentEditor
               key={invoice.id}
               draft={invoice}
+              directory={directory}
               disabled={busy}
               readOnly={submitted.some((r) => r.draftId === invoice.id)}
               onChange={(value) => {
@@ -1600,15 +1617,16 @@ export default function TreasuryPage() {
             restore a lost key. Complete or cancel an open sound session before
             changing membership.
           </p>
-          <label className="block">
-            Complete next member list
-            <textarea
-              className={field}
-              rows={3}
+          {task === "settings" && (
+            <MemberUserPicker
+              directory={directory}
               value={newMembers}
-              onChange={(e) => setNewMembers(e.target.value)}
+              onChange={setNewMembers}
+              known={treasury?.members}
+              manualLabel="Complete next member list"
+              disabled={busy}
             />
-          </label>
+          )}
           <Button
             disabled={blocked || !account || !treasury || !!sessionOpen}
             onClick={() =>

@@ -58,6 +58,7 @@ test("vault creation reveals its questions in order, without modals", async ({
   await page
     .getByRole("button", { name: "Next: members", exact: true })
     .click();
+  await page.getByText("Enter member IDs manually", { exact: true }).click();
   await page
     .getByLabel("Member usernames", { exact: false })
     .fill("alice.testnet\nbob.testnet");

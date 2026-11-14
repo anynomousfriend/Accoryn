@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "../../design/primitives.tsx";
 import { DraftEditor } from "../../workspace/DraftEditor.tsx";
+import { RecipientUserPicker } from "./DemoUserPickers.tsx";
+import type { DemoDirectoryState } from "./useDemoUsers.ts";
 import {
   formatNearAmount,
   totalAtomic,
@@ -10,6 +12,7 @@ type Props = {
   draft: PaymentDraft;
   disabled: boolean;
   readOnly: boolean;
+  directory: DemoDirectoryState;
   onChange: (draft: PaymentDraft) => void;
   onSave: () => void;
   onReview: () => void;
@@ -17,13 +20,21 @@ type Props = {
 const field =
   "mt-2 min-h-12 w-full rounded-lg border border-line bg-white p-3 text-base";
 export function VaultPaymentEditor(props: Props) {
-  const { draft, disabled, readOnly, onChange, onSave, onReview } = props;
+  const { draft, disabled, readOnly, onChange, onSave, onReview, directory } =
+    props;
   const [itemized, setItemized] = useState(
     draft.lines.length !== 1 || draft.lines[0].quantity !== 1,
   );
   if (itemized)
     return (
       <>
+        <RecipientUserPicker
+          directory={directory}
+          value={draft.recipient}
+          onChange={(recipient) => onChange({ ...draft, recipient })}
+          disabled={disabled || readOnly}
+          manual={false}
+        />
         <DraftEditor {...props} fixedTreasuryId={draft.treasuryId} />
         <Button
           variant="quiet"
@@ -59,21 +70,12 @@ export function VaultPaymentEditor(props: Props) {
         }}
       >
         <fieldset disabled={disabled || readOnly} className="space-y-4">
-          <label className="block text-sm">
-            Recipient account
-            <input
-              className={field}
-              required
-              maxLength={64}
-              autoCapitalize="none"
-              autoComplete="off"
-              placeholder="partner.testnet"
-              value={draft.recipient}
-              onChange={(e) =>
-                onChange({ ...draft, recipient: e.target.value })
-              }
-            />
-          </label>
+          <RecipientUserPicker
+            directory={directory}
+            value={draft.recipient}
+            onChange={(recipient) => onChange({ ...draft, recipient })}
+            disabled={disabled || readOnly}
+          />
           <label className="block text-sm">
             Purpose
             <input

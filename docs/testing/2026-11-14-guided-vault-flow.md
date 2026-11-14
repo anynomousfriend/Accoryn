@@ -23,7 +23,7 @@ Use **two different accounts**, one on each device. No real money: this release 
 ## 2. Create and open a vault
 
 1. On the host choose **Create a vault**. Enter **Team name** → **Next: members**.
-2. Enter your partner’s full testnet account ID. Your selected creator account is included automatically. Press **Review vault**.
+2. Select your partner under **Select vault members**. Their account appears after they create/select it on their device; press **Refresh demo users** if needed. Your selected creator account is included automatically. Press **Review vault**.
 3. Check both accounts and the **6 testnet NEAR** creation attachment. Press **Create shared vault — 6 testnet NEAR** once and wait.
 4. The host moves to **Member object**. First enroll as described below, then use **Vault** to return to the overview.
 5. Copy the **Member invitation link** to the partner. The partner selects their own local account, chooses **Vault**, verifies the prefilled **Treasury account**, then presses **Load treasury**.
@@ -43,7 +43,7 @@ Use **two different accounts**, one on each device. No real money: this release 
 
 1. On the host open **Vault** → **Fund your vault**. Start with **1 NEAR** → **Fund loaded vault**. Wait for confirmation; refresh the vault if necessary to read its new spendable balance.
 2. Open **Payment** → **New invoice**. The loaded vault is carried forward.
-3. Enter the partner’s full account as **Recipient account**, a **Purpose**, and **0.05** as **Amount in NEAR**. Optional reference/date and itemized invoice editing are available separately.
+3. Select the partner under **Choose recipient**, enter a **Purpose**, and **0.05** as **Amount in NEAR**. Optional reference/date and itemized invoice editing are available separately.
 4. Press **Save local draft**. Review the saved recipient, vault, purpose and lines, then tick **I reviewed the exact native NEAR payment and loaded vault**.
 5. Press **Submit reviewed invoice proposal** once. Expect a numbered proposal and automatic navigation to **Approvals**. Saving or submitting a proposal is not a payout.
 

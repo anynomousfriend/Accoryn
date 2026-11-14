@@ -193,11 +193,13 @@ Start at `/`, read the browser-key notice and choose **Start browser session**. 
 
 Use **Create a vault → Name → Members → Review**. The selected creator is included automatically; add a partner’s full `name.testnet` ID and review the **6 NEAR** creation attachment. Share the public member invitation link so the partner opens the same vault with their own account.
 
+The local demo server shares public account IDs across devices: after each person creates or selects their own account, vault members can be ticked in a list and payment recipients selected from a dropdown. Use **Refresh demo users** if needed. Signing keys stay on their original device. [Picker test steps](docs/testing/2026-11-14-demo-user-picker.md). Static builds retain optional manual ID entry.
+
 ### 2. Member object → payment → receipt
 
 On each device open **Member object**, capture and accept three views, name the object and save the local template. Each enrollment is scoped to that exact member/vault/browser; no remote enrollment status or cross-device recovery is claimed.
 
-Fund the vault, then open **Payment → New invoice**. Enter recipient, purpose and amount (try **0.05 testnet NEAR**), save, review and explicitly submit. The loaded vault is carried forward. Optional invoice reference/date and itemized editing remain available.
+Fund the vault, then open **Payment → New invoice**. Select the recipient, enter purpose and amount (try **0.05 testnet NEAR**), save, review and explicitly submit. The loaded vault is carried forward. Optional invoice reference/date and itemized editing remain available.
 
 In **Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Each member compares a fresh scan and explicitly acknowledges that **identity remains unproven**. The local research check lasts at most two minutes and is bound to the exact payment/session/template. It does not prove same-object identity or protect an extracted browser key.
 

@@ -61,6 +61,13 @@ The user explicitly requested merging `feat/end-to-end-integration` (through `e4
 
 The main merge is explicitly user-authorized. No gate-key deletion, mainnet spending or public push/publication is included. The existing origin is public; this checkpoint stays local under the private-development agreement.
 
+## Branch-only demo user picker — 2026-11-14
+
+- [x] Shared local development directory of public testnet account IDs, with chain-existence admission, atomic persistence and no keys/photos/templates.
+- [x] Automatic publication after confirmed account creation or verified local selection; member checkboxes and recipient dropdown across devices. Local signer selection remains local-key-only.
+- [x] Refresh/manual fallback and retained selections on failure; static production builds do not pretend to have the demo API.
+- [ ] User manual acceptance of phone/laptop discovery and selection. See [the picker checklist](docs/testing/2026-11-14-demo-user-picker.md).
+
 ## Product and fixed decisions
 
 Accoryn is the shared repository name; app-wide branding is still undecided. Build a new mobile/desktop web app for teams approving treasury payments together. The intended journey is personal-object research access → shared NEAR treasury → exact payment review → acoustic participation exchange → explicit independent approvals → authoritative settlement and receipt.

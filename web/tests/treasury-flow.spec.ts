@@ -187,6 +187,9 @@ test("an invoice can be prepared and saved inside the connected flow with vault 
     exact: true,
   });
   await editor
+    .getByText("Enter recipient ID manually", { exact: true })
+    .click();
+  await editor
     .getByLabel("Recipient account", { exact: true })
     .fill("payee.testnet");
   await editor

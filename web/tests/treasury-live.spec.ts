@@ -141,6 +141,7 @@ test("real guided account → member object → vault invoice → acoustic appro
       .click();
     await p.getByLabel("Team name", { exact: true }).fill("Guided Integration");
     await p.getByRole("button", { name: "Next: members", exact: true }).click();
+    await p.getByText("Enter member IDs manually", { exact: true }).click();
     await p
       .getByLabel("Member usernames", { exact: false })
       .fill(`${bob}.testnet`);
@@ -176,6 +177,9 @@ test("real guided account → member object → vault invoice → acoustic appro
       name: "Prepare invoice payment",
       exact: true,
     });
+    await editor
+      .getByText("Enter recipient ID manually", { exact: true })
+      .click();
     await editor
       .getByLabel("Recipient account", { exact: true })
       .fill(`${bob}.testnet`);
