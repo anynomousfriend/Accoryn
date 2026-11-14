@@ -75,7 +75,7 @@ export function BrandLink() {
         </g>
       </svg>
       <span className="font-semibold tracking-tight text-ink">
-        Team Treasury
+        Accoryn
       </span>
     </a>
   );

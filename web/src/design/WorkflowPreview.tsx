@@ -98,7 +98,7 @@ export function WorkflowPreview({
     >
       <div className="preview-chrome">
         <span className="preview-mark">◈</span>
-        <span>Team Treasury</span>
+        <span>Accoryn</span>
         <span className="ml-auto">Example / testnet</span>
       </div>
       <div className="preview-body" data-preview={chapter} key={chapter}>
