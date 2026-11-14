@@ -23,6 +23,7 @@ import {
 import { verifyProposalSettlement } from "./settlement-binding.ts";
 import { guardedSigner } from "./signing-authorization.ts";
 import { parseSession, type Session } from "./protocol.ts";
+import type { AcousticModem } from "../acoustic/modem.ts";
 import type { Proposal } from "../../integration/services.ts";
 import type { ReceiptExportRow } from "../../payments/receipt-csv.ts";
 import {
@@ -77,6 +78,8 @@ export type EngineDeps = {
   rpc: NearRpcClient;
   /** Called with the account about to sign, or null before one is chosen. */
   authorize: (accountId: string | null) => Promise<boolean>;
+  /** Sound modem factory; defaults to the real Web Audio + ggwave modem. */
+  createModem?: () => AcousticModem;
 };
 /** Testnet-only app adapter. All key custody and signed-byte idempotency live in
  * the existing engines; public operation metadata allows recovery after reload. */

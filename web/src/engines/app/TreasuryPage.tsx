@@ -20,6 +20,7 @@ import {
   planPayment,
   planHardening,
   type BusinessResult,
+  type ExchangeReceipt,
 } from "./writes.ts";
 import {
   GATE,
@@ -29,6 +30,14 @@ import {
   type PaymentView,
 } from "./engine.ts";
 import { TemplateStore } from "../../object-registration/template-store.ts";
+import {
+  approvalGate,
+  soundBlockedReason,
+  soundPanel,
+  type SoundPanelInput,
+} from "./ceremony-ui.ts";
+/** How often an open payment is re-read while Approvals is on screen. */
+const PAYMENT_POLL_MS = 5000;
 import ObjectRegistrationPage from "../../object-registration/ObjectRegistrationPage.tsx";
 import type { ObjectTemplate } from "../../object-registration/types.ts";
 import { accountTemplateKey } from "./member-object.ts";
@@ -53,6 +62,7 @@ import {
   type PendingAction,
 } from "../../workspace/action-journal.ts";
 import { VaultPaymentEditor } from "./VaultPaymentEditor.tsx";
+import { VaultInbox, useVaultInbox } from "./VaultInbox.tsx";
 import {
   readDrafts,
   saveDraft,
@@ -175,7 +185,11 @@ export default function TreasuryPage() {
       () => new URLSearchParams(location.search).get("proposal") ?? "",
     ),
     [payment, setPayment] = useState<PaymentView | null>(null),
-    [heard, setHeard] = useState(false),
+    [receipt, setReceipt] = useState<ExchangeReceipt | null>(null),
+    [soundPhase, setSoundPhase] = useState<SoundPanelInput["phase"]>("idle"),
+    [soundProgress, setSoundProgress] = useState<string | null>(null),
+    [soundError, setSoundError] = useState<string | null>(null),
+    [micLevel, setMicLevel] = useState(0),
     [consent, setConsent] = useState(false),
     [now, setNow] = useState(Date.now());
   const [receipts, setReceipts] = useState<ReceiptExportRow[]>([]),
@@ -191,18 +205,29 @@ export default function TreasuryPage() {
     ),
     sequence = useRef(0),
     busyRef = useRef(false);
+  // Stops the running step and releases the microphone/speaker. The current
+  // payment's sound exchange survives, so hiding the page or switching tabs
+  // never forces a new host session.
   function stop() {
     sequence.current++;
     current.current?.controller.abort();
     current.current = null;
-    engine.releaseResources();
+    engine.stopAudio();
     busyRef.current = false;
     setBusy(false);
-    setHeard(false);
+    setSoundPhase((phase) => (phase === "failed" ? phase : "idle"));
+  }
+  // Sign-out or a change of account, vault or payment: forget the exchange too.
+  function endCeremony() {
+    stop();
+    engine.releaseResources();
+    setReceipt(null);
     setConsent(false);
+    setSoundPhase("idle");
+    setSoundError(null);
   }
   function lock() {
-    stop();
+    endCeremony();
     sessionRef.current = null;
     engine.accountId = null;
     setSessionKind(null);
@@ -310,7 +335,7 @@ export default function TreasuryPage() {
     showTask(next);
   }
   function startBrowserSession() {
-    stop();
+    endCeremony();
     engine.accountId = null;
     setAccount("");
     sessionRef.current = setupSession();
@@ -367,7 +392,76 @@ export default function TreasuryPage() {
       }
     });
   }
-  const isMember = !!account && !!treasury?.members.includes(account);
+  // Vaults this member belongs to and payments waiting in them, found on chain.
+  const inbox = useVaultInbox(engine.deps.rpc, account, GATE);
+  function openVault(id: string) {
+    if (busyRef.current) return;
+    if (id !== dao) {
+      endCeremony();
+      setTreasury(null);
+      setPayment(null);
+      setReceipts([]);
+      setGovernance(null);
+      setProposalId("");
+    }
+    setDao(id);
+    setVaultStep("open");
+    void run(async (s, seq) => {
+      const t = await engine.treasury(id, s);
+      if (sequence.current !== seq) return;
+      setTreasury(t);
+      setMessage("Vault " + id + " loaded.");
+      showTask("vault");
+    });
+  }
+  function openPayment(daoId: string, pid: string) {
+    if (busyRef.current) return;
+    if (daoId !== dao || pid !== proposalId) {
+      endCeremony();
+      setPayment(null);
+      if (daoId !== dao) setTreasury(null);
+    }
+    setDao(daoId);
+    setProposalId(pid);
+    void run(async (s, seq) => {
+      const [t, p] = await Promise.all([
+        engine.treasury(daoId, s),
+        engine.payment(daoId, pid, s),
+      ]);
+      if (sequence.current !== seq) return;
+      setTreasury(t);
+      setPayment(p);
+      setMessage(
+        p.session?.status === "Open"
+          ? "Payment loaded. A meeting is open: tap Listen to host sound."
+          : "Payment loaded. Any member can open the meeting below.",
+      );
+      showTask("approvals");
+    });
+  }
+  // With exactly one vault and none chosen yet, open it: nothing to pick.
+  const autoOpened = useRef("");
+  useEffect(() => {
+    if (
+      account &&
+      autoOpened.current !== account &&
+      !dao &&
+      inbox.vaults.length === 1 &&
+      !busyRef.current
+    ) {
+      autoOpened.current = account;
+      openVault(inbox.vaults[0].id);
+    }
+    // openVault reads current state through refs and setters only.
+  }, [account, dao, inbox.vaults]);
+  // The loaded payment carries the vault's current members, so a partner who
+  // opened the payment link counts as a member without a separate vault load.
+  const isMember =
+    !!account &&
+    !!(
+      treasury?.members.includes(account) ||
+      payment?.currentMembers.includes(account)
+    );
   async function run(job: (signal: AbortSignal, id: number) => Promise<void>) {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -520,7 +614,7 @@ export default function TreasuryPage() {
     if (result.status === "confirmed" || result.status === "rejected")
       await finishAction(op.requestId);
     if (sequence.current !== id) return;
-    setHeard(false);
+    setReceipt(null);
     setConsent(false);
     await apply(result, id, signal);
     if (op.kind === "account" && sequence.current === id) {
@@ -537,6 +631,8 @@ export default function TreasuryPage() {
         showTask("vault");
       }
       if (op.kind === "propose") showTask("approvals");
+      // New vaults, payments and meetings show in every member's list.
+      if (["create", "propose", "open"].includes(op.kind)) inbox.refresh();
     }
   }
   const blocked = busy || !!pending || damaged || !writesEnabled || !unlocked;
@@ -548,6 +644,75 @@ export default function TreasuryPage() {
     paymentOpen &&
     payment?.session?.status === "Open" &&
     Number(BigInt(payment.session.expires_at) / 1_000_000n) > now;
+  // The sound step counts only for the session on screen.
+  const heard =
+    !!receipt && receipt.sessionId === payment?.session?.session_id;
+  const playing = soundPhase === "playing";
+  const soundRole =
+    payment?.session?.host === account ? ("host" as const) : ("listener" as const);
+  const panel = soundPanel({
+    role: soundRole,
+    phase: soundPhase,
+    progress: soundProgress,
+    error: soundError,
+    receipt: heard ? receipt : null,
+  });
+  const lastLevelAt = useRef(0);
+  const soundBlocked = soundBlockedReason({
+    writesEnabled,
+    signedIn: sessionKind === "object",
+    pending: !!pending,
+    account,
+    members: payment?.currentMembers ?? treasury?.members ?? null,
+    paymentLoaded: !!payment,
+    paymentOpen,
+    sessionOpen: !!sessionOpen,
+  });
+  const paymentRef = useRef<PaymentView | null>(null);
+  paymentRef.current = payment;
+  // While an open payment is on screen in Approvals, re-read it every few
+  // seconds: a partner's Listen enables as soon as the host opens the session,
+  // and the host sees approvals arrive, without pressing Refresh.
+  useEffect(() => {
+    if (task !== "approvals" || busy || !dao || !proposalId || !paymentOpen)
+      return;
+    const controller = new AbortController();
+    let inFlight = false;
+    const timer = setInterval(() => {
+      if (inFlight || busyRef.current || document.hidden) return;
+      inFlight = true;
+      engine
+        .payment(dao, proposalId, controller.signal)
+        .then(
+          (p) => {
+            const old = paymentRef.current;
+            if (
+              controller.signal.aborted ||
+              busyRef.current ||
+              !old ||
+              old.proposal.id !== p.proposal.id
+            )
+              return;
+            if (
+              old.session?.session_id !== p.session?.session_id ||
+              old.proposal.contentHash !== p.proposal.contentHash
+            ) {
+              setReceipt(null);
+              setConsent(false);
+            }
+            setPayment(p);
+          },
+          () => {},
+        )
+        .finally(() => {
+          inFlight = false;
+        });
+    }, PAYMENT_POLL_MS);
+    return () => {
+      clearInterval(timer);
+      controller.abort();
+    };
+  }, [task, busy, dao, proposalId, paymentOpen, engine]);
   const draft = drafts.find((d) => d.id === draftId);
   const buttonOp = (make: () => Operation) =>
     void run((s, id) => transact(make(), s, id));
@@ -555,7 +720,7 @@ export default function TreasuryPage() {
     const p = await engine.payment(dao, proposalId, signal);
     if (sequence.current === id) {
       setPayment(p);
-      setHeard(false);
+      setReceipt(null);
       setConsent(false);
       setMessage("Current on-chain payment and ceremony loaded.");
     }
@@ -825,7 +990,7 @@ export default function TreasuryPage() {
                 className={field}
                 value={selected}
                 onChange={(e) => {
-                  stop();
+                  endCeremony();
                   sessionRef.current = null;
                   setSessionKind(null);
                   engine.accountId = null;
@@ -877,6 +1042,18 @@ export default function TreasuryPage() {
         </Section>
       </div>
       <div hidden={task !== "vault"}>
+        <Section title="Your vaults and payments">
+          <VaultInbox
+            inbox={inbox}
+            account={account}
+            currentDao={treasury?.id ?? ""}
+            currentProposal={payment ? proposalId : ""}
+            busy={busy}
+            show="dashboard"
+            onOpenVault={openVault}
+            onOpenPayment={openPayment}
+          />
+        </Section>
         <Section title="Your shared vault">
           <div className="flex flex-wrap gap-3 mb-5">
             <Button
@@ -901,7 +1078,7 @@ export default function TreasuryPage() {
                 className={field}
                 value={dao}
                 onChange={(e) => {
-                  stop();
+                  endCeremony();
                   setDao(e.target.value);
                   setTreasury(null);
                   setPayment(null);
@@ -995,7 +1172,11 @@ export default function TreasuryPage() {
                     Open approvals
                   </Button>
                 </div>
-                <label className="block pt-4">
+                <p className="pt-4 text-sm text-muted">
+                  Members see this vault automatically after signing in. The
+                  link below is optional.
+                </p>
+                <label className="block">
                   Member invitation link
                   <input
                     className={field}
@@ -1371,13 +1552,23 @@ export default function TreasuryPage() {
       </div>
       <div hidden={task !== "approvals"}>
         <Section title="Payment review and approvals">
+          <VaultInbox
+            inbox={inbox}
+            account={account}
+            currentDao={treasury?.id ?? dao}
+            currentProposal={payment ? proposalId : ""}
+            busy={busy}
+            show="payments"
+            onOpenVault={openVault}
+            onOpenPayment={openPayment}
+          />
           <label className="block">
             Transfer proposal ID
             <input
               className={field}
               value={proposalId}
               onChange={(e) => {
-                stop();
+                endCeremony();
                 setProposalId(e.target.value);
                 setPayment(null);
               }}
@@ -1435,7 +1626,7 @@ export default function TreasuryPage() {
                   : !paymentOpen
                     ? "This payment is no longer open. Check Completed & records for its authoritative outcome."
                     : !sessionOpen
-                      ? "Next: a member opens the host session. Partners then load this payment on their own devices."
+                      ? "Next: a member opens the host session. Partners' pages pick it up within a few seconds."
                       : payment.proposal.approvals.length >=
                           payment.proposal.requiredApprovals
                         ? "The required approvals are present. Refresh the payment, then execute it once."
@@ -1453,7 +1644,8 @@ export default function TreasuryPage() {
           )}
           {payment && (
             <label className="block mt-4 text-sm">
-              Payment invitation link
+              Payment invitation link (optional: members already see this
+              payment in their list)
               <input
                 readOnly
                 className={field}
@@ -1473,7 +1665,8 @@ export default function TreasuryPage() {
         <Section title="Meet and approve">
           <p>
             The host opens a five-minute session (0.1 testnet NEAR deposit).
-            Other vault members tap Listen before the host plays. Each
+            Partners tap Listen; the host's sound then repeats for about 30
+            seconds, so a partner who starts a little late still hears it. Each
             participant then explicitly approves. Use built-in speakers and
             microphones.
           </p>
@@ -1492,28 +1685,98 @@ export default function TreasuryPage() {
                 key={role}
                 disabled={
                   blocked ||
-                  !isMember ||
-                  !sessionOpen ||
+                  !!soundBlocked ||
                   (role === "host"
                     ? payment?.session?.host !== account
                     : payment?.session?.host === account)
                 }
                 onClick={() =>
                   void run(async (s, id) => {
-                    setHeard(false);
+                    setReceipt(null);
                     setConsent(false);
-                    await engine.exchange(payment!, role, s, (text) => {
-                      if (sequence.current === id) setMessage(text);
-                    });
-                    if (sequence.current === id) setHeard(true);
+                    setSoundError(null);
+                    setSoundProgress(null);
+                    setMicLevel(0);
+                    setSoundPhase(role === "host" ? "playing" : "listening");
+                    try {
+                      const r = await engine.exchange(
+                        payment!,
+                        role,
+                        s,
+                        (text) => {
+                          if (sequence.current !== id) return;
+                          setMessage(text);
+                          setSoundProgress(text);
+                        },
+                        {
+                          onLevel: (level) => {
+                            const t = performance.now();
+                            if (t - lastLevelAt.current < 150) return;
+                            lastLevelAt.current = t;
+                            if (sequence.current === id) setMicLevel(level);
+                          },
+                        },
+                      );
+                      if (sequence.current === id) {
+                        setReceipt(r);
+                        setSoundPhase("idle");
+                      }
+                    } catch (e) {
+                      if (sequence.current === id) {
+                        setSoundPhase("failed");
+                        setSoundError(
+                          e instanceof Error ? e.message : "Sound exchange failed.",
+                        );
+                      }
+                      throw e;
+                    }
                   })
                 }
               >
                 {role === "host" ? "Play host sound" : "Listen to host sound"}
               </Button>
             ))}
+            {playing && (
+              <Button
+                variant="secondary"
+                onClick={() => engine.stopHostSound()}
+              >
+                Stop sound
+              </Button>
+            )}
           </div>
+          {!busy && soundBlocked && (
+            <p className="text-sm text-muted">{soundBlocked}</p>
+          )}
+          {payment?.session && !soundBlocked && (
+            <div
+              aria-live="polite"
+              aria-label="Sound exchange result"
+              className={"sound-panel sound-panel-" + panel.tone}
+            >
+              <p className="font-medium">
+                {panel.tone === "success" ? "✓ " : ""}
+                {panel.title}
+              </p>
+              <p className="text-sm">{panel.detail}</p>
+              {soundPhase === "listening" && busy && (
+                <label className="mt-2 flex items-center gap-3 text-sm">
+                  Microphone level
+                  <meter min={0} max={100} low={3} value={micLevel} />
+                </label>
+              )}
+            </div>
+          )}
           <p className="eyebrow-label">2 · Your explicit approval</p>
+          {payment?.session && (
+            <p
+              className={
+                "text-sm " + (heard && sessionOpen ? "text-success" : "text-muted")
+              }
+            >
+              {approvalGate(heard ? receipt : null, !!sessionOpen)}
+            </p>
+          )}
           <label className="flex gap-3">
             <input
               type="checkbox"
