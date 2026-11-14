@@ -32,7 +32,7 @@ Only built-in cameras, microphones and speakers are needed: no wallet extension,
 3. **Try a human approval:** this [recorded transaction](https://testnet.nearblocks.io/txns/243Qb7wwWDtXN6yyAiq6g1fVUjjppLkSpRuCbQ8ACHfB) shows a member calling `VoteApprove` directly on a gated vault.
    **You see:** `ERR_PERMISSION_DENIED`. Members cannot skip the meeting.
 4. **Run a meeting yourself:** open https://accoryn.vercel.app/treasury/ on two devices (phone + laptop works).
-   **You see:** each person creates a testnet account, one creates a shared vault, proposes a 0.05 NEAR payment, both scan their object, one plays the sound, the other listens, both sign, the payment executes and shows as settled with a receipt and CSV. Step-by-step: [Test the flow](#test-the-flow).
+   **You see:** each person creates a testnet account, registers a personal object and signs in by scanning it; one creates a shared vault and proposes a 0.05 NEAR payment; one plays the sound, the other listens, both sign, the payment executes and shows as settled with a receipt and CSV. Step-by-step: [Test the flow](#test-the-flow).
 5. **Just the sound channel:** open https://accoryn.vercel.app/acoustic-check/ on two devices, listen on one, broadcast on the other.
    **You see:** the same check code on both screens.
 
@@ -71,14 +71,14 @@ Trezu runs on mainnet only, so on testnet we use Sputnik directly with Trezu's r
 - Libraries and AI tools are listed in [Contributing and attribution](#contributing-and-attribution). License: [MIT](LICENSE).
 
 > [!IMPORTANT]
-> **Interface:** `/` is the product landing page; `/treasury/` opens account setup and the connected vault workspace. Navigation groups **Overview, Payments, Members and Vault settings**, with Account in the header. Each member enrolls locally for their own vault/account and compares a fresh scan before an app approval. Scans remain research checks, not authentication or an on-chain object requirement. See the [redesign and two-device testing guide](docs/testing/2026-11-14-reference-redesign.md). Payments support **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
+> **Interface:** `/` is the product landing page; `/treasury/` opens account setup and the connected vault workspace. Navigation groups **Overview, Payments, Members and Vault settings**, with Account in the header. Each person registers one personal object for their account on their own device and signs in by scanning it; the app uses the account's key only during that 10-minute session. This is a local convenience lock, not encryption or an on-chain requirement. See the [redesign and two-device testing guide](docs/testing/2026-11-14-reference-redesign.md). Payments support **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
 
 ## Features and current status
 
 | Feature | What you can do on `main` | Status |
 |---|---|---|
 | Device readiness | Preview/capture from the camera, measure microphone input, play and confirm a speaker tone | Browser feature |
-| Personal-object enrollment | Capture three views, review/retake them, save a versioned local visual template | Browser research feature |
+| Personal-object sign-in | Register three views of an object for your account; a fresh scan that matches signs you in, and only then does the app use your key (10 minutes) | Local convenience lock enforced by the app; the key itself is not encrypted |
 | Fresh object comparison | Compare a new capture with the template; inspect three cosine scores, top-two mean and inference time | Demo Match above 0.50; uncalibrated identity score |
 | Invoice preparation | Enter recipient, treasury, purpose, date and line items; calculate exact NEAR totals; save and review local drafts | Browser feature |
 | Connected treasury | Create/select accounts, create/load/fund vaults, save/submit invoices, host/listen, approve, execute, verify receipts and export CSV | Real browser/testnet integration; writes opt-in |
@@ -92,7 +92,7 @@ Trezu runs on mainnet only, so on testnet we use Sputnik directly with Trezu's r
 | Transaction journal | Reconcile transaction outcomes and guard against duplicate submission | Engine + opt-in live tests |
 | Settlement verification | Verify proposal approval and an exact successful transfer receipt | Engine + recorded live evidence |
 
-The demo reports **Match** when the mean of the two highest similarities exceeds **0.50**, and **No match** otherwise. No-match scans cannot continue to the object-check approval step. An image similarity score is not an identity probability or a private key; the demo cutoff is not calibrated authentication.
+The demo reports **Match** when the mean of the two highest similarities exceeds **0.50**, and **No match** otherwise. A no-match scan cannot sign you in. An image similarity score is not an identity probability or a private key; the demo cutoff is not calibrated authentication.
 
 ## How it is built
 
@@ -240,19 +240,19 @@ Use the same origin throughout a local session: `localhost`, `127.0.0.1` and the
 
 ### 1. Open the guided workspace
 
-Start at `/`, click **Open treasury**, choose **Create account** or **Use saved account**, read the browser-key notice and choose **Start browser session**. Create a testnet username or select a locally stored account. You then move to **Overview**. Account creation no longer depends on a global object template.
+Start at `/`, click **Open treasury**. **Create account:** read the browser-key notice, choose **Start browser session** (it can only create a new account), enter a username and **Create testnet account**. Then register your sign-in object (three views → **Save visual template**), **Compare a fresh scan**, tick **I reviewed this matched scan** and choose **Sign in with this scan**. **Use saved account:** pick the account and sign in with a fresh scan of its object. A **Match** above 0.50 signs you in for 10 minutes; **No match** cannot. You then move to **Overview**.
 
 Use **Create a vault → Name → Members → Review**. The selected creator is included automatically; add a partner’s full `name.testnet` ID and review the **6 NEAR** creation attachment. Share the public member invitation link so the partner opens the same vault with their own account.
 
 The local demo server shares public account IDs across devices: after each person creates or selects their own account, vault members can be ticked in a list and payment recipients selected from a dropdown. Use **Refresh demo users** if needed. Signing keys stay on their original device. [Picker test steps](docs/testing/2026-11-14-demo-user-picker.md). On the hosted site (a static build), type your partner's full `name.testnet` ID instead.
 
-### 2. Member object → payment → receipt
+### 2. Payment → meeting → receipt
 
-On each device open **Members**, capture and accept three views, name the object and save the local template. Each enrollment is scoped to that exact member/vault/browser; no remote enrollment status or cross-device recovery is claimed.
+Each member signs in with their own object on their own device. **Members** shows the roster and lets you replace your sign-in object while signed in. Objects stay in that browser; no cross-device recovery is claimed.
 
 Fund the vault, then open **Payments → New payment → New invoice**. Select the recipient, enter purpose and amount (try **0.05 testnet NEAR**), save, review and explicitly submit. The loaded vault is carried forward. Optional invoice reference/date and itemized editing remain available.
 
-In **Payments → Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Each member compares a fresh scan. A **Match** above 0.50 enables **I reviewed this matched scan → Use matched scan for this payment**; **No match** blocks continuation. The local research check lasts at most two minutes and is bound to the exact payment/session/template. It does not prove same-object identity or protect an extracted browser key.
+In **Payments → Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Partners load the same payment.
 
 Listener taps **Listen to host sound**, then the host taps **Play host sound**. Each member explicitly consents and signs their own approval. Refresh the canonical payment; once the actual threshold is met, execute once. Publish verified payout evidence, open **Payments → Completed & records**, load receipts and share the keyless board. Approval alone is not settlement.
 
@@ -365,8 +365,8 @@ node --test tests/near-live-testnet.test.ts
 
 | Boundary | What to understand |
 |---|---|
-| Object images | Observable and reproducible; they are not cryptographic secrets. The user-selected 0.50 demo cutoff is uncalibrated and does not establish identity. |
-| Key custody | The connected account engine stores extractable, unencrypted signing material in browser IndexedDB. A compromised browser/profile can bypass UI restrictions. No object-based cross-device key recovery exists. |
+| Object images | Observable and reproducible; they are not cryptographic secrets. A matched scan signs you in, but the user-selected 0.50 demo cutoff is uncalibrated, does not establish identity, and a photo of the object may also match. |
+| Key custody | The connected account engine stores extractable, unencrypted signing material in browser IndexedDB. Object sign-in is enforced by this app's engine (no signer without a matched scan for that exact account), not by encryption: a compromised browser/profile or another client can bypass it. No object-based cross-device key recovery exists. |
 | Acoustic presence | Sound demonstrates communication between devices. Live relay, collusion and one person controlling several member accounts remain possible. |
 | Approval | Challenge receipt is separate from explicit member consent. Eligibility and account-bound attestations are checked by the protocol/gate. |
 | Governance | `G = max(2, N−1)` members can change policy, replace members or remove the gate. Governance can authorize fund movement outside the ceremony; no timelock is implemented. |
@@ -389,7 +389,7 @@ The project includes an isolated official NEAR MCP adapter for read-only testnet
 | First model load is slow or fails | Finish asset preparation; check internet, free storage and console errors. Retry explicitly. |
 | Pen/bottle or similar objects score unexpectedly | Record the images/conditions privately and report the scores. Similarity is not a secure identity verdict. |
 | Sound is not decoded | Use matching audible modes, foreground pages, built-in audio, then adjust distance/volume. Do not assume ultrasound support. |
-| Chain action is disabled | Use `/treasury/`, start Vite with `VITE_ENABLE_TESTNET_WRITES=1`, and start a browser session. Member approvals also require the payment-bound object research check. `/workspace/` retains its unavailable v1 bindings. |
+| Chain action is disabled | Use `/treasury/`, start Vite with `VITE_ENABLE_TESTNET_WRITES=1`, and sign in with your object (a browser session alone can only create a new account). `/workspace/` retains its unavailable v1 bindings. |
 | Account helper returns HTTP 429 | Keep the original pending request/key, reconcile and resume later; do not clear storage or create a replacement intent. |
 | A write is pending/unknown after reload | Reconcile the original request; do not submit a second payment to guess whether the first succeeded. |
 | `npm ci` reports missing optional `@emnapi` entries | See the [documented lockfile pitfall](docs/integration/context-two-engines.md#pitfalls-already-hit); preserve the committed lockfile. |

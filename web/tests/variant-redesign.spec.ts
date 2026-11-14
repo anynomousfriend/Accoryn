@@ -121,8 +121,13 @@ test("account paths reveal only the selected form without bypassing session auth
     page.getByLabel("New username", { exact: true }),
   ).not.toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Use local account", exact: true }),
-  ).toBeDisabled();
+    page.getByText("Choose your account, then sign in with your object.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Sign in with this scan", exact: true }),
+  ).toHaveCount(0);
 });
 
 test("mobile workspace retains device help", async ({ page }) => {

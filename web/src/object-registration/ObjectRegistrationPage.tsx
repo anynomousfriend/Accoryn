@@ -18,9 +18,16 @@ import { ComparisonResult } from "./ComparisonResult.tsx";
 import { TemplateStore } from "./template-store.ts";
 import { memberTemplateKey } from "../engines/app/member-object.ts";
 export type MemberObjectOptions = {
-  vaultId: string;
+  /** Omitted for an account-level (sign-in) object. */
+  vaultId?: string;
   accountId: string;
   approval: boolean;
+  /** Overrides the per-vault template store key. */
+  templateKey?: string;
+  heading?: string;
+  notice?: string;
+  continueLabel?: string;
+  allowDelete?: boolean;
   onTemplate: (template: ObjectTemplate | null) => void;
   onComparisonReset: () => void;
   onAcknowledge: (
@@ -42,7 +49,8 @@ export default function ObjectRegistrationPage({
       new ObjectRegistrationController(
         member
           ? new TemplateStore(
-              memberTemplateKey(member.vaultId, member.accountId),
+              member.templateKey ??
+                memberTemplateKey(member.vaultId ?? "", member.accountId),
             )
           : undefined,
       ),
@@ -136,14 +144,16 @@ export default function ObjectRegistrationPage({
             : "Feature 02 · Local object research"}
         </p>
         <h2 className="mt-4 font-serif text-3xl tracking-tight text-ink sm:text-4xl">
-          {member?.approval
-            ? "Your object, before your approval."
-            : "Register your object."}
+          {member?.heading ??
+            (member?.approval
+              ? "Your object, before your approval."
+              : "Register your object.")}
         </h2>
         {member && (
           <p className="break-all text-sm text-muted">
-            For {member.accountId} in {member.vaultId}. Each member enrolls on
-            their own device.
+            For {member.accountId}
+            {member.vaultId ? ` in ${member.vaultId}` : ""}. Each member
+            enrolls on their own device.
           </p>
         )}
         <p className="mt-4 max-w-2xl text-sm leading-6 text-muted">
@@ -159,7 +169,8 @@ export default function ObjectRegistrationPage({
             Save this object's visual template in this browser. Photos are
             discarded.{" "}
             {member
-              ? "This adds a local research step to this member’s vault approval flow."
+              ? (member.notice ??
+                "This adds a local research step to this member’s vault approval flow.")
               : "This does not create a wallet."}
           </p>
           <p className="mt-2 text-xs leading-5 text-muted">
@@ -394,7 +405,8 @@ export default function ObjectRegistrationPage({
                   }}
                 >
                   {member
-                    ? "Use matched scan for this payment"
+                    ? (member.continueLabel ??
+                      "Use matched scan for this payment")
                     : "Continue to testnet account"}
                 </Button>
               )}
@@ -417,7 +429,9 @@ export default function ObjectRegistrationPage({
             </div>
           </div>
         )}
-        {(state.template || error) && !member?.approval && (
+        {(state.template || error) &&
+          !member?.approval &&
+          member?.allowDelete !== false && (
           <section className="mt-6 rounded-xl border border-line p-4">
             {confirmDelete ? (
               <>

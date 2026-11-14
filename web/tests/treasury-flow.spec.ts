@@ -10,7 +10,7 @@ test("connected treasury screen keeps writes locked and exposes real read-only l
     }),
   ).toBeVisible();
   await expect(
-    page.getByText("Start a session to continue", { exact: true }),
+    page.getByText("Signed out", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Create testnet account", exact: true }),
@@ -181,7 +181,7 @@ test("a legacy object handoff never substitutes for browser session consent", as
   });
   await page.reload();
   await expect(
-    page.getByText("Start a session to continue", { exact: true }),
+    page.getByText("Signed out", { exact: true }),
   ).toBeVisible();
 });
 test("an invoice can be prepared and saved inside the connected flow with vault context carried forward", async ({

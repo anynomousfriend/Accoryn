@@ -27,7 +27,7 @@ test("home starts the account journey and exposes one task at a time", async ({
   await page.getByLabel("New username", { exact: true }).fill("alice");
   // Writes are intentionally disabled in the normal automated build.
   await expect(
-    page.getByText("Browser session active", { exact: true }),
+    page.getByText("Account setup session active", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByLabel("Complete next member list", { exact: true }),
@@ -81,10 +81,9 @@ test("member object and approvals explain missing prerequisites without exposing
 }) => {
   await page.goto("/treasury/#object");
   await expect(
-    page.getByText(
-      "Select your account and open a vault to enroll your member object.",
-      { exact: true },
-    ),
+    page.getByText("Sign in with your object on the Account page first.", {
+      exact: true,
+    }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Payments", exact: true }).click();
   await page.getByRole("button", { name: "Approvals", exact: true }).click();
@@ -220,4 +219,37 @@ test("real DINOv2 cup match can continue but a different bottle blocks continuat
   ).toBeDisabled();
   await expect(continuation).toBeDisabled();
   await expect(page.getByTestId("check-state")).toHaveText("inactive");
+});
+
+test("a saved local key cannot sign until its own object is registered and matched", async ({
+  page,
+}) => {
+  // Real IndexedDB keystore record (pending, no network); no camera is used.
+  const id = "accoryn-object-signin.testnet";
+  await page.goto("/tests/harness/near-keystore.html");
+  await page.waitForFunction(() => !!(window as any).nearKeystoreHarness, {}, {
+    timeout: 15000,
+  });
+  await page.evaluate(
+    (account) => (window as any).nearKeystoreHarness.prepare(account),
+    id,
+  );
+  await page.goto("/treasury/#account");
+  await page
+    .getByRole("button", { name: "Use saved account", exact: true })
+    .click();
+  await page.getByLabel("Local account", { exact: true }).selectOption(id);
+  await expect(
+    page.getByRole("heading", { name: "Sign in with your object." }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Start registration", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Signed out", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Start browser session", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("No account selected", { exact: true }),
+  ).toBeVisible();
 });

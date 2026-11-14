@@ -72,7 +72,8 @@ export type EngineDeps = {
   journal: TxJournal;
   operations: Operations;
   rpc: NearRpcClient;
-  authorize: () => Promise<boolean>;
+  /** Called with the account about to sign, or null before one is chosen. */
+  authorize: (accountId: string | null) => Promise<boolean>;
 };
 /** Testnet-only app adapter. All key custody and signed-byte idempotency live in
  * the existing engines; public operation metadata allows recovery after reload. */
@@ -82,11 +83,11 @@ export class TreasuryEngine {
   constructor(deps: EngineDeps) {
     this.deps = deps;
   }
-  async authorize(signal: AbortSignal) {
+  async authorize(signal: AbortSignal, accountId = this.accountId) {
     signal.throwIfAborted();
-    if (!(await this.deps.authorize()))
+    if (!(await this.deps.authorize(accountId)))
       throw new Error(
-        "Start a browser session and complete any required member object research check before signing.",
+        "Sign in with your object before signing. Your session may have expired.",
       );
     signal.throwIfAborted();
   }
@@ -153,7 +154,7 @@ export class TreasuryEngine {
     return accountId;
   }
   async selectAccount(accountId: string, signal: AbortSignal): Promise<string> {
-    await this.authorize(signal);
+    await this.authorize(signal, accountId);
     if (!(await this.deps.keys.get(accountId)))
       throw new Error(
         "No signing key for this account in this browser. Lost keys require governance recovery.",
@@ -435,7 +436,7 @@ export class TreasuryEngine {
   }
 }
 export function createTreasuryEngine(
-  authorize: () => Promise<boolean>,
+  authorize: (accountId: string | null) => Promise<boolean>,
 ): TreasuryEngine {
   return new TreasuryEngine({
     keys: new Keystore(),

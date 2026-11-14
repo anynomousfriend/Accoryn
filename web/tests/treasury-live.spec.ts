@@ -9,7 +9,7 @@ test.use({
   headless: process.env.ACCORYN_LIVE_APP === "1" ? false : true,
   trace: "off",
 });
-test("real guided account → member object → vault invoice → acoustic approvals → verified payout", async ({
+test("real guided account → object sign-in → vault invoice → acoustic approvals → verified payout", async ({
   browser,
 }) => {
   test.skip(
@@ -51,8 +51,10 @@ test("real guided account → member object → vault invoice → acoustic appro
     if (["Approvals", "Activity"].includes(name)) await page.getByRole("button", {name:"Payments",exact:true}).click();
     await page.getByRole("button", {name:names[name] ?? name,exact:true}).click();
   };
-  async function enrollCamera(page: Page) {
-    await task(page, "Member object");
+  async function signInWithCamera(page: Page) {
+    await expect(
+      page.getByRole("heading", { name: "Sign in with your object." }),
+    ).toBeVisible();
     await page
       .getByRole("button", { name: "Start registration", exact: true })
       .click();
@@ -83,11 +85,6 @@ test("real guided account → member object → vault invoice → acoustic appro
       }),
     ).toBeVisible({ timeout: 30000 });
     await page
-      .getByRole("button", { name: "Continue to payment", exact: true })
-      .click();
-  }
-  async function freshCamera(page: Page) {
-    await page
       .getByRole("button", { name: "Compare a fresh scan", exact: true })
       .click();
     await page
@@ -106,16 +103,11 @@ test("real guided account → member object → vault invoice → acoustic appro
       .getByLabel("I reviewed this matched scan.", { exact: true })
       .check();
     await page
-      .getByRole("button", {
-        name: "Use matched scan for this payment",
-        exact: true,
-      })
+      .getByRole("button", { name: "Sign in with this scan", exact: true })
       .click();
     await expect(
-      page.getByText("Demo object match active", {
-        exact: true,
-      }),
-    ).toBeVisible();
+      page.getByText("Signed in with your object", { exact: true }),
+    ).toBeVisible({ timeout: 30000 });
   }
   try {
     for (const [page, name] of [
@@ -132,6 +124,8 @@ test("real guided account → member object → vault invoice → acoustic appro
         .click();
       await success(page);
       await checkpoint("account", `${name}.testnet`);
+      await signInWithCamera(page);
+      await checkpoint("object sign-in through real camera", `${name}.testnet`);
     }
     await p
       .getByRole("button", { name: "Create a vault", exact: true })
@@ -155,8 +149,6 @@ test("real guided account → member object → vault invoice → acoustic appro
       .getByLabel("Treasury account", { exact: true })
       .inputValue();
     await checkpoint("vault", dao);
-    await enrollCamera(p);
-    await checkpoint("host enrollment through real camera");
     await task(p, "Vault");
     await p
       .getByRole("button", { name: "Fund loaded vault", exact: true })
@@ -166,8 +158,6 @@ test("real guided account → member object → vault invoice → acoustic appro
     await q.getByLabel("Treasury account", { exact: true }).fill(dao);
     await q.getByRole("button", { name: "Load treasury", exact: true }).click();
     await expect(status(q)).toContainText("loaded", { timeout: 30000 });
-    await enrollCamera(q);
-    await checkpoint("listener enrollment through real camera");
     await task(p, "Payment");
     await p.getByRole("button", { name: "New invoice", exact: true }).click();
     const editor = p.getByRole("region", {
@@ -223,7 +213,6 @@ test("real guided account → member object → vault invoice → acoustic appro
       await expect(
         page.getByRole("button", { name: "Sign member approval", exact: true }),
       ).toBeDisabled();
-      await freshCamera(page);
     }
     await q
       .getByRole("button", { name: "Listen to host sound", exact: true })
