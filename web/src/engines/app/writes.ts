@@ -406,7 +406,9 @@ export class TreasuryFlow extends TreasuryEngine {
           if (this.hostStop === stopper) this.hostStop = null;
         }
         signal.throwIfAborted();
-        if (completed === 0)
+        // Stop sound means the host saw partners ready: ggwave decodes a frame
+        // just before its buffer ends, so round 1 may be cut short by design.
+        if (completed === 0 && !stopper.signal.aborted)
           throw new Error(
             "The host sound did not play. Turn this device's volume up, keep this page in front, then tap Play host sound again. The session is still open.",
           );

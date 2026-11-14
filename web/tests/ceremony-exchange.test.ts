@@ -45,6 +45,8 @@ const proposal = {
 type Fake = {
   modem: AcousticModem;
   plays: number;
+  /** How long one default round plays before it completes. */
+  roundMs: number;
   frames: string[];
   play: () => Promise<PlaybackResult>;
 };
@@ -52,11 +54,12 @@ function fakeModem(): Fake {
   let finish: ((r: PlaybackResult) => void) | null = null;
   const fake: Fake = {
     plays: 0,
+    roundMs: 5,
     frames: [],
     play: () =>
       new Promise<PlaybackResult>((resolve) => {
         finish = resolve;
-        setTimeout(() => resolve("completed"), 5);
+        setTimeout(() => resolve("completed"), fake.roundMs);
       }),
     modem: {
       async init() {},
@@ -256,4 +259,21 @@ test("the sound step says why it is unavailable instead of silently greying out"
     soundBlockedReason({ ...ready, sessionOpen: false }) ?? "",
     /waiting for the host.*checks every few seconds/i,
   );
+});
+
+test("pressing Stop sound during the first round counts as played (the partner already heard it)", async () => {
+  const fake = fakeModem();
+  const { flow, view } = hostSession(fake);
+  // Real ggwave decodes a frame just before its audio buffer ends, so a
+  // partner shows ready while round 1 is still finishing.
+  fake.roundMs = 10_000;
+  const done = flow.exchange(view, "host", signal(), () => {}, {
+    windowMs: 60_000,
+    intervalMs: 0,
+  });
+  while (fake.plays < 1) await new Promise((r) => setTimeout(r, 5));
+  flow.stopHostSound();
+  await done;
+  const op = await flow.planAttest(view, "attest-request", signal());
+  assert.equal(op.kind, "attest");
 });
