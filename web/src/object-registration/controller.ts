@@ -29,7 +29,8 @@ export class ObjectRegistrationController {
   private state = initial();
   private listeners = new Set<() => void>();
   private inference = new InferenceClient();
-  private store = new TemplateStore();
+  private readonly store: TemplateStore;
+  constructor(store = new TemplateStore()) { this.store = store; }
   private video: HTMLVideoElement | null = null;
   private stream: MediaStream | null = null;
   private generation = 0;

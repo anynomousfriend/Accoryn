@@ -58,8 +58,8 @@ export default function LandingPage() {
               NEAR.
             </p>
             <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-              <ActionLink href="/device-check/">
-                Check your device
+              <ActionLink href="/treasury/">
+                Open workspace
                 <ArrowRight size={17} aria-hidden="true" />
               </ActionLink>
               <ActionLink href="#how-it-works" variant="quiet">
@@ -68,7 +68,7 @@ export default function LandingPage() {
               </ActionLink>
             </div>
             <p className="mt-5 text-xs leading-5 text-muted">
-              Start with a real camera, microphone and speaker check.
+              Start with your account, then create or open a shared vault.
             </p>
           </div>
           <div className="min-w-0 rounded-[28px] bg-ink p-6 sm:p-8">

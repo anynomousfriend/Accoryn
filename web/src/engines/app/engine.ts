@@ -20,6 +20,7 @@ import {
   type SputnikPolicy,
 } from "../near/sputnik.ts";
 import { verifyProposalSettlement } from "./settlement-binding.ts";
+import { guardedSigner } from "./signing-authorization.ts";
 import { parseSession, type Session } from "./protocol.ts";
 import type { Proposal } from "../../integration/services.ts";
 import type { ReceiptExportRow } from "../../payments/receipt-csv.ts";
@@ -73,7 +74,7 @@ export class TreasuryEngine {
     signal.throwIfAborted();
     if (!(await this.deps.authorize()))
       throw new Error(
-        "Complete a fresh scan and acknowledge the research continuation first.",
+        "Start a browser session and complete any required member object research check before signing.",
       );
     signal.throwIfAborted();
   }
@@ -363,7 +364,7 @@ export class TreasuryEngine {
       requestId: op.requestId,
       kind: op.kind,
       signerId: actor.id,
-      signer: actor.signer,
+      signer: guardedSigner(actor.signer, () => this.authorize(signal), signal),
       receiverId: op.receiver,
       actions: [
         op.kind === "fund"

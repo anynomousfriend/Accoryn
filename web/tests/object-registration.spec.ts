@@ -6,7 +6,7 @@ test("root leads to registration with no eager model download or sensor request"
   page.on("request", (r) => {
     if (/\/(models|runtime)\//.test(r.url())) assets.push(r.url());
   });
-  await page.goto("/");
+  await page.goto("/device-check/");
   await expect(
     page.getByRole("button", { name: "Continue to object registration" }),
   ).toBeDisabled();

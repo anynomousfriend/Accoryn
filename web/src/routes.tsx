@@ -11,7 +11,8 @@ import { ActionLink, SiteHeader } from "./design/primitives.tsx";
 
 export function renderRoute(pathname: string): ReactNode {
   const path = pathname.replace(/\/+$/, "") || "/";
-  if (path === "/" || path === "/device-check") return <App />;
+  if (path === "/") return <TreasuryPage />;
+  if (path === "/device-check") return <App />;
   if (path === "/object-registration") return <ObjectRegistrationPage />;
   if (path === "/board") return <BoardPage />;
   if (path === "/treasury") return <TreasuryPage />;

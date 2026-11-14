@@ -59,6 +59,10 @@ export function validateTemplate(value: unknown): ObjectTemplate {
 }
 const canceled = () => new DOMException("Operation canceled.", "AbortError");
 export class TemplateStore {
+  private readonly recordKey: string;
+  constructor(recordKey = "active") {
+    this.recordKey = recordKey;
+  }
   private connection: Promise<IDBDatabase> | null = null;
   private open(): Promise<IDBDatabase> {
     if (this.connection) return this.connection;
@@ -114,7 +118,7 @@ export class TemplateStore {
     const db = await this.open();
     return new Promise((resolve, reject) => {
       const tx = db.transaction("templates", "readonly");
-      const request = tx.objectStore("templates").get("active");
+      const request = tx.objectStore("templates").get(this.recordKey);
       let result: unknown;
       request.onsuccess = () => {
         result = request.result;
@@ -168,8 +172,8 @@ export class TemplateStore {
               ),
         );
       };
-      if (value) store.put(value, "active");
-      else store.delete("active");
+      if (value) store.put(value, this.recordKey);
+      else store.delete(this.recordKey);
     });
   }
   async save(template: ObjectTemplate, signal: AbortSignal) {

@@ -96,8 +96,8 @@ export function SiteHeader({ section }: { section?: string }) {
             <a className="nav-link hidden md:inline-flex" href="/landing/#how-it-works">
               How it works
             </a>
-            <ActionLink href="/device-check/" variant="secondary">
-              Check device<span aria-hidden="true">↗</span>
+            <ActionLink href="/treasury/" variant="secondary">
+              Open workspace<span aria-hidden="true">↗</span>
             </ActionLink>
           </div>
         </nav>

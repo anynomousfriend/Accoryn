@@ -22,7 +22,7 @@ const browser=await chromium.launch({channel:process.env.CI?undefined:'chrome',h
 try{
  const context=await browser.newContext({viewport:{width:390,height:844}});const page=await context.newPage();const errors=[];const requests=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push({url:r.url(),method:r.method()}));
- await page.goto(origin+'/');await page.getByRole('button',{name:'Continue to object registration'}).waitFor();assert.equal(await page.getByRole('button',{name:'Continue to object registration'}).isDisabled(),true);
+ await page.goto(origin+'/');await page.getByRole('heading',{name:'Your team. One shared vault.'}).waitFor();await page.goto(origin+'/device-check/');await page.getByRole('button',{name:'Continue to object registration'}).waitFor();assert.equal(await page.getByRole('button',{name:'Continue to object registration'}).isDisabled(),true);
  await page.getByRole('link',{name:'Open registration directly'}).click();await page.getByRole('heading',{name:'Register your object.'}).waitFor();await page.getByRole('button',{name:'Start registration',exact:true}).waitFor();
  assert.equal(requests.some(r=>/\/(models|runtime)\//.test(r.url)),false);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
@@ -55,7 +55,7 @@ try{
  await page.getByRole('button',{name:'Save local draft'}).click();await page.getByRole('status').filter({hasText:'Draft saved'}).waitFor();await page.reload();await page.getByRole('button',{name:'Open Production invoice'}).click();await page.getByRole('button',{name:'Review exact payment'}).click();await page.getByText('2000000000000000000000002',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Submit proposal'}).isDisabled(),true);
  await page.getByRole('button',{name:'Account',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Create or access account'}).isDisabled(),true);
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:resolve(output,'workspace-phone.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);
- await page.goto(origin+'/treasury/');await page.getByRole('heading',{name:'Testnet team treasury',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Create testnet account',exact:true}).isDisabled(),true);
+ await page.goto(origin+'/treasury/');await page.getByRole('heading',{name:'Your team. One shared vault.',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Create testnet account',exact:true}).isDisabled(),true);
  await page.setViewportSize({width:320,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  await page.goto(origin+'/board/');await page.getByRole('heading',{name:'Treasury board',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Create testnet account',exact:true}).count(),0);assert.deepEqual(errors,[]);
  const failureContext=await browser.newContext();const failurePage=await failureContext.newPage();await failurePage.route('**/models/**',r=>r.abort('failed'));await failurePage.goto(origin+'/object-registration/');await failurePage.getByRole('button',{name:'Start registration',exact:true}).click();await failurePage.getByRole('alert').filter({hasText:/load.*model/i}).waitFor();await failureContext.close();

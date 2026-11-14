@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 // The app's first page must lead directly into a real, testable feature.
-test('home opens the real device checkpoint and requires explicit speaker confirmation', async ({ page }) => {
-  await page.goto('/');
+test('device help opens the real device checkpoint and requires explicit speaker confirmation', async ({ page }) => {
+  await page.goto('/device-check/');
   await expect(page.getByRole('heading', { name: 'Check your device' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start camera' })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Start microphone' })).toBeEnabled();

@@ -22,7 +22,7 @@ Teams need a shared answer to three questions before money moves: **What are we 
 The browser also provides a personal-object enrollment experiment, device checks and invoice preparation. Only built-in cameras, microphones and speakers are needed. No external tags, readers or security keys.
 
 > [!IMPORTANT]
-> **The connected browser flow is available on `main` at `/treasury/`.** Begin with device checks and object comparison, explicitly acknowledge the research continuation, then create/select a testnet account, create or load a shared vault, propose a payment, collect member acoustic attestations and verify settlement. The older `/workspace/` remains a local draft editor with unavailable v1 blockchain actions. The payment implementation currently supports **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
+> **Guided-flow branch:** on `feat/near-tooling-testnet-rate-limit`, `/` and `/treasury/` now start with **Account → Vault → Member object → Payment → Approvals → Activity**. Each member enrolls locally for their own vault/account and compares a fresh scan before an app approval. The scan is an uncalibrated research checkpoint, not authentication or an on-chain object requirement. See the [exact two-device manual guide](docs/testing/2026-11-14-guided-vault-flow.md). The older `/workspace/` remains a compatibility draft editor. Payments currently support **native NEAR on testnet**, not USDC, other stablecoins or mainnet assets.
 
 ## Features and current status
 
@@ -49,15 +49,14 @@ An image similarity score is **not a probability, proof of identity or recovered
 
 ```mermaid
 flowchart LR
-    subgraph Browser["Browser app · current main"]
-        Devices["Camera / microphone / speaker"] --> Readiness["Device readiness"]
-        Readiness --> Object["Three-view object comparison"]
-        Object --> Draft["Local invoice workspace"]
-        Audio["Acoustic lab · ggwave"]
+    subgraph Browser["Browser app · guided flow"]
+        Account["Create / select browser account"] --> Vault["Open / create shared vault"]
+        Vault --> Object["Member object enrollment · local research"]
+        Object --> Draft["Prepare and review payment"]
+        Draft --> Treasury["Fresh comparison + acoustic member approvals"]
+        Treasury --> Receipt["Verify payout and share receipt"]
+        Devices["Camera / microphone / speaker"] --> Treasury
     end
-    Object --> Consent["Explicit research acknowledgment"]
-    Consent --> Treasury["Connected treasury + member ceremony"]
-    Draft --> Treasury
     Treasury --> Engines
     subgraph Engines["TypeScript engines · browser adapter + scripts"]
         Accounts["Accounts + key storage"]
@@ -152,10 +151,11 @@ Running the browser features requires no wallet extension, Rust installation or 
 ```sh
 git clone https://github.com/anynomousfriend/Accoryn.git
 cd Accoryn
-git switch main
 npm ci --prefix web
 VITE_ENABLE_TESTNET_WRITES=1 npm run dev --prefix web
 ```
+
+The guided-flow changes are currently local to `feat/near-tooling-testnet-rate-limit`; use that branch in the existing development checkout. A fresh GitHub clone has the published main behavior until this feature is pushed or merged.
 
 Open **http://127.0.0.1:5173/**. The first startup prepares the pinned vision assets; allow it to finish before testing.
 
@@ -165,7 +165,7 @@ For a phone on the same Wi-Fi:
 VITE_ENABLE_TESTNET_WRITES=1 npm run dev:lan --prefix web
 ```
 
-Use the printed **`https://<LAN-IP>:5173/`** address on your phone and `https://localhost:5173/` on the laptop. Accept/trust the local development certificate. Keep the laptop running and allow local-network access through its firewall. Phone camera/microphone access needs HTTPS; a plain LAN HTTP URL is insufficient.
+Use the printed **`https://<LAN-IP>:5173/`** address on both phone and laptop when sharing invitations. `https://localhost:5173/` also opens on the laptop, but links containing localhost cannot open on another device and its local account storage is separate. Accept/trust the local development certificate. Keep the laptop running and allow local-network access through its firewall. Phone camera/microphone access needs HTTPS; a plain LAN HTTP URL is insufficient.
 
 `VITE_ENABLE_TESTNET_WRITES=1` explicitly enables real testnet transactions. Without it, signing actions stay unavailable and read-only access remains available. This flag is public configuration, never a place for secrets. See [`web/.env.example`](web/.env.example); restart Vite after changing it.
 
@@ -173,7 +173,8 @@ Use the printed **`https://<LAN-IP>:5173/`** address on your phone and `https://
 
 | Route | Purpose |
 |---|---|
-| `/` or `/device-check/` | Start with real device readiness checks |
+| `/` or `/treasury/` | Guided account, vault, member object, payment, approval and receipt workspace |
+| `/device-check/` | Optional camera, microphone and speaker diagnostics |
 | `/object-registration/` | Register, compare, replace or delete a local visual template |
 | `/treasury/` | Connected account → vault → invoice → member ceremony → verified settlement |
 | `/board/?dao=YOUR_VAULT` | Shareable read-only policy and verified payouts without a signing key |
@@ -186,37 +187,25 @@ Use the same origin throughout a local session: `localhost`, `127.0.0.1` and the
 
 ## Test the flow
 
-### 1. Device and object preparation
+### 1. Open the guided workspace
 
-1. Open `/device-check/`. Start the camera check, capture a frame, check that the microphone meter responds, then play and explicitly confirm the speaker tone. **Expected:** all three checks can be completed independently.
-2. Continue to `/object-registration/`. Capture three different views of a distinctive object. Review or retake each, then save. **Expected:** a saved local template and a path to fresh comparison.
-3. Capture the same object again from another angle. Repeat with a similar different object and an unrelated object. **Expected:** measured similarities and inference time, not an automatic wallet unlock. Record wrong-object scores as well as same-object scores.
-4. Reload and verify the template remains. Exercise replacement and deletion. **Expected:** only explicit actions replace/delete it; cancelled work must not leave a misleading completed result.
-5. After a fresh comparison, tick the explicit research acknowledgment and continue to `/treasury/`. **Expected:** an active ten-minute research continuation. Each financial operation still requires a separate click and the correct on-chain authority.
-6. For local-only draft testing, open `/workspace/`. Enter valid testnet accounts and invoice details, then save/review. Its old chain actions remain unavailable; use the connected treasury for payments.
+Start at `/`, read the browser-key notice and choose **Start browser session**. Create a testnet username or select a locally stored account. You then move to **Vault**. Account creation no longer depends on a global object template.
 
-See the detailed [device checklist](docs/testing/feature-01-device-readiness.md), [object checklist](docs/testing/feature-02-object-registration.md) and [workspace checklist](docs/testing/context-one-manual.md).
+Use **Create a vault → Name → Members → Review**. The selected creator is included automatically; add a partner’s full `name.testnet` ID and review the **6 NEAR** creation attachment. Share the public member invitation link so the partner opens the same vault with their own account.
 
-### 2. Complete browser payment: account → vault → ceremony → receipt
+### 2. Member object → payment → receipt
 
-Use two devices, two different member accounts and the same LAN HTTPS origin on each. Start with native testnet NEAR only.
+On each device open **Member object**, capture and accept three views, name the object and save the local template. Each enrollment is scoped to that exact member/vault/browser; no remote enrollment status or cross-device recovery is claimed.
 
-1. On **each device**, finish the preparation above. Create a different **New username** using **Create testnet account**, or select an account whose key already exists in that browser. Record the full `name.testnet` IDs. A new browser cannot recover an existing key from its username or object.
-2. On the host, create a shared vault listing both full member usernames, including the host. Creation attaches **6 testnet NEAR**, plus gas. Load the resulting `name.sputnikv2.testnet` vault on both devices; compare the roster, tiers, governance threshold and balance.
-3. Choose **Fund loaded vault** and fund it with **1 testnet NEAR**. In **New invoice**, enter a valid testnet recipient, vault, purpose and an initial **0.05 NEAR** payment. Save, review the exact details and explicitly submit. **Expected:** a numbered on-chain proposal and the submitted draft locked against resubmission.
-4. On the second device, load that vault and proposal ID. Both members review the canonical recipient, amount and purpose. Open the host session (a **0.1 testnet NEAR** deposit), then refresh the listener’s payment/session.
-5. Listener: **Listen to host sound**. Host: **Play host sound**. Keep both foregrounded with built-in audio and the devices close together. **Expected:** decoded challenge matches the loaded on-chain session. In this release, listeners are approving vault members; a separate external-recipient sound response is not required.
-6. Each eligible member explicitly approves/attests. Hearing sound alone signs nothing. Once the required attendance is met, execute. **Expected:** settled status only after independently verifying the exact successful transfer and approved proposal.
-7. Choose **Publish verified payout evidence**, then **Load chain receipts**. Inspect the explorer link and export CSV. Open `/board/?dao=YOUR_VAULT` in a fresh browser with no local key; it should show public policy and verified payout evidence. The board reads the latest 50 proposals, not complete historical indexing.
-8. Exercise **Lock research session**, cancellation and reload. Pending writes must retain their original request ID. Use **Reconcile original request** before any retry, and **Resume original request** only for the retained request. Never clear site data during an unknown outcome.
+Fund the vault, then open **Payment → New invoice**. Enter recipient, purpose and amount (try **0.05 testnet NEAR**), save, review and explicitly submit. The loaded vault is carried forward. Optional invoice reference/date and itemized editing remain available.
 
-**Account helper rate limits:** account creation may return HTTP 429. Retain the pending request/key and retry later through **Resume original request**, after reconciliation. Do not change usernames or delete storage to work around an unresolved request.
+In **Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Each member compares a fresh scan and explicitly acknowledges that **identity remains unproven**. The local research check lasts at most two minutes and is bound to the exact payment/session/template. It does not prove same-object identity or protect an extracted browser key.
 
-**Lost host challenge:** audio challenge material is memory-only. If reload/hiding loses it, cancel the old session and explicitly open a new one; a stored template does not restore it. A fresh scan acknowledgment is required when research access expires.
+Listener taps **Listen to host sound**, then the host taps **Play host sound**. Each member explicitly consents and signs their own approval. Refresh the canonical payment; once the actual threshold is met, execute once. Publish verified payout evidence, open **Activity**, load receipts and share the keyless board. Approval alone is not settlement.
 
-Governance controls support complete member updates and disabling factory automatic upgrades. Inspect the full governance proposal before voting and refresh authoritative state after the required votes. Implemented controls are not evidence that the extended live governance acceptance run passed.
+Follow the [full two-device checklist and failure cases](docs/testing/2026-11-14-guided-vault-flow.md). Camera permission, object discrimination and laptop-to-phone sound still need physical acceptance. **Settings** contains governance/recovery; the legacy `/workspace/` is not the recommended payment path.
 
-Use the full [connected acceptance checklist](docs/testing/end-to-end-integration.md) for expected states and negative/recovery cases. Physical camera discrimination and laptop-to-phone acoustics remain manual acceptance work.
+**Account helper rate limits:** a 429 is the free faucet’s quota, not an image-model failure. Preserve the original account key/request, respect the cooldown, then reconcile/resume that same request. Do not rotate usernames/services to evade the quota or clear storage during an unknown outcome.
 
 ### 3. Standalone physical acoustic test: laptop ↔ phone
 
@@ -347,7 +336,7 @@ The project includes an isolated official NEAR MCP adapter for read-only testnet
 | First model load is slow or fails | Finish asset preparation; check internet, free storage and console errors. Retry explicitly. |
 | Pen/bottle or similar objects score unexpectedly | Record the images/conditions privately and report the scores. Similarity is not a secure identity verdict. |
 | Sound is not decoded | Use matching audible modes, foreground pages, built-in audio, then adjust distance/volume. Do not assume ultrasound support. |
-| Chain action is disabled | Use `/treasury/`, start Vite with `VITE_ENABLE_TESTNET_WRITES=1`, and complete a fresh research continuation. `/workspace/` retains its unavailable v1 bindings. |
+| Chain action is disabled | Use `/treasury/`, start Vite with `VITE_ENABLE_TESTNET_WRITES=1`, and start a browser session. Member approvals also require the payment-bound object research check. `/workspace/` retains its unavailable v1 bindings. |
 | Account helper returns HTTP 429 | Keep the original pending request/key, reconcile and resume later; do not clear storage or create a replacement intent. |
 | A write is pending/unknown after reload | Reconcile the original request; do not submit a second payment to guess whether the first succeeded. |
 | `npm ci` reports missing optional `@emnapi` entries | See the [documented lockfile pitfall](docs/integration/context-two-engines.md#pitfalls-already-hit); preserve the committed lockfile. |
