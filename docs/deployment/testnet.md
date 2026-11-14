@@ -36,6 +36,25 @@ The script verified, from chain data only: proposal status `Approved`, exactly o
 
 Earlier, on the same treasury, a human member's direct `VoteApprove` on a transfer failed with `ERR_PERMISSION_DENIED` (tx [`243Qb7ww…`](https://testnet.nearblocks.io/txns/243Qb7wwWDtXN6yyAiq6g1fVUjjppLkSpRuCbQ8ACHfB)).
 
+## Hosted app
+
+`https://accoryn.vercel.app` serves the static production build of `web/` with `VITE_ENABLE_TESTNET_WRITES=1` (testnet only, no secrets). Deployed 2026-11-14 from branch `feat/submission-readiness`. Every chain read and write goes from the browser to public NEAR RPC and the testnet account helper; there is no backend.
+
+## Re-verification and hardening (2026-11-14)
+
+Run with `ACCORYN_DAO=accoryn-demo.sputnikv2.testnet node scripts/smoke-ceremony-testnet.ts` from `web/`, against the unchanged gate (code hash `6RyhWz4B…`).
+
+| Step | Transaction |
+|---|---|
+| Proposal 1 created (0.05 NEAR → `accoryn-payee.testnet`) | [`G2tqC3i3…`](https://testnet.nearblocks.io/txns/G2tqC3i36dE2DZoCyuVUBn4Z7AqqBcm7vubC1eQCXFTY) |
+| Session 7 opened, 2 attendees required | [`DV9zrDaW…`](https://testnet.nearblocks.io/txns/DV9zrDaWX2LhqJH9n8vBG4Pif5DR24ooo6RZJhskivMf) |
+| alice attested | [`3AE5BMk8…`](https://testnet.nearblocks.io/txns/3AE5BMk81oXw9KxnLnvhdCe1HunyT8QJa9LHZbwWmNec) |
+| bob attested | [`47tWwkXy…`](https://testnet.nearblocks.io/txns/47tWwkXybBnZZHQnQVPcC8vEfYtx8rNJs6JDSqKH8ZFJ) |
+| Gate vote → payout; settlement verified (one transfer of exactly 0.05 NEAR, proposal `Approved`) | [`CyEVTyRv…`](https://testnet.nearblocks.io/txns/CyEVTyRv4ErNqkW3vsYmWHjMv2oTh3fiYXSQGvfvmGFq) |
+| Evidence recorded on the gate | [`ARrbq2fW…`](https://testnet.nearblocks.io/txns/ARrbq2fWPUYjMaLbDwt3Cd1sbwZsRHbSoyUafkVyVVvm) |
+
+**Factory hardening on `accoryn-demo`:** alice proposed `FactoryInfoUpdate{factory_id:"sputnikv2.testnet", auto_update:false}` as proposal 2 ([`DYVFpZ4G…`](https://testnet.nearblocks.io/txns/DYVFpZ4GZ6YFxiMzN56akpBfctnn3Xo9c5enLro5zGeZ)); alice ([`6Woxe5HG…`](https://testnet.nearblocks.io/txns/6Woxe5HGupd4ZdqzoRomr52bM8mmnPdWftuan1igGYqv)) and bob ([`AX6ZyBgR…`](https://testnet.nearblocks.io/txns/AX6ZyBgRXnUE3ttKRPJxp9K5NwCL6sHAiUkRF7kv5pmZ)) approved it (G = 2 of 3). `get_factory_info` returns `{"factory_id":"sputnikv2.testnet","auto_update":false}`, so the factory owner can no longer replace this vault's code. Other vaults keep `auto_update: true` until their members pass the same proposal (Vault settings in the app).
+
 ## Transaction journal (live)
 
 `ACCORYN_LIVE_TESTNET=1 node --test tests/near-live-testnet.test.ts` passed three times on 2026-11-13. Each run checks two things:

@@ -14,6 +14,17 @@ This lane is the engine/authority half of the same product, not a separate app.
 
 The user requested bringing the connected treasury UI and adapter into `main` from `feat/end-to-end-integration` through `e46ce1a`. Use `/treasury/` for browser account → vault → invoice → acoustic member approval → verified payout, and `/board/?dao=…` for public reads. Start with `VITE_ENABLE_TESTNET_WRITES=1` to enable testnet signing. The legacy `/workspace/` keeps its disabled v1 service boundary. No new contract deployment or gate-key deletion is part of this merge. Physical-device and extended live governance acceptance remain open; see [the manual guide](docs/testing/end-to-end-integration.md).
 
+## Submission readiness update — 2026-11-14
+
+Branch `feat/submission-readiness` (PR to `main`). Contract code unchanged.
+
+- [x] Public board shows gate enforcement, gate key status, factory auto-update, every amount tier (including "all members" above the top tier), each member's participation record and who attested per payment. Rejected proposals export as `rejected`, not `failed`.
+- [x] App named **Accoryn** everywhere; MIT `LICENSE` added; README rewritten for judges (try-it steps, what we add to Sputnik/Trezu, tracks, arguments against, Proof-of-vicinity baseline).
+- [x] Hosted static build with testnet writes: **https://accoryn.vercel.app** (Vercel, account ayush-ranjan-official). The demo-user picker exists only on the dev server; type account IDs on the hosted site.
+- [x] Fresh scripted payout on `accoryn-demo` (proposal 1) and `FactoryInfoUpdate{auto_update:false}` passed there (proposal 2). Transactions: [deployment record](docs/deployment/testnet.md).
+- [ ] Two-device rehearsal and demo recording on the hosted site (humans).
+- [ ] Gate key deletion after the recording, on explicit confirmation.
+
 ## Hackathon facts
 
 - **Event:** NEAR HACKATHON. Development and submission end **2026-11-14T23:59Z**. The live rules are at https://nearhackathon.com/HACKATHON.md; reread them before submitting.
