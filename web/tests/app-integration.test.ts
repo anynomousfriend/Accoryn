@@ -128,7 +128,10 @@ test("persisted operation identity survives recovery and refuses intent reuse", 
     /different/,
   );
 });
-import { TreasuryEngine } from "../src/engines/app/engine.ts";
+import {
+  TreasuryEngine,
+  RefusedBeforeSending,
+} from "../src/engines/app/engine.ts";
 import {
   Keystore,
   createMemoryKeyRecordStore,
@@ -444,4 +447,85 @@ test("reconciliation tombstones an unsigned intent before a delayed submit can a
     /cancelled before signing/,
   );
   await assert.rejects(() => operations.begin(op), /cancelled before signing/);
+});
+import {
+  handlerError,
+  ok,
+  startFixture,
+} from "./support/local-http-fixture.ts";
+import type { FixtureRequest } from "./support/local-http-fixture.ts";
+// LOCAL HTTP FIXTURE on 127.0.0.1: no account is created and no helper is called.
+function nameFixture(exists: boolean, keys: string[]) {
+  return (r: FixtureRequest) => {
+    const p = r.body.params;
+    const unknown = () =>
+      handlerError(r.body.id, "UNKNOWN_ACCOUNT", {
+        block_height: 1,
+        block_hash: "h",
+        requested_account_id: p.account_id,
+      });
+    if (r.path !== "/rpc") return { status: 500, text: "helper must not be called" };
+    if (p.request_type === "view_account")
+      return exists
+        ? ok(r.body.id, {
+            amount: "1",
+            block_hash: "DLWbBtwBXaQVb8HpEJrgCXmGGoEHDfCNGLdkHgU6iyft",
+            block_height: 2,
+            code_hash: "11111111111111111111111111111111",
+            locked: "0",
+            storage_paid_at: 0,
+            storage_usage: 182,
+          })
+        : unknown();
+    if (p.request_type === "view_access_key") {
+      if (!exists) return unknown();
+      return keys.includes(p.public_key)
+        ? ok(r.body.id, { block_hash: "h", block_height: 2, nonce: 1, permission: "FullAccess" })
+        : ok(r.body.id, { block_hash: "h", block_height: 2, error: `access key ${p.public_key} does not exist while viewing`, logs: [] });
+    }
+    return { status: 400, text: "unexpected" };
+  };
+}
+test("a username already taken on chain is refused before any request is recorded", async () => {
+  const fixture = await startFixture(nameFixture(true, []));
+  try {
+    const keys = new Keystore(createMemoryKeyRecordStore()),
+      operations = new Operations(memoryOperationStore());
+    const engine = new TreasuryEngine({
+      keys,
+      operations,
+      journal: new TxJournal(createMemoryTxRecordStore(), { locks: null }),
+      rpc: new NearRpcClient({ endpoints: [fixture.url("/rpc")], archivalEndpoints: [] }),
+      authorize: async () => true,
+    });
+    await assert.rejects(
+      () =>
+        engine.prepareAccountOperation("taken", "fresh-request", new AbortController().signal),
+      (e: unknown) =>
+        e instanceof RefusedBeforeSending &&
+        /already taken.*choose a different username/i.test(e.message),
+    );
+    assert.equal(await operations.get("fresh-request"), null);
+    assert.equal(await keys.get("taken.testnet"), null);
+  } finally {
+    await fixture.close();
+  }
+});
+test("a username that already holds this browser's key is still resumable", async () => {
+  const keys = new Keystore(createMemoryKeyRecordStore());
+  const key = await keys.generate("mine.testnet");
+  const fixture = await startFixture(nameFixture(true, [key.publicKey]));
+  try {
+    const engine = new TreasuryEngine({
+      keys,
+      operations: new Operations(memoryOperationStore()),
+      journal: new TxJournal(createMemoryTxRecordStore(), { locks: null }),
+      rpc: new NearRpcClient({ endpoints: [fixture.url("/rpc")], archivalEndpoints: [] }),
+      authorize: async () => true,
+    });
+    const op = await engine.prepareAccountOperation("mine", "resume-request", new AbortController().signal);
+    assert.equal(op.args.publicKey, key.publicKey);
+  } finally {
+    await fixture.close();
+  }
 });

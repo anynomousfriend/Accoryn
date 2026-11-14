@@ -5,6 +5,7 @@ import { NearRpcClient } from "../near/rpc.ts";
 import {
   createViaTestnetHelper,
   helperRefusalMessage,
+  isAccountAvailable,
   validateNewAccountId,
 } from "../near/account.ts";
 import {
@@ -36,6 +37,8 @@ export type BoardEntry = {
   required: number;
 };
 export type MemberParticipation = Participation & { accountId: string };
+/** Refused before any key, operation or transaction was recorded: nothing to reconcile. */
+export class RefusedBeforeSending extends Error {}
 export const GATE = "ceremony-gate-v1.accoryn.testnet";
 export const GATE_HASH = "6RyhWz4BnSszxQg88ysQnECuFm2KWUXLUrdqVKtTcfBm";
 export const SPUTNIK_HASH = "AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH";
@@ -112,6 +115,22 @@ export class TreasuryEngine {
         );
       return existing;
     }
+    // A new request for a name someone else already owns is refused here,
+    // before any key, operation or journal entry exists, so nothing is left to
+    // reconcile. A name that already holds this browser's key stays resumable.
+    if (!(await isAccountAvailable(this.deps.rpc, accountId, { signal }))) {
+      const local = await this.deps.keys.get(accountId);
+      const ours =
+        !!local &&
+        !!(await this.deps.rpc.viewAccessKey(accountId, local.publicKey, {
+          signal,
+        }));
+      if (!ours)
+        throw new RefusedBeforeSending(
+          `${accountId} is already taken on testnet. Choose a different username; nothing was sent.`,
+        );
+    }
+    signal.throwIfAborted();
     const key = await this.deps.keys.prepare(accountId);
     return {
       requestId,
@@ -142,7 +161,7 @@ export class TreasuryEngine {
       );
     if (result.status === "taken")
       throw new Error(
-        "That username belongs to a different key. Reconcile the request before choosing another name.",
+        "Someone else took that username first. Press Reconcile original request to clear it, then choose a different username.",
       );
     if (result.status !== "created")
       throw new Error(
