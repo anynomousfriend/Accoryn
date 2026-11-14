@@ -1,6 +1,6 @@
 # Reference-led redesign: manual test checkpoint
 
-Branch: `design/variant-treasury-revamp` (local; not merged or pushed).
+Branch: `design/variant-treasury-revamp`; merged into `main` as `ab53a45`. This manual checkpoint records the pre-merge branch state.
 
 ## Open the app
 

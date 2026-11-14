@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Local branch only, no push/merge. Preserve original requests and signing safeguards.
+- Local branch during implementation; merged into `main` as `ab53a45` after user approval. Preserve original requests and signing safeguards.
 - Native NEAR testnet only; object comparisons are research checks, audio is relayable.
 - No permission prompts, writes or inference in the illustrative landing walkthrough.
 - Reduced motion, keyboard focus, mobile touch targets and full account IDs remain supported.
@@ -69,7 +69,7 @@ All spec sections map to these three tasks. No new dependency or contract deploy
 
 ## Execution record
 
-Implemented natively on `design/variant-treasury-revamp`. Shared tokens, routes and navigation were delivered as one cohesive implementation phase because the UI regression suite spans both landing and workspace behavior. Independent review found and rechecked contrast, mobile help, offscreen playback and navigation-copy fixes.
+Implemented natively on `design/variant-treasury-revamp` and merged into `main` as `ab53a45` after user approval. Shared tokens, routes and navigation were delivered as one cohesive implementation phase because the UI regression suite spans both landing and workspace behavior. Independent review found and rechecked contrast, mobile help, offscreen playback and navigation-copy fixes.
 
 `npm run check` passed on the release source: 213 unit tests passed / 2 opt-in skipped; 86 browser tests passed / 2 opt-in skipped; typecheck, production build and production smoke passed. The build retains a large-bundle warning. No new animation dependency was installed. A self-hosted OFL display font and its license were added.
 

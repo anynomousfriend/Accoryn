@@ -1,12 +1,12 @@
 # Reference-led treasury experience revamp
 
-Status: approved and implemented on the local redesign branch. Automated release verification passed; user manual acceptance is pending.
+Status: approved and implemented. Merged into `main` as `ab53a45`; automated release verification passed; user manual acceptance is pending.
 
 ## Intent and scope
 
 Revamp the landing page and complete working treasury experience to follow the user's Variant reference: https://variant.com/shared/9291a8ff-32c0-4c3f-ab68-e497222b3a79?t=1794663664276. The user has returned to visual work, superseding the earlier pause on redesign. Keep the current working NEAR, object-comparison and acoustic engines, and replace the confusing presentation and navigation around them.
 
-Work locally on `design/variant-treasury-revamp`, based on `feat/near-tooling-testnet-rate-limit`. Do not merge or push as part of this design review. Retain existing branding until the user chooses otherwise.
+Implemented on `design/variant-treasury-revamp`, based on `feat/near-tooling-testnet-rate-limit`, and merged into `main` as `ab53a45` after user approval. Retain existing branding until the user chooses otherwise.
 
 The product is a shared NEAR treasury for teams that review and approve payments together. Its current release uses testnet native NEAR, browser-held signing keys, vault-scoped personal-object research checks and an acoustic member-listener ceremony. Object images do not create signing keys or establish identity; audio does not establish an unrelayable same-room boundary. Redesign must preserve these distinctions and all transaction safeguards.
 
