@@ -48,6 +48,8 @@ type Fake = {
   /** How long one default round plays before it completes. */
   roundMs: number;
   frames: string[];
+  /** Microphone levels reported once listening starts. */
+  levels: number[];
   play: () => Promise<PlaybackResult>;
 };
 function fakeModem(): Fake {
@@ -56,6 +58,7 @@ function fakeModem(): Fake {
     plays: 0,
     roundMs: 5,
     frames: [],
+    levels: [],
     play: () =>
       new Promise<PlaybackResult>((resolve) => {
         finish = resolve;
@@ -68,7 +71,8 @@ function fakeModem(): Fake {
         return fake.play();
       },
       stopPlayback: () => finish?.("stopped"),
-      async startListening(onFrame) {
+      async startListening(onFrame, onLevel) {
+        for (const l of fake.levels) onLevel?.(l);
         for (const f of fake.frames) setTimeout(() => onFrame(f), 5);
         return true;
       },
@@ -276,4 +280,69 @@ test("pressing Stop sound during the first round counts as played (the partner a
   await done;
   const op = await flow.planAttest(view, "attest-request", signal());
   assert.equal(op.kind, "attest");
+});
+
+test("a successful exchange returns what was verified, for the on-screen confirmation", async () => {
+  const challenge = generateChallenge();
+  const pk = nearPublicKey(
+    sessionPublicKey(ceremonySeed(GATE, DAO, "0", challenge)),
+  );
+  const fake = fakeModem();
+  fake.frames = [encodeChallenge(challenge)];
+  fake.levels = [12, 30];
+  const flow = flowWith(fake, "bob.testnet");
+  const view = serve(flow, sessionFor(pk, "alice.testnet"));
+  const levels: number[] = [];
+  const receipt = await flow.exchange(view, "listener", signal(), () => {}, {
+    onLevel: (l) => levels.push(l),
+  });
+  assert.equal(receipt.role, "listener");
+  assert.equal(receipt.sessionId, "7");
+  assert.equal(receipt.sessionPk, pk);
+  assert.equal(receipt.host, "alice.testnet");
+  assert.ok(Math.abs(receipt.at - Date.now()) < 5000);
+  assert.deepEqual(levels, [12, 30]);
+
+  const hostFake = fakeModem();
+  const host = hostSession(hostFake);
+  const played = await host.flow.exchange(host.view, "host", signal(), () => {}, quick);
+  assert.equal(played.role, "host");
+  assert.equal(played.rounds, 1);
+});
+
+import { approvalGate, soundPanel } from "../src/engines/app/ceremony-ui.ts";
+const receipt = {
+  role: "listener" as const,
+  sessionId: "7",
+  sessionPk: "ed25519:6osrwDbQxpTrREpBynRKRkr6xu3YLnocP4zMX8xUqZXM",
+  host: "alice.testnet",
+  at: Date.UTC(2026, 10, 14, 18, 30, 5),
+  rounds: 0,
+};
+test("the sound panel shows listening, a verified receipt, or the failure reason", () => {
+  const listening = soundPanel({ role: "listener", phase: "listening", progress: "Listening for the approval sound.", error: null, receipt: null });
+  assert.equal(listening.tone, "active");
+  assert.match(listening.title, /listening.*microphone on/i);
+  const ok = soundPanel({ role: "listener", phase: "idle", progress: null, error: null, receipt });
+  assert.equal(ok.tone, "success");
+  assert.match(ok.title, /sound received and verified/i);
+  assert.match(ok.detail, /alice\.testnet/);
+  assert.match(ok.detail, /session 7/);
+  assert.match(ok.detail, /ed25519:6osrwD…UqZXM/);
+  assert.match(ok.detail, /not.*approval/i);
+  const failed = soundPanel({ role: "listener", phase: "failed", progress: null, error: "The microphone heard almost nothing.", receipt: null });
+  assert.equal(failed.tone, "danger");
+  assert.match(failed.detail, /heard almost nothing/);
+  const host = soundPanel({ role: "host", phase: "idle", progress: null, error: null, receipt: { ...receipt, role: "host", rounds: 3 } });
+  assert.match(host.title, /host sound played/i);
+  assert.match(host.detail, /3 rounds/);
+  const idle = soundPanel({ role: "listener", phase: "idle", progress: null, error: null, receipt: null });
+  assert.equal(idle.tone, "neutral");
+  assert.match(idle.detail, /tap listen/i);
+});
+test("the approval step says it is unlocked because of the verified sound", () => {
+  assert.match(approvalGate(receipt, true), /unlocked.*received the host sound.*session 7/i);
+  assert.match(approvalGate({ ...receipt, role: "host" }, true), /unlocked.*played the host sound/i);
+  assert.match(approvalGate(null, true), /locked until this device receives/i);
+  assert.match(approvalGate(receipt, false), /locked/i);
 });

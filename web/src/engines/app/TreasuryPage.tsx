@@ -20,6 +20,7 @@ import {
   planPayment,
   planHardening,
   type BusinessResult,
+  type ExchangeReceipt,
 } from "./writes.ts";
 import {
   GATE,
@@ -29,7 +30,12 @@ import {
   type PaymentView,
 } from "./engine.ts";
 import { TemplateStore } from "../../object-registration/template-store.ts";
-import { soundBlockedReason } from "./ceremony-ui.ts";
+import {
+  approvalGate,
+  soundBlockedReason,
+  soundPanel,
+  type SoundPanelInput,
+} from "./ceremony-ui.ts";
 /** How often an open payment is re-read while Approvals is on screen. */
 const PAYMENT_POLL_MS = 5000;
 import ObjectRegistrationPage from "../../object-registration/ObjectRegistrationPage.tsx";
@@ -178,8 +184,11 @@ export default function TreasuryPage() {
       () => new URLSearchParams(location.search).get("proposal") ?? "",
     ),
     [payment, setPayment] = useState<PaymentView | null>(null),
-    [heard, setHeard] = useState(false),
-    [playing, setPlaying] = useState(false),
+    [receipt, setReceipt] = useState<ExchangeReceipt | null>(null),
+    [soundPhase, setSoundPhase] = useState<SoundPanelInput["phase"]>("idle"),
+    [soundProgress, setSoundProgress] = useState<string | null>(null),
+    [soundError, setSoundError] = useState<string | null>(null),
+    [micLevel, setMicLevel] = useState(0),
     [consent, setConsent] = useState(false),
     [now, setNow] = useState(Date.now());
   const [receipts, setReceipts] = useState<ReceiptExportRow[]>([]),
@@ -205,14 +214,16 @@ export default function TreasuryPage() {
     engine.stopAudio();
     busyRef.current = false;
     setBusy(false);
-    setPlaying(false);
+    setSoundPhase((phase) => (phase === "failed" ? phase : "idle"));
   }
   // Sign-out or a change of account, vault or payment: forget the exchange too.
   function endCeremony() {
     stop();
     engine.releaseResources();
-    setHeard(false);
+    setReceipt(null);
     setConsent(false);
+    setSoundPhase("idle");
+    setSoundError(null);
   }
   function lock() {
     endCeremony();
@@ -540,7 +551,7 @@ export default function TreasuryPage() {
     if (result.status === "confirmed" || result.status === "rejected")
       await finishAction(op.requestId);
     if (sequence.current !== id) return;
-    setHeard(false);
+    setReceipt(null);
     setConsent(false);
     await apply(result, id, signal);
     if (op.kind === "account" && sequence.current === id) {
@@ -568,6 +579,20 @@ export default function TreasuryPage() {
     paymentOpen &&
     payment?.session?.status === "Open" &&
     Number(BigInt(payment.session.expires_at) / 1_000_000n) > now;
+  // The sound step counts only for the session on screen.
+  const heard =
+    !!receipt && receipt.sessionId === payment?.session?.session_id;
+  const playing = soundPhase === "playing";
+  const soundRole =
+    payment?.session?.host === account ? ("host" as const) : ("listener" as const);
+  const panel = soundPanel({
+    role: soundRole,
+    phase: soundPhase,
+    progress: soundProgress,
+    error: soundError,
+    receipt: heard ? receipt : null,
+  });
+  const lastLevelAt = useRef(0);
   const soundBlocked = soundBlockedReason({
     writesEnabled,
     signedIn: sessionKind === "object",
@@ -607,7 +632,7 @@ export default function TreasuryPage() {
               old.session?.session_id !== p.session?.session_id ||
               old.proposal.contentHash !== p.proposal.contentHash
             ) {
-              setHeard(false);
+              setReceipt(null);
               setConsent(false);
             }
             setPayment(p);
@@ -630,7 +655,7 @@ export default function TreasuryPage() {
     const p = await engine.payment(dao, proposalId, signal);
     if (sequence.current === id) {
       setPayment(p);
-      setHeard(false);
+      setReceipt(null);
       setConsent(false);
       setMessage("Current on-chain payment and ceremony loaded.");
     }
@@ -1575,17 +1600,44 @@ export default function TreasuryPage() {
                 }
                 onClick={() =>
                   void run(async (s, id) => {
-                    setHeard(false);
+                    setReceipt(null);
                     setConsent(false);
-                    setPlaying(role === "host");
+                    setSoundError(null);
+                    setSoundProgress(null);
+                    setMicLevel(0);
+                    setSoundPhase(role === "host" ? "playing" : "listening");
                     try {
-                      await engine.exchange(payment!, role, s, (text) => {
-                        if (sequence.current === id) setMessage(text);
-                      });
-                    } finally {
-                      if (sequence.current === id) setPlaying(false);
+                      const r = await engine.exchange(
+                        payment!,
+                        role,
+                        s,
+                        (text) => {
+                          if (sequence.current !== id) return;
+                          setMessage(text);
+                          setSoundProgress(text);
+                        },
+                        {
+                          onLevel: (level) => {
+                            const t = performance.now();
+                            if (t - lastLevelAt.current < 150) return;
+                            lastLevelAt.current = t;
+                            if (sequence.current === id) setMicLevel(level);
+                          },
+                        },
+                      );
+                      if (sequence.current === id) {
+                        setReceipt(r);
+                        setSoundPhase("idle");
+                      }
+                    } catch (e) {
+                      if (sequence.current === id) {
+                        setSoundPhase("failed");
+                        setSoundError(
+                          e instanceof Error ? e.message : "Sound exchange failed.",
+                        );
+                      }
+                      throw e;
                     }
-                    if (sequence.current === id) setHeard(true);
                   })
                 }
               >
@@ -1604,7 +1656,35 @@ export default function TreasuryPage() {
           {!busy && soundBlocked && (
             <p className="text-sm text-muted">{soundBlocked}</p>
           )}
+          {payment?.session && !soundBlocked && (
+            <div
+              aria-live="polite"
+              aria-label="Sound exchange result"
+              className={"sound-panel sound-panel-" + panel.tone}
+            >
+              <p className="font-medium">
+                {panel.tone === "success" ? "✓ " : ""}
+                {panel.title}
+              </p>
+              <p className="text-sm">{panel.detail}</p>
+              {soundPhase === "listening" && busy && (
+                <label className="mt-2 flex items-center gap-3 text-sm">
+                  Microphone level
+                  <meter min={0} max={100} low={3} value={micLevel} />
+                </label>
+              )}
+            </div>
+          )}
           <p className="eyebrow-label">2 · Your explicit approval</p>
+          {payment?.session && (
+            <p
+              className={
+                "text-sm " + (heard && sessionOpen ? "text-success" : "text-muted")
+              }
+            >
+              {approvalGate(heard ? receipt : null, !!sessionOpen)}
+            </p>
+          )}
           <label className="flex gap-3">
             <input
               type="checkbox"

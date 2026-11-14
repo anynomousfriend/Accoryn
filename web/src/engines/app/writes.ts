@@ -45,6 +45,19 @@ import {
   MIN_BROADCAST_GAP_MS,
   type ListenOutcome,
 } from "../acoustic/session.ts";
+/** What a completed sound exchange verified, for the on-screen confirmation. */
+export type ExchangeReceipt = {
+  role: "host" | "listener";
+  /** The on-chain session the sound belongs to. */
+  sessionId: string;
+  /** That session's public key; a listener's decoded sound derives exactly this key. */
+  sessionPk: string;
+  host: string;
+  /** Epoch milliseconds when the exchange completed. */
+  at: number;
+  /** Host rounds that played to the end (0 for a listener). */
+  rounds: number;
+};
 /** How long the host repeats the sound, like the device check page (start-to-start every 3 s). */
 export const HOST_PLAY_WINDOW_MS = 30_000;
 export const HOST_PLAY_INTERVAL_MS = 3_000;
@@ -319,8 +332,13 @@ export class TreasuryFlow extends TreasuryEngine {
     role: "host" | "listener",
     signal: AbortSignal,
     onProgress: (s: string) => void,
-    timing: { windowMs?: number; intervalMs?: number } = {},
-  ): Promise<void> {
+    timing: {
+      windowMs?: number;
+      intervalMs?: number;
+      /** Microphone level (0-100) while listening. */
+      onLevel?: (level: number) => void;
+    } = {},
+  ): Promise<ExchangeReceipt> {
     // init runs synchronously inside the click before the first await/RPC call.
     this.modem ??= (this.deps.createModem ?? createAcousticModem)();
     const modem = this.modem;
@@ -345,6 +363,7 @@ export class TreasuryFlow extends TreasuryEngine {
       )
         throw new Error("Payment changed or session unavailable.");
       const s = latest.session;
+      let rounds = 0;
       assertSessionFor(s, p.proposal, this.accountId);
       assertCurrentMembership(s, latest.currentMembers);
       if (role === "host") {
@@ -406,6 +425,7 @@ export class TreasuryFlow extends TreasuryEngine {
           if (this.hostStop === stopper) this.hostStop = null;
         }
         signal.throwIfAborted();
+        rounds = completed;
         // Stop sound means the host saw partners ready: ggwave decodes a frame
         // just before its buffer ends, so round 1 may be cut short by design.
         if (completed === 0 && !stopper.signal.aborted)
@@ -423,6 +443,7 @@ export class TreasuryFlow extends TreasuryEngine {
             Number(BigInt(s.expires_at) / 1_000_000n) - Date.now(),
           ),
           onProgress,
+          onLevel: timing.onLevel,
           accept: (challenge) =>
             nearPublicKey(
               sessionPublicKey(
@@ -459,6 +480,14 @@ export class TreasuryFlow extends TreasuryEngine {
         throw new Error("Session changed during sound exchange.");
       assertSessionFor(current, p.proposal, this.accountId);
       onProgress("Sound exchange ready. This has not approved the payment.");
+      return {
+        role,
+        sessionId: s.session_id,
+        sessionPk: s.session_pk,
+        host: s.host,
+        at: Date.now(),
+        rounds,
+      };
     } catch (e) {
       // A failed host round keeps the challenge so Play can be tapped again;
       // a failed listen keeps nothing it might have half-received.

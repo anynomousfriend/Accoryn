@@ -202,6 +202,21 @@
   .ui-button-quiet {
     @apply text-ink;
   }
+  .sound-panel {
+    @apply mt-3 rounded-lg border border-line p-4;
+  }
+  .sound-panel-neutral {
+    @apply bg-canvas text-muted;
+  }
+  .sound-panel-active {
+    @apply bg-sky text-cobalt-strong;
+  }
+  .sound-panel-success {
+    @apply bg-success-tint text-success;
+  }
+  .sound-panel-danger {
+    @apply bg-danger-tint text-danger;
+  }
   .ui-status {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium;
   }
