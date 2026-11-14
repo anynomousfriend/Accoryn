@@ -14,6 +14,18 @@ This lane is the engine/authority half of the same product, not a separate app.
 
 The user requested bringing the connected treasury UI and adapter into `main` from `feat/end-to-end-integration` through `e46ce1a`. Use `/treasury/` for browser account → vault → invoice → acoustic member approval → verified payout, and `/board/?dao=…` for public reads. Start with `VITE_ENABLE_TESTNET_WRITES=1` to enable testnet signing. The legacy `/workspace/` keeps its disabled v1 service boundary. No new contract deployment or gate-key deletion is part of this merge. Physical-device and extended live governance acceptance remain open; see [the manual guide](docs/testing/end-to-end-integration.md).
 
+## Submission readiness update — 2026-11-14
+
+Branch `feat/submission-readiness` (PR to `main`). Contract code unchanged.
+
+- [x] Public board shows gate enforcement, gate key status, factory auto-update, every amount tier (including "all members" above the top tier), each member's participation record and who attested per payment. Rejected proposals export as `rejected`, not `failed`.
+- [x] App named **Accoryn** everywhere; MIT `LICENSE` added; README rewritten for judges (try-it steps, what we add to Sputnik/Trezu, tracks, arguments against, Proof-of-vicinity baseline).
+- [x] Hosted static build with testnet writes: **https://accoryn.vercel.app** (Vercel, account ayush-ranjan-official). The demo-user picker exists only on the dev server; type account IDs on the hosted site.
+- [x] Fresh scripted payout on `accoryn-demo` (proposal 1) and `FactoryInfoUpdate{auto_update:false}` passed there (proposal 2). Transactions: [deployment record](docs/deployment/testnet.md).
+- [x] Object sign-in: accounts sign in by scanning their registered object; the browser-session button can only create a new account.
+- [ ] Two-device rehearsal and demo recording on the hosted site (humans).
+- [ ] Gate key deletion after the recording, on explicit confirmation.
+
 ## Hackathon facts
 
 - **Event:** NEAR HACKATHON. Development and submission end **2026-11-14T23:59Z**. The live rules are at https://nearhackathon.com/HACKATHON.md; reread them before submitting.
@@ -100,7 +112,8 @@ These hold throughout:
 
 - [x] Custody design decided (above) and the threat model written: [docs/security/ceremony-threat-model.md](docs/security/ceremony-threat-model.md).
 - [x] Browser keystore for app-made accounts, and account creation through the testnet helper with a sub-account fallback (`web/src/engines/near/{keystore,account}.ts`).
-- [ ] Object unlock wired to `Keystore.signerFor`, with a provisional *research* threshold from a small consented evaluation (accept/retry/reject with denominators). Until then it reports scores only.
+- [x] Object unlock wired to signing (2026-11-14): one sign-in object per account; a matched scan (user-chosen uncalibrated demo cutoff 0.50) starts a 10-minute session for exactly that account, and the engine refuses `selectAccount`/`signer` otherwise. Convenience lock, not encryption. The per-payment re-scan was removed at the user's request.
+- [ ] A calibrated accept/retry/reject threshold from a consented evaluation (with denominators).
 - [ ] Recovery UI: create a new account, then a governance proposal swaps the member. Can be shown with a script first.
 
 ### C. Acoustic engine and session verifier

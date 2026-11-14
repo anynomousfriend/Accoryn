@@ -16,6 +16,15 @@ export type ObjectCheck = ObjectCheckContext & {
   expiresAt: number;
   similarity: number;
 };
+/** One sign-in object per account in this browser. */
+export function accountTemplateKey(accountId: string): string {
+  if (
+    accountId.length > 64 ||
+    !/^[a-z0-9]+(?:[-_.][a-z0-9]+)*\.testnet$/.test(accountId)
+  )
+    throw new Error("A testnet account is required.");
+  return "account-v1:" + JSON.stringify([accountId]);
+}
 export function memberTemplateKey(vaultId: string, accountId: string): string {
   for (const id of [vaultId, accountId]) {
     if (id.length > 64 || !/^[a-z0-9]+(?:[-_.][a-z0-9]+)*\.testnet$/.test(id))

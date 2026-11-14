@@ -24,6 +24,18 @@ import { guardedSigner } from "./signing-authorization.ts";
 import { parseSession, type Session } from "./protocol.ts";
 import type { Proposal } from "../../integration/services.ts";
 import type { ReceiptExportRow } from "../../payments/receipt-csv.ts";
+import {
+  parseParticipation,
+  gateLockStatus,
+  type Participation,
+  type GateLockStatus,
+} from "./board.ts";
+export type BoardEntry = {
+  row: ReceiptExportRow;
+  attendees: string[];
+  required: number;
+};
+export type MemberParticipation = Participation & { accountId: string };
 export const GATE = "ceremony-gate-v1.accoryn.testnet";
 export const GATE_HASH = "6RyhWz4BnSszxQg88ysQnECuFm2KWUXLUrdqVKtTcfBm";
 export const SPUTNIK_HASH = "AA4nA45vauiac3jdVwJTzSdUP3oj2r1fDaPAb2mHdgcH";
@@ -60,7 +72,8 @@ export type EngineDeps = {
   journal: TxJournal;
   operations: Operations;
   rpc: NearRpcClient;
-  authorize: () => Promise<boolean>;
+  /** Called with the account about to sign, or null before one is chosen. */
+  authorize: (accountId: string | null) => Promise<boolean>;
 };
 /** Testnet-only app adapter. All key custody and signed-byte idempotency live in
  * the existing engines; public operation metadata allows recovery after reload. */
@@ -70,11 +83,11 @@ export class TreasuryEngine {
   constructor(deps: EngineDeps) {
     this.deps = deps;
   }
-  async authorize(signal: AbortSignal) {
+  async authorize(signal: AbortSignal, accountId = this.accountId) {
     signal.throwIfAborted();
-    if (!(await this.deps.authorize()))
+    if (!(await this.deps.authorize(accountId)))
       throw new Error(
-        "Start a browser session and complete any required member object research check before signing.",
+        "Sign in with your object before signing. Your session may have expired.",
       );
     signal.throwIfAborted();
   }
@@ -141,7 +154,7 @@ export class TreasuryEngine {
     return accountId;
   }
   async selectAccount(accountId: string, signal: AbortSignal): Promise<string> {
-    await this.authorize(signal);
+    await this.authorize(signal, accountId);
     if (!(await this.deps.keys.get(accountId)))
       throw new Error(
         "No signing key for this account in this browser. Lost keys require governance recovery.",
@@ -309,6 +322,11 @@ export class TreasuryEngine {
     dao: string,
     signal: AbortSignal,
   ): Promise<ReceiptExportRow[]> {
+    return (await this.boardEntries(dao, signal)).map((e) => e.row);
+  }
+  /** Latest 50 transfer proposals with their verified receipt state and the
+   * members whose attestations the gate recorded for the proposal's session. */
+  async boardEntries(dao: string, signal: AbortSignal): Promise<BoardEntry[]> {
     const count = await this.deps.rpc.viewFunction<number>(
       dao,
       "get_last_proposal_id",
@@ -317,7 +335,7 @@ export class TreasuryEngine {
     );
     if (!Number.isSafeInteger(count) || count < 0)
       throw new Error("Invalid proposal count.");
-    const result: ReceiptExportRow[] = [];
+    const result: BoardEntry[] = [];
     for (let id = Math.max(0, count - 50); id < count; id++) {
       const raw = await this.deps.rpc.viewFunction(
         dao,
@@ -328,21 +346,51 @@ export class TreasuryEngine {
       if (parseProposal(raw).kind.kind !== "transfer") continue;
       const p = await this.payment(dao, String(id), signal);
       result.push({
-        network: "testnet",
-        treasuryId: dao,
-        proposalId: String(id),
-        invoiceId: p.invoiceId,
-        recipient: p.proposal.recipient,
-        asset: "native",
-        amountAtomic: p.proposal.amountAtomic,
-        decimals: 24,
-        status: p.proposal.status === "rejected" ? "failed" : p.proposal.status,
-        createdAt: p.createdAt,
-        updatedAt: new Date().toISOString(),
-        transactionIds: p.transactionIds,
+        row: {
+          network: "testnet",
+          treasuryId: dao,
+          proposalId: String(id),
+          invoiceId: p.invoiceId,
+          recipient: p.proposal.recipient,
+          asset: "native",
+          amountAtomic: p.proposal.amountAtomic,
+          decimals: 24,
+          status: p.proposal.status,
+          createdAt: p.createdAt,
+          updatedAt: new Date().toISOString(),
+          transactionIds: p.transactionIds,
+        },
+        attendees: p.session?.attestations.map((a) => a.account_id) ?? [],
+        required: p.proposal.requiredApprovals,
       });
     }
     return result;
+  }
+  /** The gate's per-member ceremony record for this treasury. */
+  async participation(
+    dao: string,
+    members: readonly string[],
+    signal: AbortSignal,
+  ): Promise<MemberParticipation[]> {
+    return Promise.all(
+      members.map(async (accountId) => ({
+        accountId,
+        ...parseParticipation(
+          await this.deps.rpc.viewFunction(
+            GATE,
+            "get_participation",
+            { dao_id: dao, account_id: accountId },
+            { signal },
+          ),
+        ),
+      })),
+    );
+  }
+  /** Whether anyone can still change the deployed gate code. */
+  async gateKeys(signal: AbortSignal): Promise<GateLockStatus> {
+    return gateLockStatus(
+      await this.deps.rpc.viewAccessKeyList(GATE, { signal }),
+    );
   }
   async signer(signal: AbortSignal) {
     await this.authorize(signal);
@@ -388,7 +436,7 @@ export class TreasuryEngine {
   }
 }
 export function createTreasuryEngine(
-  authorize: () => Promise<boolean>,
+  authorize: (accountId: string | null) => Promise<boolean>,
 ): TreasuryEngine {
   return new TreasuryEngine({
     keys: new Keystore(),

@@ -10,7 +10,7 @@ test("connected treasury screen keeps writes locked and exposes real read-only l
     }),
   ).toBeVisible();
   await expect(
-    page.getByText("Start a session to continue", { exact: true }),
+    page.getByText("Signed out", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Create testnet account", exact: true }),
@@ -98,11 +98,28 @@ test("shareable board uses testnet reads without asking for a key or scan", asyn
     page.getByRole("button", { name: "Create testnet account", exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByText("accoryn-alice.testnet", { exact: true }),
+    page.getByText("accoryn-alice.testnet", { exact: true }).first(),
   ).toBeVisible({ timeout: 45000 });
+  // Live testnet reads: the gate is the only transfer approver, all tiers
+  // including the "everyone" tier are shown, and alice has a recorded meeting.
+  await expect(
+    page.getByRole("heading", { name: "Who can approve payments" }),
+  ).toBeVisible({ timeout: 45000 });
+  await expect(page.getByText("Above 10 NEAR: all 3 members")).toBeVisible();
+  const record = page.getByRole("table");
+  await expect(
+    page.getByRole("heading", { name: "Participation record" }),
+  ).toBeVisible({ timeout: 45000 });
+  const alice = record.getByRole("row").filter({
+    has: page.getByRole("cell", { name: "accoryn-alice.testnet", exact: true }),
+  });
+  await expect(alice.getByRole("cell").nth(1)).not.toHaveText("0");
   await expect(page.getByText("settled", { exact: true }).first()).toBeVisible({
     timeout: 60000,
   });
+  await expect(
+    page.getByText(/Attested in the meeting: accoryn-alice\.testnet/).first(),
+  ).toBeVisible();
 });
 test("an already submitted invoice cannot be submitted again from the connected screen", async ({
   page,
@@ -164,7 +181,7 @@ test("a legacy object handoff never substitutes for browser session consent", as
   });
   await page.reload();
   await expect(
-    page.getByText("Start a session to continue", { exact: true }),
+    page.getByText("Signed out", { exact: true }),
   ).toBeVisible();
 });
 test("an invoice can be prepared and saved inside the connected flow with vault context carried forward", async ({

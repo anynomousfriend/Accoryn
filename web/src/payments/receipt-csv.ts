@@ -9,7 +9,7 @@ export type ReceiptExportRow = {
   asset: string;
   amountAtomic: string;
   decimals: number;
-  status: "pending" | "unknown" | "failed" | "refunded" | "settled";
+  status: "pending" | "unknown" | "failed" | "refunded" | "rejected" | "settled";
   createdAt: string;
   updatedAt: string;
   transactionIds: readonly string[];
@@ -47,7 +47,14 @@ export function receiptToCsv(receipts: readonly ReceiptExportRow[]): string {
     )
       throw new Error("Invalid atomic amount or decimals.");
     if (
-      !["pending", "unknown", "failed", "refunded", "settled"].includes(
+      ![
+        "pending",
+        "unknown",
+        "failed",
+        "refunded",
+        "rejected",
+        "settled",
+      ].includes(
         r.status,
       )
     )

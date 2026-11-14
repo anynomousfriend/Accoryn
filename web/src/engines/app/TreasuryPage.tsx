@@ -25,13 +25,13 @@ import { GATE, NEAR, type TreasuryView, type PaymentView } from "./engine.ts";
 import { TemplateStore } from "../../object-registration/template-store.ts";
 import ObjectRegistrationPage from "../../object-registration/ObjectRegistrationPage.tsx";
 import type { ObjectTemplate } from "../../object-registration/types.ts";
+import { accountTemplateKey } from "./member-object.ts";
 import {
-  memberTemplateKey,
-  acknowledgeComparison,
-  validObjectCheck,
-  type ObjectCheck,
-  type ObjectCheckContext,
-} from "./member-object.ts";
+  setupSession,
+  objectSession,
+  sessionAllows,
+  type SigningSession,
+} from "./sign-in.ts";
 import {
   GuidedWorkspace,
   taskFromHash,
@@ -66,6 +66,7 @@ import {
   type ReceiptExportRow,
 } from "../../payments/receipt-csv.ts";
 import { membershipPolicy } from "./protocol.ts";
+import { describeTiers } from "./board.ts";
 import {
   encodeDescription,
   parseDescription,
@@ -96,8 +97,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 export default function TreasuryPage() {
   const { directory, publish: shareDemoUser, publication } = useDemoUsers();
-  const activeUntil = useRef(0);
-  const approvalGuard = useRef<(() => Promise<boolean>) | null>(null);
+  const sessionRef = useRef<SigningSession | null>(null);
   const [task, setTask] = useState<Task>(() => taskFromHash(location.hash));
   const [accountPath, setAccountPath] = useState<"create" | "saved">("create");
   const [vaultStep, setVaultStep] = useState<
@@ -106,9 +106,6 @@ export default function TreasuryPage() {
   const [memberTemplate, setMemberTemplate] = useState<ObjectTemplate | null>(
     null,
   );
-  const [objectCheck, setObjectCheck] = useState<ObjectCheck | null>(null);
-  const checkRef = useRef<ObjectCheck | null>(null);
-  checkRef.current = objectCheck;
   function showTask(next: Task) {
     setTask(next);
     history.pushState(
@@ -124,13 +121,28 @@ export default function TreasuryPage() {
         journal: new TxJournal(),
         operations: new Operations(indexedOperationStore()),
         rpc: new NearRpcClient(),
-        authorize: async () =>
-          activeUntil.current > Date.now() &&
-          (!approvalGuard.current || (await approvalGuard.current())),
+        // Signing needs a live session for this exact account. An object session
+        // also requires the account's sign-in object to be the one that matched.
+        authorize: async (accountId) => {
+          const session = sessionRef.current;
+          if (!sessionAllows(session, accountId, Date.now())) return false;
+          if (session!.kind !== "object") return true;
+          const store = new TemplateStore(accountTemplateKey(session!.accountId));
+          try {
+            return (await store.read())?.id === session!.templateId;
+          } catch {
+            return false;
+          } finally {
+            store.close();
+          }
+        },
       }),
   );
-  const [unlocked, setUnlocked] = useState(false),
-    [message, setMessage] = useState(
+  const [sessionKind, setSessionKind] = useState<
+    SigningSession["kind"] | null
+  >(null);
+  const unlocked = sessionKind !== null;
+  const [message, setMessage] = useState(
       "Read-only lookup is available. No transaction has been signed.",
     ),
     [busy, setBusy] = useState(false),
@@ -182,18 +194,16 @@ export default function TreasuryPage() {
     setBusy(false);
     setHeard(false);
     setConsent(false);
-    setObjectCheck(null);
-    checkRef.current = null;
-    approvalGuard.current = null;
   }
   function lock() {
     stop();
-    activeUntil.current = 0;
+    sessionRef.current = null;
     engine.accountId = null;
-    setUnlocked(false);
+    setSessionKind(null);
     setAccount("");
+    setAccountPath("saved");
     setMessage(
-      "Browser session ended. Start it again and choose your saved local account to continue. Any pending request is retained.",
+      "Signed out. Choose your account and sign in with your object to continue. Any pending request is retained.",
     );
     showTask("account");
   }
@@ -233,7 +243,7 @@ export default function TreasuryPage() {
     };
     const tick = setInterval(() => {
       setNow(Date.now());
-      if (activeUntil.current && activeUntil.current <= Date.now()) lock();
+      if (sessionRef.current && sessionRef.current.until <= Date.now()) lock();
     }, 1000);
     window.addEventListener("storage", changed);
     window.addEventListener("pagehide", stop);
@@ -245,16 +255,13 @@ export default function TreasuryPage() {
       document.removeEventListener("visibilitychange", hidden);
       current.current?.controller.abort();
       engine.releaseResources();
-      approvalGuard.current = null;
     };
   }, [engine]);
   useEffect(() => {
-    setObjectCheck(null);
-    checkRef.current = null;
     setMemberTemplate(null);
-    if (!account || !treasury?.members.includes(account)) return;
+    if (!account) return;
     let disposed = false;
-    const scoped = new TemplateStore(memberTemplateKey(treasury.id, account));
+    const scoped = new TemplateStore(accountTemplateKey(account));
     void scoped
       .read()
       .then((t) => {
@@ -263,14 +270,14 @@ export default function TreasuryPage() {
       .catch(() => {
         if (!disposed)
           setMessage(
-            "Member object storage could not be read. Open Members to repair it.",
+            "Sign-in object storage could not be read. Open Members to repair it.",
           );
       })
       .finally(() => scoped.close());
     return () => {
       disposed = true;
     };
-  }, [account, treasury?.id]);
+  }, [account]);
   useEffect(() => {
     setNewMembers(treasury?.members.join("\n") ?? "");
   }, [treasury?.id]);
@@ -289,7 +296,7 @@ export default function TreasuryPage() {
     };
   }, []);
   useEffect(() => {
-    document.title = task[0].toUpperCase() + task.slice(1) + " · Team Treasury";
+    document.title = task[0].toUpperCase() + task.slice(1) + " · Accoryn";
   }, [task]);
   function navigate(next: Task) {
     if (busyRef.current) return;
@@ -297,60 +304,64 @@ export default function TreasuryPage() {
     showTask(next);
   }
   function startBrowserSession() {
-    activeUntil.current = Date.now() + 600_000;
-    setUnlocked(true);
+    stop();
+    engine.accountId = null;
+    setAccount("");
+    sessionRef.current = setupSession();
+    setSessionKind("setup");
     setMessage(
-      "Browser session started for 10 minutes. Choose or create your testnet account.",
+      "Account setup started for 10 minutes. Create your testnet account, then register your sign-in object.",
     );
+  }
+  function afterAccountCreated(accountId: string) {
+    // A setup session may create the account and nothing else: signing as it
+    // requires a matched scan of its sign-in object.
+    sessionRef.current = null;
+    setSessionKind(null);
+    engine.accountId = null;
+    setAccount("");
+    setLocalAccounts((old) => [...new Set([...old, accountId])]);
+    shareDemoUser(accountId);
+    setSelected(accountId);
+    setAccountPath("saved");
+    showTask("account");
+  }
+  async function signInWithObject(
+    accountId: string,
+    template: ObjectTemplate,
+    similarity: number,
+    comparedAt: number,
+  ) {
+    let session: SigningSession;
+    try {
+      session = objectSession(accountId, template.id, similarity, comparedAt);
+    } catch (e) {
+      setFailed(true);
+      setMessage(e instanceof Error ? e.message : "Scan your object again.");
+      return;
+    }
+    await run(async (s, id) => {
+      sessionRef.current = session;
+      setSessionKind("object");
+      try {
+        const a = await engine.selectAccount(accountId, s);
+        if (sequence.current !== id) return;
+        setAccount(a);
+        shareDemoUser(a);
+        setMessage(
+          "Signed in with your object for 10 minutes. The key never left this browser.",
+        );
+        showTask("vault");
+      } catch (e) {
+        if (sessionRef.current === session) {
+          sessionRef.current = null;
+          setSessionKind(null);
+        }
+        throw e;
+      }
+    });
   }
   const isMember = !!account && !!treasury?.members.includes(account);
-  function checkContext(
-    template: ObjectTemplate | null,
-  ): ObjectCheckContext | null {
-    if (
-      !template ||
-      !account ||
-      !treasury ||
-      !payment?.session ||
-      !isMember ||
-      payment.proposal.treasuryId !== treasury.id ||
-      payment.session.status !== "Open" ||
-      payment.proposal.status !== "pending"
-    )
-      return null;
-    return {
-      accountId: account,
-      vaultId: treasury.id,
-      proposalId: payment.proposal.id,
-      contentHash: payment.proposal.contentHash,
-      sessionId: payment.session.session_id,
-      sessionExpiresAt: Number(BigInt(payment.session.expires_at) / 1_000_000n),
-      templateId: template.id,
-      modelRevision: JSON.stringify(template.model),
-    };
-  }
-  const contextRef = useRef<ReturnType<typeof checkContext>>(null);
-  contextRef.current = checkContext(memberTemplate);
-  async function validateFreshObject(): Promise<boolean> {
-    const context = contextRef.current;
-    if (!context || !validObjectCheck(checkRef.current, context)) return false;
-    const scoped = new TemplateStore(
-      memberTemplateKey(context.vaultId, context.accountId),
-    );
-    try {
-      const template = await scoped.read();
-      return (
-        !!template &&
-        template.id === context.templateId &&
-        JSON.stringify(template.model) === context.modelRevision &&
-        !!contextRef.current &&
-        validObjectCheck(checkRef.current, contextRef.current) &&
-        validObjectCheck(checkRef.current, context)
-      );
-    } finally {
-      scoped.close();
-    }
-  }
   async function run(job: (signal: AbortSignal, id: number) => Promise<void>) {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -372,7 +383,6 @@ export default function TreasuryPage() {
       }
     } finally {
       if (sequence.current === id) {
-        approvalGuard.current = null;
         busyRef.current = false;
         setBusy(false);
         current.current = null;
@@ -394,9 +404,6 @@ export default function TreasuryPage() {
       if (treasury?.id !== result.treasuryId) {
         setTreasury(null);
         setPayment(null);
-        setMemberTemplate(null);
-        setObjectCheck(null);
-        checkRef.current = null;
         setReceipts([]);
         setGovernance(null);
       }
@@ -465,14 +472,6 @@ export default function TreasuryPage() {
   async function transact(op: Operation, signal: AbortSignal, id: number) {
     if (!writesEnabled)
       throw new Error("Testnet writes are disabled in this build.");
-    if (op.kind === "attest") {
-      if (!(await validateFreshObject()))
-        throw new Error(
-          "Compare your enrolled member object for this exact payment session before approval.",
-        );
-      signal.throwIfAborted();
-      approvalGuard.current = validateFreshObject;
-    }
     await engine.authorize(signal);
     if (op.kind === "propose") {
       const input = op.args.input as { proposal: { description: string } };
@@ -513,25 +512,23 @@ export default function TreasuryPage() {
     if (result.status === "confirmed" || result.status === "rejected")
       await finishAction(op.requestId);
     if (sequence.current !== id) return;
-    if (op.kind === "account") {
-      setAccount(op.actor);
-      shareDemoUser(op.actor);
-      setLocalAccounts((old) => [...new Set([...old, op.actor])]);
-      showTask("vault");
-    }
     setHeard(false);
     setConsent(false);
     await apply(result, id, signal);
+    if (op.kind === "account" && sequence.current === id) {
+      afterAccountCreated(op.actor);
+      setMessage(
+        "Action outcome: confirmed. Account " +
+          op.actor +
+          " created. Register your sign-in object below, then sign in with a fresh scan.",
+      );
+    }
     if (result.status === "confirmed") {
       if (op.kind === "create") {
         setVaultStep("open");
-        showTask("object");
+        showTask("vault");
       }
       if (op.kind === "propose") showTask("approvals");
-    }
-    if (op.kind === "attest") {
-      setObjectCheck(null);
-      checkRef.current = null;
     }
   }
   const blocked = busy || !!pending || damaged || !writesEnabled || !unlocked;
@@ -613,9 +610,18 @@ export default function TreasuryPage() {
       <div className="workspace-session">
         <span className={unlocked ? "session-dot active" : "session-dot"} />
         <span>
-          {unlocked ? "Browser session active" : "Start a session to continue"}
+          {sessionKind === "object"
+            ? "Signed in with your object"
+            : sessionKind === "setup"
+              ? "Account setup session active"
+              : "Signed out"}
         </span>
         <span className="text-muted">{account || "No account selected"}</span>
+        {unlocked && (
+          <Button variant="quiet" disabled={busy} onClick={lock}>
+            Sign out
+          </Button>
+        )}
       </div>
       {publication && (
         <p className="my-3 text-xs leading-5 text-muted">{publication}</p>
@@ -706,10 +712,10 @@ export default function TreasuryPage() {
                   await engine.createAccount(op.actor, op.requestId, s);
                   await finishAction(op.requestId);
                   if (sequence.current === id) {
-                    setAccount(op.actor);
-                    setLocalAccounts((old) => [...new Set([...old, op.actor])]);
-                    shareDemoUser(op.actor);
-                    setMessage("Original account creation confirmed.");
+                    afterAccountCreated(op.actor);
+                    setMessage(
+                      "Original account creation confirmed. Register your sign-in object, then sign in with a fresh scan.",
+                    );
                   }
                 } else {
                   const result = await engine.perform(op, s);
@@ -746,13 +752,16 @@ export default function TreasuryPage() {
               Use saved account
             </Button>
           </div>
-          {!unlocked && (
+          {accountPath === "create" && sessionKind !== "setup" && (
             <div className="onboarding-notice">
               <h3>Start with this browser</h3>
               <p>
-                Testnet signing keys stay unencrypted in this browser. Clearing
-                its data loses access; there is no cross-device recovery. Object
-                scans do not create these keys.
+                Your testnet signing key is created and kept in this browser.
+                After creating the account you register a personal object; from
+                then on the app uses the key only after a scan of that object
+                matches. That is a convenience lock, not encryption: the key
+                stays unencrypted in browser storage, and clearing its data
+                loses access.
               </p>
               <Button onClick={startBrowserSession}>
                 Start browser session
@@ -761,13 +770,13 @@ export default function TreasuryPage() {
           )}
           {unlocked && (
             <p className="text-sm text-muted">
-              Session expires after 10 minutes. If it ends, start it again and
-              select your existing local account.
+              Sessions last 10 minutes. When one ends, sign in with your object
+              again.
             </p>
           )}
           <p>
             Use a unique name for a new NEAR testnet account. Saved accounts
-            need their signing key on this device.
+            need their signing key and sign-in object on this device.
           </p>
           <div hidden={accountPath !== "create"} className="space-y-4">
             <label className="block">
@@ -809,6 +818,8 @@ export default function TreasuryPage() {
                 value={selected}
                 onChange={(e) => {
                   stop();
+                  sessionRef.current = null;
+                  setSessionKind(null);
                   engine.accountId = null;
                   setAccount("");
                   setSelected(e.target.value);
@@ -820,22 +831,37 @@ export default function TreasuryPage() {
                 ))}
               </select>
             </label>
-            <Button
-              disabled={busy || damaged || !unlocked || !selected}
-              onClick={() =>
-                void run(async (s, id) => {
-                  const a = await engine.selectAccount(selected, s);
-                  if (sequence.current === id) {
-                    setAccount(a);
-                    shareDemoUser(a);
-                    setMessage("Local key confirmed as FullAccess on testnet.");
-                    showTask("vault");
-                  }
-                })
-              }
-            >
-              Use local account
-            </Button>
+            {!selected ? (
+              <p className="text-sm text-muted">
+                Choose your account, then sign in with your object.
+              </p>
+            ) : sessionKind === "object" && account === selected ? (
+              <p>Signed in as {selected} with your object.</p>
+            ) : (
+              task === "account" && (
+                <ObjectRegistrationPage
+                  key={"signin:" + selected}
+                  member={{
+                    accountId: selected,
+                    templateKey: accountTemplateKey(selected),
+                    approval: true,
+                    heading: "Sign in with your object.",
+                    notice:
+                      "A matched scan lets this app use your account's key for 10 minutes. If this browser has no object for the account yet, the first registration here sets it. This is a convenience lock, not encryption.",
+                    continueLabel: "Sign in with this scan",
+                    onTemplate: () => {},
+                    onComparisonReset: () => {},
+                    onAcknowledge: (template, comparison, comparedAt) =>
+                      void signInWithObject(
+                        selected,
+                        template,
+                        comparison.topTwoMean,
+                        comparedAt,
+                      ),
+                  }}
+                />
+              )
+            )}
           </div>
           <p className="break-all text-sm text-muted">
             Current signer: {account || "none"}
@@ -927,11 +953,11 @@ export default function TreasuryPage() {
                     on-chain for each payment and cumulative spend.
                   </p>
                   <ul>
-                    {treasury.tiers.tiers.map((t, i) => (
-                      <li key={i}>
-                        Up to {formatNearAmount(t.up_to)} NEAR: {t.required}{" "}
-                        attendees (limited by team size).
-                      </li>
+                    {describeTiers(
+                      treasury.tiers.tiers,
+                      treasury.members.length,
+                    ).map((line) => (
+                      <li key={line}>{line}</li>
                     ))}
                   </ul>
                   <p>
@@ -945,8 +971,8 @@ export default function TreasuryPage() {
                     onClick={() => navigate("object")}
                   >
                     {memberTemplate
-                      ? "View your member object"
-                      : "Next: enroll your object"}
+                      ? "View your sign-in object"
+                      : "Register your sign-in object"}
                   </Button>
                   <Button
                     variant="secondary"
@@ -1118,7 +1144,7 @@ export default function TreasuryPage() {
         </Section>
       </div>
       <div hidden={task !== "object"}>
-        <Section title="Your member enrollment">
+        <Section title="Members and your sign-in object">
           {treasury && (
             <>
               <MemberRoster
@@ -1126,25 +1152,27 @@ export default function TreasuryPage() {
                 currentAccount={account}
               />
               <p className="text-sm text-muted">
-                Each member enrolls on their own device. Other members’ local
-                scan status is not shared.
+                Each member signs in with their own object on their own device.
+                Other members’ objects are never shared.
               </p>
             </>
           )}
-          {!isMember ? (
-            <p>
-              Select your account and open a vault to enroll your member object.
-            </p>
+          {!account ? (
+            <p>Sign in with your object on the Account page first.</p>
           ) : (
             task === "object" && (
               <ObjectRegistrationPage
-                key={account + treasury!.id}
+                key={"account:" + account}
                 member={{
                   accountId: account,
-                  vaultId: treasury!.id,
+                  templateKey: accountTemplateKey(account),
                   approval: false,
+                  heading: "Your sign-in object.",
+                  notice:
+                    "This object signs you in to this account on this device. It is a local convenience lock, not encryption.",
+                  allowDelete: false,
                   onTemplate: setMemberTemplate,
-                  onComparisonReset: () => setObjectCheck(null),
+                  onComparisonReset: () => {},
                   onAcknowledge: () => {},
                 }}
               />
@@ -1407,15 +1435,7 @@ export default function TreasuryPage() {
                           ? "Your approval is recorded. Wait for your partners, then refresh this payment."
                           : !isMember
                             ? "Select a current member account and open this vault to participate."
-                            : !objectCheck ||
-                                !contextRef.current ||
-                                !validObjectCheck(
-                                  objectCheck,
-                                  contextRef.current,
-                                  now,
-                                )
-                              ? "Next: compare your enrolled object below and acknowledge the research limits."
-                              : !heard
+                            : !heard
                                 ? payment.session?.host === account
                                   ? "Ask partners to tap Listen first, then play the host sound."
                                   : "Tap Listen, then ask the host to play the sound."
@@ -1442,7 +1462,7 @@ export default function TreasuryPage() {
             </label>
           )}
         </Section>
-        <Section title="Meet, scan and approve">
+        <Section title="Meet and approve">
           <p>
             The host opens a five-minute session (0.1 testnet NEAR deposit).
             Other vault members tap Listen before the host plays. Each
@@ -1457,74 +1477,7 @@ export default function TreasuryPage() {
           >
             Open host session — 0.1 testnet NEAR
           </Button>
-          <div className="approval-step">
-            <p className="eyebrow-label">1 · Fresh member object check</p>
-            {!sessionOpen ? (
-              <p className="mt-2 text-sm">
-                Load a pending payment and open its host session first. Then
-                compare your member object for that exact session.
-              </p>
-            ) : !isMember ? (
-              <p>Select a current vault member account to participate.</p>
-            ) : (
-              task === "approvals" && (
-                <ObjectRegistrationPage
-                  key={JSON.stringify([
-                    account,
-                    treasury!.id,
-                    payment!.proposal.id,
-                    payment!.proposal.contentHash,
-                    payment!.session!.session_id,
-                  ])}
-                  member={{
-                    accountId: account,
-                    vaultId: treasury!.id,
-                    approval: true,
-                    onTemplate: setMemberTemplate,
-                    onComparisonReset: () => {
-                      setObjectCheck(null);
-                      checkRef.current = null;
-                    },
-                    onAcknowledge: (template, comparison, comparedAt) => {
-                      const context = checkContext(template);
-                      if (!context) {
-                        setMessage(
-                          "Load the current payment and session first.",
-                        );
-                        return;
-                      }
-                      try {
-                        const check = acknowledgeComparison(
-                          context,
-                          comparison.topTwoMean,
-                          comparedAt,
-                        );
-                        if (!validObjectCheck(check, context))
-                          throw new Error("Comparison expired. Scan again.");
-                        setObjectCheck(check);
-                        checkRef.current = check;
-                        setMessage(
-                          "Demo object match recorded for this payment. Continue with the sound exchange.",
-                        );
-                      } catch (e) {
-                        setMessage(
-                          e instanceof Error ? e.message : "Scan again.",
-                        );
-                      }
-                    },
-                  }}
-                />
-              )
-            )}
-            <p className="mt-3 text-sm font-semibold">
-              {objectCheck &&
-              contextRef.current &&
-              validObjectCheck(objectCheck, contextRef.current, now)
-                ? "Demo object match active"
-                : "A fresh comparison is required before your approval"}
-            </p>
-          </div>
-          <p className="eyebrow-label">2 · Exchange sound</p>
+          <p className="eyebrow-label">1 · Exchange sound</p>
           <div className="flex flex-wrap gap-3">
             {(["host", "listener"] as const).map((role) => (
               <Button
@@ -1552,7 +1505,7 @@ export default function TreasuryPage() {
               </Button>
             ))}
           </div>
-          <p className="eyebrow-label">3 · Your explicit approval</p>
+          <p className="eyebrow-label">2 · Your explicit approval</p>
           <label className="flex gap-3">
             <input
               type="checkbox"
@@ -1571,8 +1524,6 @@ export default function TreasuryPage() {
                 !heard ||
                 !consent ||
                 !sessionOpen ||
-                !contextRef.current ||
-                !validObjectCheck(objectCheck, contextRef.current, now) ||
                 !!payment?.proposal.approvals.includes(account)
               }
               onClick={() =>

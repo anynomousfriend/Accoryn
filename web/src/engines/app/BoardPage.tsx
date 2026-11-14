@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import { SiteHeader, ActionLink, Button } from "../../design/primitives.tsx";
-import { TreasuryEngine, type TreasuryView } from "./engine.ts";
+import {
+  TreasuryEngine,
+  GATE,
+  GATE_HASH,
+  type TreasuryView,
+  type BoardEntry,
+  type MemberParticipation,
+} from "./engine.ts";
+import { describeTiers, type GateLockStatus } from "./board.ts";
 import { NearRpcClient } from "../near/rpc.ts";
 import { Keystore, createMemoryKeyRecordStore } from "../near/keystore.ts";
 import { TxJournal, createMemoryTxRecordStore } from "../near/txjournal.ts";
 import { Operations, memoryOperationStore } from "./operations.ts";
 import { formatNearAmount } from "../../workspace/drafts.ts";
-import {
-  receiptToCsv,
-  type ReceiptExportRow,
-} from "../../payments/receipt-csv.ts";
+import { receiptToCsv } from "../../payments/receipt-csv.ts";
 /** Read-only route. It never reads the browser's signing-key database. */
 export default function BoardPage() {
   const [dao, setDao] = useState(
@@ -18,7 +23,9 @@ export default function BoardPage() {
   const [refresh, setRefresh] = useState(0);
   const [requested, setRequested] = useState(dao),
     [treasury, setTreasury] = useState<TreasuryView | null>(null),
-    [rows, setRows] = useState<ReceiptExportRow[]>([]),
+    [entries, setEntries] = useState<BoardEntry[]>([]),
+    [participation, setParticipation] = useState<MemberParticipation[]>([]),
+    [gate, setGate] = useState<GateLockStatus | null>(null),
     [message, setMessage] = useState("Enter a testnet treasury account."),
     [busy, setBusy] = useState(false);
   const [engine] = useState(
@@ -36,7 +43,9 @@ export default function BoardPage() {
     const controller = new AbortController();
     let active = true;
     setBusy(true);
-    setRows([]);
+    setEntries([]);
+    setParticipation([]);
+    setGate(null);
     setTreasury(null);
     setMessage("Loading chain state…");
     void (async () => {
@@ -44,9 +53,16 @@ export default function BoardPage() {
         const t = await engine.treasury(requested, controller.signal);
         if (!active) return;
         setTreasury(t);
-        const r = await engine.receipts(requested, controller.signal);
+        const [keys, record] = await Promise.all([
+          engine.gateKeys(controller.signal),
+          engine.participation(requested, t.members, controller.signal),
+        ]);
+        if (!active) return;
+        setGate(keys);
+        setParticipation(record);
+        const r = await engine.boardEntries(requested, controller.signal);
         if (active) {
-          setRows(r);
+          setEntries(r);
           setMessage(
             "Latest 50 proposals checked. Settled rows have independently verified payout receipts.",
           );
@@ -108,10 +124,6 @@ export default function BoardPage() {
             <h2 className="break-all font-serif text-2xl">{treasury.id}</h2>
             <p>Governance: {treasury.governanceApprovals} approvals</p>
             <p>Spendable: {formatNearAmount(treasury.spendableAtomic)} NEAR</p>
-            <p>
-              Gate tier version: {treasury.tiers.version}; cumulative spend:{" "}
-              {formatNearAmount(treasury.tiers.window_spent)} NEAR.
-            </p>
             <ul>
               {treasury.members.map((a) => (
                 <li key={a} className="break-all">
@@ -119,17 +131,103 @@ export default function BoardPage() {
                 </li>
               ))}
             </ul>
-            <p>Factory configuration: {JSON.stringify(treasury.factoryInfo)}</p>
+          </section>
+        )}
+        {treasury && (
+          <section className="my-5 rounded-xl border border-line bg-surface p-5">
+            <h2 className="font-serif text-2xl">Who can approve payments</h2>
+            <p className="break-all">
+              Only <code>{GATE}</code> can approve transfers from this vault.
+              Members propose, reject and finalize; the gate votes only after
+              enough members attest in a live meeting. This was checked against
+              the vault's on-chain policy just now.
+            </p>
+            <p className="break-all">
+              Gate code hash (pinned): <code>{GATE_HASH}</code>
+            </p>
+            {gate && (
+              <p>
+                Gate upgrade keys:{" "}
+                {gate.locked
+                  ? "locked — the gate account has no access keys, so its code cannot change."
+                  : `${gate.fullAccessKeys} developer full-access key${gate.fullAccessKeys === 1 ? "" : "s"} present — the developers can still upgrade the gate.`}
+              </p>
+            )}
+            <p>
+              Sputnik factory automatic upgrades:{" "}
+              {factoryAutoUpdate(treasury.factoryInfo)}
+            </p>
+            <p>
+              Governance (policy and member changes) needs{" "}
+              {treasury.governanceApprovals} member approvals.
+            </p>
+          </section>
+        )}
+        {treasury && (
+          <section className="my-5 rounded-xl border border-line bg-surface p-5">
+            <h2 className="font-serif text-2xl">Amount tiers</h2>
+            <p>
+              Attendance depends on cumulative spend in a rolling{" "}
+              {Math.round(treasury.tiers.window_secs / 3600)}-hour window,
+              including the payment being approved. Spent in the current
+              window: {formatNearAmount(treasury.tiers.window_spent)} NEAR.
+            </p>
+            <ul className="list-disc pl-6">
+              {describeTiers(treasury.tiers.tiers, treasury.members.length).map(
+                (line) => (
+                  <li key={line}>{line}</li>
+                ),
+              )}
+            </ul>
+          </section>
+        )}
+        {participation.length > 0 && (
+          <section className="my-5 rounded-xl border border-line bg-surface p-5">
+            <h2 className="font-serif text-2xl">Participation record</h2>
+            <p>
+              Meetings each member attested in for this vault, recorded by the
+              gate each time it approved a payment after a meeting.
+            </p>
+            <table className="mt-3 w-full text-left">
+              <thead>
+                <tr>
+                  <th scope="col">Member</th>
+                  <th scope="col">Meetings attended</th>
+                  <th scope="col">Last proposal</th>
+                  <th scope="col">Last attended</th>
+                </tr>
+              </thead>
+              <tbody>
+                {participation.map((m) => (
+                  <tr key={m.accountId}>
+                    <td className="break-all pr-3">{m.accountId}</td>
+                    <td>{m.ceremonies}</td>
+                    <td>{m.lastProposalId ?? "—"}</td>
+                    <td>
+                      {m.lastAtMs === null
+                        ? "—"
+                        : new Date(m.lastAtMs).toISOString().slice(0, 16) +
+                          "Z"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
         )}
         <div className="space-y-3">
-          {rows.map((row) => (
+          {entries.map(({ row, attendees, required }) => (
             <article
               key={row.proposalId}
               className="rounded-xl border border-line p-4"
             >
               <h2>Proposal {row.proposalId}</h2>
               <p>{row.status}</p>
+              <p className="break-all">
+                Attested in the meeting:{" "}
+                {attendees.length ? attendees.join(", ") : "nobody yet"} (
+                {required} needed)
+              </p>
               <p className="break-all">
                 {formatNearAmount(row.amountAtomic)} native NEAR →{" "}
                 {row.recipient}
@@ -162,10 +260,10 @@ export default function BoardPage() {
         </div>
         <Button
           className="mt-4"
-          disabled={!rows.length || busy}
+          disabled={!entries.length || busy}
           onClick={() => {
             const url = URL.createObjectURL(
-              new Blob([receiptToCsv(rows)], {
+              new Blob([receiptToCsv(entries.map((e) => e.row))], {
                 type: "text/csv;charset=utf-8",
               }),
             );
@@ -181,4 +279,13 @@ export default function BoardPage() {
       </main>
     </>
   );
+}
+
+function factoryAutoUpdate(info: unknown): string {
+  const auto = (info as { auto_update?: unknown } | null)?.auto_update;
+  if (auto === false)
+    return "disabled — the factory owner cannot replace this vault's code.";
+  if (auto === true)
+    return "enabled — the factory owner can still upgrade this vault's code until members pass the hardening proposal.";
+  return "unknown.";
 }

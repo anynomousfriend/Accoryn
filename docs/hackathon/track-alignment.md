@@ -2,6 +2,18 @@
 
 Reviewed: 2026-11-12. Product: a new team treasury interface exploring personal-object access and acoustic participation, using built-in device hardware only.
 
+## Status 2026-11-14 (supersedes the dated notes below)
+
+The tracks below are now demonstrated with real testnet evidence. Older paragraphs keep their dates as history.
+
+| Track | Evidence |
+| --- | --- |
+| Social Money (`social`) | Sputnik DAO v2 vaults with Trezu's Requestor/Admin/Approver layout, where the [ceremony gate](../deployment/testnet.md) is the only transfer approver. Amount tiers on cumulative spend, a per-member participation record and a keyless [public board](https://accoryn.vercel.app/board/?dao=accoryn-demo.sputnikv2.testnet). Human direct approval refused with `ERR_PERMISSION_DENIED`. Factory auto-upgrade disabled through governance on `accoryn-demo`. Tier changes via a DAO proposal: [set-tiers guide](../trezu/set-tiers.md). |
+| Open Innovation (`open`) | Acoustic meeting ceremony with signed, account-bound attestations enforced on-chain; the object scan is a disclosed local research step. Measured same-laptop audio results and failure cases are in the [acoustic checklist](../testing/acoustic-check-manual.md) and the [threat model](../security/ceremony-threat-model.md). The phone↔laptop matrix is a manual step. |
+| Real-World Money (`realworld`) | Invoice → proposal → meeting → payout → receipt verified from the transaction → CSV, in the app at [/treasury/](https://accoryn.vercel.app/treasury/), with journaled writes that never pay twice. Native NEAR on testnet; no stablecoin or Intents claim. |
+
+Not claimed: `privacy` and `security` (the optional AI proposer was not built).
+
 ## Recommendation and current evidence
 
 Target **Social Money** first and **Open Innovation** alongside it once the core NEAR flow is demonstrated. Add **Real-World Money** when a complete business invoice/payment flow works. This is a product-fit assessment, not an eligibility decision by the organizers.

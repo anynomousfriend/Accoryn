@@ -138,7 +138,7 @@ import {
   createMemoryTxRecordStore,
 } from "../src/engines/near/txjournal.ts";
 import { NearRpcClient } from "../src/engines/near/rpc.ts";
-test("real engine refuses account signing without a current research continuation", async () => {
+test("real engine refuses account signing without an object sign-in session", async () => {
   const engine = new TreasuryEngine({
     keys: new Keystore(createMemoryKeyRecordStore()),
     journal: new TxJournal(createMemoryTxRecordStore(), { locks: null }),
@@ -149,11 +149,11 @@ test("real engine refuses account signing without a current research continuatio
   await assert.rejects(
     () =>
       engine.createAccount("alice", "request", new AbortController().signal),
-    /research/i,
+    /sign in with your object/i,
   );
   await assert.rejects(
     () => engine.selectAccount("alice.testnet", new AbortController().signal),
-    /research/i,
+    /sign in with your object/i,
   );
 });
 import {
@@ -284,7 +284,7 @@ test("native funding reaches the signing guard without contract-call arguments",
         },
         new AbortController().signal,
       ),
-    /research/,
+    /sign in with your object/i,
   );
 });
 test("a final create with unavailable canonical reads stays unresolved rather than rejected", async () => {
