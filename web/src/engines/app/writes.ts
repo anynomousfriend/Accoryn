@@ -33,10 +33,57 @@ import {
   signAttestation,
   encodeChallenge,
 } from "../ceremony/crypto.ts";
-import { createAcousticModem, type AcousticModem } from "../acoustic/modem.ts";
+import {
+  ACOUSTIC_DEFAULT_VOLUME,
+  createAcousticModem,
+  type AcousticModem,
+} from "../acoustic/modem.ts";
 import { RpcRequestError } from "../near/rpc.ts";
 import { isTestnetAccountId, parseEd25519PublicKey } from "../near/keystore.ts";
-import { listenForChallenge } from "../acoustic/session.ts";
+import {
+  listenForChallenge,
+  MIN_BROADCAST_GAP_MS,
+  type ListenOutcome,
+} from "../acoustic/session.ts";
+/** How long the host repeats the sound, like the device check page (start-to-start every 3 s). */
+export const HOST_PLAY_WINDOW_MS = 30_000;
+export const HOST_PLAY_INTERVAL_MS = 3_000;
+// Waits between host rounds; Stop sound ends the wait early, an abort rejects.
+function pause(ms: number, signal: AbortSignal, stop: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason);
+    if (stop.aborted) return resolve();
+    const done = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", fail);
+      stop.removeEventListener("abort", done);
+      resolve();
+    };
+    const fail = () => {
+      clearTimeout(timer);
+      stop.removeEventListener("abort", done);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(done, Math.max(0, ms));
+    signal.addEventListener("abort", fail, { once: true });
+    stop.addEventListener("abort", done, { once: true });
+  });
+}
+function listenFailure(r: Exclude<ListenOutcome, { kind: "decoded" }>): string {
+  switch (r.kind) {
+    case "no-signal":
+      return "The microphone heard almost nothing. Allow microphone access for this site, turn the host's volume up to 50-70%, keep the devices within about a metre, then tap Listen and ask the host to play again.";
+    case "timeout":
+      return r.framesRejected > 0
+        ? "Heard an approval sound for a different session. Refresh this payment on both devices, then try again."
+        : `Sound reached the microphone (peak level ${r.peakLevel}) but no approval sound was decoded in time. Move the devices closer, reduce background noise, then tap Listen and ask the host to play again.`;
+    case "denied":
+    case "unsupported":
+      return r.reason;
+    case "cancelled":
+      return "Listening stopped.";
+  }
+}
 export type BusinessResult = {
   status: "confirmed" | "rejected" | "unknown" | "pending";
   treasuryId?: string;
@@ -162,6 +209,7 @@ export class TreasuryFlow extends TreasuryEngine {
     host: boolean;
   } | null = null;
   private modem: AcousticModem | null = null;
+  private hostStop: AbortController | null = null;
   private expiry: ReturnType<typeof setTimeout> | null = null;
   private expireAt(deadline: number) {
     if (this.expiry) clearTimeout(this.expiry);
@@ -170,11 +218,25 @@ export class TreasuryFlow extends TreasuryEngine {
       Math.max(0, deadline - Date.now()),
     );
   }
+  /** Releases the microphone and speaker only. This payment's ceremony secret
+   * stays in memory until its session expires, so hiding the page or switching
+   * tabs does not force a new session. */
+  stopAudio() {
+    this.hostStop?.abort();
+    this.hostStop = null;
+    this.modem?.dispose();
+    this.modem = null;
+  }
+  /** Ends the host's repeated sound; rounds already played still count. */
+  stopHostSound() {
+    this.hostStop?.abort();
+    this.modem?.stopPlayback();
+  }
+  /** Sign-out, account/vault/payment change, execution or expiry: forget everything. */
   releaseResources() {
     if (this.expiry) clearTimeout(this.expiry);
     this.expiry = null;
-    this.modem?.dispose();
-    this.modem = null;
+    this.stopAudio();
     if (this.secret) this.secret.seed.fill(0);
     this.secret = null;
   }
@@ -257,13 +319,19 @@ export class TreasuryFlow extends TreasuryEngine {
     role: "host" | "listener",
     signal: AbortSignal,
     onProgress: (s: string) => void,
+    timing: { windowMs?: number; intervalMs?: number } = {},
   ): Promise<void> {
     // init runs synchronously inside the click before the first await/RPC call.
-    this.modem ??= createAcousticModem();
+    this.modem ??= (this.deps.createModem ?? createAcousticModem)();
     const modem = this.modem;
     const audioReady = modem.init();
     try {
       await audioReady;
+      onProgress(
+        role === "host"
+          ? "Checking this payment's session on chain before playing."
+          : "Checking this payment's session on chain. Listening starts in a moment.",
+      );
       await this.authorize(signal);
       const latest = await this.payment(
         p.proposal.treasuryId,
@@ -291,15 +359,59 @@ export class TreasuryFlow extends TreasuryEngine {
             "Host challenge was lost. Cancel the old session and open a new one.",
           );
         this.secret.sessionId = s.session_id;
-        this.expireAt(Number(BigInt(s.expires_at) / 1_000_000n));
-        onProgress(
-          "Playing one audible frame. Ask the other member to listen first.",
+        const sessionEnd = Number(BigInt(s.expires_at) / 1_000_000n);
+        this.expireAt(sessionEnd);
+        const frame = this.secret.frame;
+        const until = Math.min(
+          sessionEnd,
+          Date.now() + (timing.windowMs ?? HOST_PLAY_WINDOW_MS),
         );
-        if (
-          (await modem.play(this.secret.frame, "audible-fast", 25)) !==
-          "completed"
-        )
-          throw new Error("Playback did not complete.");
+        const interval = timing.intervalMs ?? HOST_PLAY_INTERVAL_MS;
+        this.hostStop?.abort();
+        const stopper = new AbortController();
+        this.hostStop = stopper;
+        let completed = 0;
+        try {
+          // Repeat like the device check page, so a listener whose microphone
+          // started late still hears a whole frame.
+          for (
+            let round = 1;
+            Date.now() < until && !stopper.signal.aborted;
+            round++
+          ) {
+            onProgress(
+              `Playing the approval sound (round ${round}). Keep this page in front. Tap Stop sound once every partner shows Sound exchange ready.`,
+            );
+            const startedAt = Date.now();
+            const played = await modem.play(
+              frame,
+              "audible-fast",
+              ACOUSTIC_DEFAULT_VOLUME,
+            );
+            signal.throwIfAborted();
+            if (played === "completed") completed++;
+            else if (played === "stopped") break;
+            else
+              onProgress(
+                "This device paused sound output. Keep this page open and in front.",
+              );
+            const gap = Math.max(
+              MIN_BROADCAST_GAP_MS,
+              startedAt + interval - Date.now(),
+            );
+            if (Date.now() + gap >= until) break;
+            await pause(gap, signal, stopper.signal);
+          }
+        } finally {
+          if (this.hostStop === stopper) this.hostStop = null;
+        }
+        signal.throwIfAborted();
+        // Stop sound means the host saw partners ready: ggwave decodes a frame
+        // just before its buffer ends, so round 1 may be cut short by design.
+        if (completed === 0 && !stopper.signal.aborted)
+          throw new Error(
+            "The host sound did not play. Turn this device's volume up, keep this page in front, then tap Play host sound again. The session is still open.",
+          );
       } else {
         if (this.secret) this.secret.seed.fill(0);
         this.secret = null;
@@ -318,10 +430,7 @@ export class TreasuryFlow extends TreasuryEngine {
               ),
             ) === s.session_pk,
         });
-        if (result.kind !== "decoded")
-          throw new Error(
-            "Sound not verified: " + result.kind + ". Try explicitly again.",
-          );
+        if (result.kind !== "decoded") throw new Error(listenFailure(result));
         const seed = ceremonySeed(
           GATE,
           s.dao_id,
@@ -351,7 +460,10 @@ export class TreasuryFlow extends TreasuryEngine {
       assertSessionFor(current, p.proposal, this.accountId);
       onProgress("Sound exchange ready. This has not approved the payment.");
     } catch (e) {
-      this.releaseResources();
+      // A failed host round keeps the challenge so Play can be tapped again;
+      // a failed listen keeps nothing it might have half-received.
+      if (role === "host") this.stopAudio();
+      else this.releaseResources();
       throw e;
     }
   }

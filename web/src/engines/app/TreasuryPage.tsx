@@ -29,6 +29,9 @@ import {
   type PaymentView,
 } from "./engine.ts";
 import { TemplateStore } from "../../object-registration/template-store.ts";
+import { soundBlockedReason } from "./ceremony-ui.ts";
+/** How often an open payment is re-read while Approvals is on screen. */
+const PAYMENT_POLL_MS = 5000;
 import ObjectRegistrationPage from "../../object-registration/ObjectRegistrationPage.tsx";
 import type { ObjectTemplate } from "../../object-registration/types.ts";
 import { accountTemplateKey } from "./member-object.ts";
@@ -176,6 +179,7 @@ export default function TreasuryPage() {
     ),
     [payment, setPayment] = useState<PaymentView | null>(null),
     [heard, setHeard] = useState(false),
+    [playing, setPlaying] = useState(false),
     [consent, setConsent] = useState(false),
     [now, setNow] = useState(Date.now());
   const [receipts, setReceipts] = useState<ReceiptExportRow[]>([]),
@@ -191,18 +195,27 @@ export default function TreasuryPage() {
     ),
     sequence = useRef(0),
     busyRef = useRef(false);
+  // Stops the running step and releases the microphone/speaker. The current
+  // payment's sound exchange survives, so hiding the page or switching tabs
+  // never forces a new host session.
   function stop() {
     sequence.current++;
     current.current?.controller.abort();
     current.current = null;
-    engine.releaseResources();
+    engine.stopAudio();
     busyRef.current = false;
     setBusy(false);
+    setPlaying(false);
+  }
+  // Sign-out or a change of account, vault or payment: forget the exchange too.
+  function endCeremony() {
+    stop();
+    engine.releaseResources();
     setHeard(false);
     setConsent(false);
   }
   function lock() {
-    stop();
+    endCeremony();
     sessionRef.current = null;
     engine.accountId = null;
     setSessionKind(null);
@@ -310,7 +323,7 @@ export default function TreasuryPage() {
     showTask(next);
   }
   function startBrowserSession() {
-    stop();
+    endCeremony();
     engine.accountId = null;
     setAccount("");
     sessionRef.current = setupSession();
@@ -367,7 +380,14 @@ export default function TreasuryPage() {
       }
     });
   }
-  const isMember = !!account && !!treasury?.members.includes(account);
+  // The loaded payment carries the vault's current members, so a partner who
+  // opened the payment link counts as a member without a separate vault load.
+  const isMember =
+    !!account &&
+    !!(
+      treasury?.members.includes(account) ||
+      payment?.currentMembers.includes(account)
+    );
   async function run(job: (signal: AbortSignal, id: number) => Promise<void>) {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -548,6 +568,61 @@ export default function TreasuryPage() {
     paymentOpen &&
     payment?.session?.status === "Open" &&
     Number(BigInt(payment.session.expires_at) / 1_000_000n) > now;
+  const soundBlocked = soundBlockedReason({
+    writesEnabled,
+    signedIn: sessionKind === "object",
+    pending: !!pending,
+    account,
+    members: payment?.currentMembers ?? treasury?.members ?? null,
+    paymentLoaded: !!payment,
+    paymentOpen,
+    sessionOpen: !!sessionOpen,
+  });
+  const paymentRef = useRef<PaymentView | null>(null);
+  paymentRef.current = payment;
+  // While an open payment is on screen in Approvals, re-read it every few
+  // seconds: a partner's Listen enables as soon as the host opens the session,
+  // and the host sees approvals arrive, without pressing Refresh.
+  useEffect(() => {
+    if (task !== "approvals" || busy || !dao || !proposalId || !paymentOpen)
+      return;
+    const controller = new AbortController();
+    let inFlight = false;
+    const timer = setInterval(() => {
+      if (inFlight || busyRef.current || document.hidden) return;
+      inFlight = true;
+      engine
+        .payment(dao, proposalId, controller.signal)
+        .then(
+          (p) => {
+            const old = paymentRef.current;
+            if (
+              controller.signal.aborted ||
+              busyRef.current ||
+              !old ||
+              old.proposal.id !== p.proposal.id
+            )
+              return;
+            if (
+              old.session?.session_id !== p.session?.session_id ||
+              old.proposal.contentHash !== p.proposal.contentHash
+            ) {
+              setHeard(false);
+              setConsent(false);
+            }
+            setPayment(p);
+          },
+          () => {},
+        )
+        .finally(() => {
+          inFlight = false;
+        });
+    }, PAYMENT_POLL_MS);
+    return () => {
+      clearInterval(timer);
+      controller.abort();
+    };
+  }, [task, busy, dao, proposalId, paymentOpen, engine]);
   const draft = drafts.find((d) => d.id === draftId);
   const buttonOp = (make: () => Operation) =>
     void run((s, id) => transact(make(), s, id));
@@ -825,7 +900,7 @@ export default function TreasuryPage() {
                 className={field}
                 value={selected}
                 onChange={(e) => {
-                  stop();
+                  endCeremony();
                   sessionRef.current = null;
                   setSessionKind(null);
                   engine.accountId = null;
@@ -901,7 +976,7 @@ export default function TreasuryPage() {
                 className={field}
                 value={dao}
                 onChange={(e) => {
-                  stop();
+                  endCeremony();
                   setDao(e.target.value);
                   setTreasury(null);
                   setPayment(null);
@@ -1377,7 +1452,7 @@ export default function TreasuryPage() {
               className={field}
               value={proposalId}
               onChange={(e) => {
-                stop();
+                endCeremony();
                 setProposalId(e.target.value);
                 setPayment(null);
               }}
@@ -1435,7 +1510,7 @@ export default function TreasuryPage() {
                   : !paymentOpen
                     ? "This payment is no longer open. Check Completed & records for its authoritative outcome."
                     : !sessionOpen
-                      ? "Next: a member opens the host session. Partners then load this payment on their own devices."
+                      ? "Next: a member opens the host session. Partners' pages pick it up within a few seconds."
                       : payment.proposal.approvals.length >=
                           payment.proposal.requiredApprovals
                         ? "The required approvals are present. Refresh the payment, then execute it once."
@@ -1473,7 +1548,8 @@ export default function TreasuryPage() {
         <Section title="Meet and approve">
           <p>
             The host opens a five-minute session (0.1 testnet NEAR deposit).
-            Other vault members tap Listen before the host plays. Each
+            Partners tap Listen; the host's sound then repeats for about 30
+            seconds, so a partner who starts a little late still hears it. Each
             participant then explicitly approves. Use built-in speakers and
             microphones.
           </p>
@@ -1492,8 +1568,7 @@ export default function TreasuryPage() {
                 key={role}
                 disabled={
                   blocked ||
-                  !isMember ||
-                  !sessionOpen ||
+                  !!soundBlocked ||
                   (role === "host"
                     ? payment?.session?.host !== account
                     : payment?.session?.host === account)
@@ -1502,9 +1577,14 @@ export default function TreasuryPage() {
                   void run(async (s, id) => {
                     setHeard(false);
                     setConsent(false);
-                    await engine.exchange(payment!, role, s, (text) => {
-                      if (sequence.current === id) setMessage(text);
-                    });
+                    setPlaying(role === "host");
+                    try {
+                      await engine.exchange(payment!, role, s, (text) => {
+                        if (sequence.current === id) setMessage(text);
+                      });
+                    } finally {
+                      if (sequence.current === id) setPlaying(false);
+                    }
                     if (sequence.current === id) setHeard(true);
                   })
                 }
@@ -1512,7 +1592,18 @@ export default function TreasuryPage() {
                 {role === "host" ? "Play host sound" : "Listen to host sound"}
               </Button>
             ))}
+            {playing && (
+              <Button
+                variant="secondary"
+                onClick={() => engine.stopHostSound()}
+              >
+                Stop sound
+              </Button>
+            )}
           </div>
+          {!busy && soundBlocked && (
+            <p className="text-sm text-muted">{soundBlocked}</p>
+          )}
           <p className="eyebrow-label">2 · Your explicit approval</p>
           <label className="flex gap-3">
             <input
