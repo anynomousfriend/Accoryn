@@ -21,7 +21,13 @@ import {
   planHardening,
   type BusinessResult,
 } from "./writes.ts";
-import { GATE, NEAR, type TreasuryView, type PaymentView } from "./engine.ts";
+import {
+  GATE,
+  NEAR,
+  RefusedBeforeSending,
+  type TreasuryView,
+  type PaymentView,
+} from "./engine.ts";
 import { TemplateStore } from "../../object-registration/template-store.ts";
 import ObjectRegistrationPage from "../../object-registration/ObjectRegistrationPage.tsx";
 import type { ObjectTemplate } from "../../object-registration/types.ts";
@@ -377,8 +383,10 @@ export default function TreasuryPage() {
       if (sequence.current === id) {
         setFailed(true);
         setMessage(
-          (e instanceof Error ? e.message : "Operation failed.") +
-            " Any pending request is retained for reconciliation.",
+          e instanceof RefusedBeforeSending
+            ? e.message
+            : (e instanceof Error ? e.message : "Operation failed.") +
+                " Any pending request is retained for reconciliation.",
         );
       }
     } finally {
