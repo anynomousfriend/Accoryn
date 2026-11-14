@@ -78,7 +78,16 @@ async function ownership(rpc: AccountReader, accountId: string, publicKey: strin
     if (error instanceof RpcRequestError && error.type === "UNKNOWN_ACCOUNT") return "absent";
     throw error;
   }
-  return (await accountExists(rpc, accountId, options)) ? "taken" : "absent";
+  try {
+    const account = await rpc.viewAccount(accountId, { ...options, finality: "final" });
+    // Creation can land between the first key query and account query. A missing
+    // key from an older block is not proof that the newly visible account is taken.
+    const key = await rpc.viewAccessKey(accountId, publicKey, { ...options, blockId: account.blockHash });
+    return key ? "ours" : "taken";
+  } catch (error) {
+    if (error instanceof RpcRequestError && error.type === "UNKNOWN_ACCOUNT") return "absent";
+    throw error;
+  }
 }
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {

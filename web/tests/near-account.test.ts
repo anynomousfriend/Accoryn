@@ -256,3 +256,24 @@ test("cooldown parsing handles HTTP dates and rejects malformed/excessive hints"
  assert.equal(helperRetryAfterSeconds(new Headers({"retry-after":"9999999999999999999999"}),"",now),undefined);
  assert.match(helperRefusalMessage({status:"rejected",accountId:"fresh-name.testnet",httpStatus:429,retryAfterSeconds:28800}),/faucet.*rate.limit.*8 hours.*original key/i);
 });
+
+test("a concurrent account creation between key and account reads is rechecked at the account block", async () => {
+ const state: ChainState={exists:false,keys:[]};
+ const fixture=await startFixture(r=>{
+  if(r.path==="/rpc" && r.body.params.request_type==="view_access_key" && !state.exists)
+   return ok(r.body.id,{error:"access key does not exist while viewing",block_height:1,block_hash:"h",logs:[]});
+  if(r.path==="/rpc" && r.body.params.request_type==="view_account"){
+   state.exists=true;state.keys=[OUR_KEY];
+  }
+  return r.path==="/rpc" ? rpcFixture(state)(r) : {status:500,text:"Unexpected helper call"};
+ });
+ const rpc=new NearRpcClient({endpoints:[fixture.url('/rpc')],archivalEndpoints:[]});
+ try {
+  const result=await createViaTestnetHelper({accountId:"fresh-name.testnet",publicKey:OUR_KEY,rpc,helperUrl:fixture.url('/account'),confirmTimeoutMs:20,pollIntervalMs:5});
+  assert.equal(result.status,"created");
+  const keyReads=fixture.requests.filter(r=>r.body?.params?.request_type==="view_access_key");
+  assert.equal(keyReads.length,2);
+  assert.equal(keyReads[1].body.params.block_id,viewAccount.block_hash);
+  assert.equal(fixture.requests.filter(r=>r.path==="/account").length,0);
+ } finally {await fixture.close();}
+});
