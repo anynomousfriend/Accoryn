@@ -98,24 +98,21 @@ test("real guided account → member object → vault invoice → acoustic appro
       .click();
     await expect(
       page.getByRole("heading", {
-        name: "Scan compared · identity unproven",
+        name: "Match",
         exact: true,
       }),
     ).toBeVisible({ timeout: 30000 });
     await page
-      .getByLabel(
-        "I reviewed the fresh scan and accept a manual research continuation.",
-        { exact: true },
-      )
+      .getByLabel("I reviewed this matched scan.", { exact: true })
       .check();
     await page
       .getByRole("button", {
-        name: "Use this research check for this payment",
+        name: "Use matched scan for this payment",
         exact: true,
       })
       .click();
     await expect(
-      page.getByText("Research check active · identity unproven", {
+      page.getByText("Demo object match active", {
         exact: true,
       }),
     ).toBeVisible();

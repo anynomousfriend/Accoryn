@@ -1438,7 +1438,7 @@ export default function TreasuryPage() {
                       setObjectCheck(null);
                       checkRef.current = null;
                     },
-                    onAcknowledge: (template, _comparison, comparedAt) => {
+                    onAcknowledge: (template, comparison, comparedAt) => {
                       const context = checkContext(template);
                       if (!context) {
                         setMessage(
@@ -1449,6 +1449,7 @@ export default function TreasuryPage() {
                       try {
                         const check = acknowledgeComparison(
                           context,
+                          comparison.topTwoMean,
                           comparedAt,
                         );
                         if (!validObjectCheck(check, context))
@@ -1456,7 +1457,7 @@ export default function TreasuryPage() {
                         setObjectCheck(check);
                         checkRef.current = check;
                         setMessage(
-                          "Research check recorded for this exact payment. Identity remains unproven. Continue with the sound exchange.",
+                          "Demo object match recorded for this payment. Continue with the sound exchange.",
                         );
                       } catch (e) {
                         setMessage(
@@ -1472,7 +1473,7 @@ export default function TreasuryPage() {
               {objectCheck &&
               contextRef.current &&
               validObjectCheck(objectCheck, contextRef.current, now)
-                ? "Research check active · identity unproven"
+                ? "Demo object match active"
                 : "A fresh comparison is required before your approval"}
             </p>
           </div>

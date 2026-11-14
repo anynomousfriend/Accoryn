@@ -51,8 +51,8 @@ Use **two different accounts**, one on each device. No real money: this release 
 
 1. Both members read the exact amount, recipient and purpose in **Approvals**. The partner can use the payment invitation link, open the vault, then use **Transfer proposal ID** → **Refresh payment and ceremony**.
 2. Host: press **Open host session — 0.1 testnet NEAR**. The session lasts five minutes. Partner: refresh the payment/session.
-3. On **each device**, press **Compare a fresh scan**, capture your enrolled object, then **Compare this scan**. Expect **Scan compared · identity unproven**. Measurements are under **View measured similarities**.
-4. If it is the wrong object, retake it. The app cannot yet make a reliable same-object verdict. To test the research flow, explicitly acknowledge its limits and press **Use this research check for this payment**. This records a local acknowledgement for this exact payment/session for at most two minutes; it is not a model verification success.
+3. On **each device**, press **Compare a fresh scan**, capture your enrolled object, then **Compare this scan**. Expect **Match** if the top-two mean exceeds 0.50, otherwise **No match**. Raw measurements are under **View comparison details**.
+4. After **Match**, check **I reviewed this matched scan**, then press **Use matched scan for this payment**. After **No match**, these controls are disabled: scan again. The match check is bound to this exact payment/session for at most two minutes. The 0.50 cutoff is a demo decision rule, not calibrated identity authentication.
 5. Partner: **Listen to host sound**. Host: after the listener is ready, **Play host sound**. Use built-in speakers/microphones with reasonable volume and quiet surroundings. Both should report **Sound exchange ready**.
 6. Each member checks **I approve this exact recipient, amount and purpose as a vault member**, then **Sign member approval**. Wait for each confirmed outcome.
 7. Refresh the payment on the executing device. When the real required threshold is met, press **Execute approved payment** once.

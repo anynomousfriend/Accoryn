@@ -68,6 +68,15 @@ The main merge is explicitly user-authorized. No gate-key deletion, mainnet spen
 - [x] Refresh/manual fallback and retained selections on failure; static production builds do not pretend to have the demo API.
 - [ ] User manual acceptance of phone/laptop discovery and selection. See [the picker checklist](docs/testing/2026-11-14-demo-user-picker.md).
 
+## Branch-only explicit demo matching — 2026-11-14
+
+The user selected an explicit demo cutoff, superseding the earlier inconclusive comparison UI on this branch.
+
+- [x] Top-two cosine mean strictly above 0.50: **Match**; at or below 0.50, invalid or out-of-range values: **No match**.
+- [x] Below-threshold continuation and payment-bound object grants are blocked, including validation at signing. Existing expiry/context/template checks remain.
+- [x] Clear demo decision and score; raw measurements and concise calibration limits in details. This is not certainty about the physical object, resistance to copied images, or stolen-key protection.
+- [ ] User manually accepts the new result display and retry flow.
+
 ## Product and fixed decisions
 
 Accoryn is the shared repository name; app-wide branding is still undecided. Build a new mobile/desktop web app for teams approving treasury payments together. The intended journey is personal-object research access → shared NEAR treasury → exact payment review → acoustic participation exchange → explicit independent approvals → authoritative settlement and receipt.

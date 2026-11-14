@@ -13,6 +13,7 @@ import { SiteHeader, Button, ActionLink } from "../design/primitives.tsx";
 import { ObjectRegistrationController } from "./controller.ts";
 import { CapturePanel } from "./CapturePanel.tsx";
 import type { Comparison, ObjectTemplate } from "./types.ts";
+import { isDemoObjectMatch } from "./demo-match.ts";
 import { ComparisonResult } from "./ComparisonResult.tsx";
 import { TemplateStore } from "./template-store.ts";
 import { memberTemplateKey } from "../engines/app/member-object.ts";
@@ -340,37 +341,13 @@ export default function ObjectRegistrationPage({
         )}
         {state.comparison && (
           <div className="mt-6">
-            {member ? (
-              <>
-                <h3 className="text-xl font-semibold">
-                  Scan compared · identity unproven
-                </h3>
-                <p className="mt-2 text-sm text-muted">
-                  The image model cannot yet reliably decide whether this is the
-                  same individual object. Retake if it is wrong; continuing
-                  records your research acknowledgement, not verified identity.
-                </p>
-                <details className="mt-4">
-                  <summary className="cursor-pointer py-3 text-sm">
-                    View measured similarities
-                  </summary>
-                  <ComparisonResult comparison={state.comparison} />
-                </details>
-              </>
-            ) : (
-              <ComparisonResult comparison={state.comparison} />
-            )}
+            <ComparisonResult comparison={state.comparison} />
             <div className="my-4 rounded-xl border border-line p-4">
-              <p className="text-sm">
-                Research continuation: there is no calibrated match/reject
-                threshold. You must judge this comparison yourself. This does
-                not authenticate you or protect the unencrypted browser wallet
-                keys.
-              </p>
               <label className="my-3 flex gap-3">
                 <input
                   type="checkbox"
                   checked={researchConsent}
+                  disabled={!isDemoObjectMatch(state.comparison.topTwoMean)}
                   onChange={(e) => {
                     if (!e.target.checked)
                       callbacks.current?.onComparisonReset();
@@ -379,19 +356,22 @@ export default function ObjectRegistrationPage({
                     );
                   }}
                 />
-                I reviewed the fresh scan and accept a manual research
-                continuation.
+                I reviewed this matched scan.
               </label>
               {(!member || member.approval) && (
                 <Button
                   disabled={
-                    !researchConsent || !state.template || comparisonExpired
+                    !researchConsent ||
+                    !state.template ||
+                    comparisonExpired ||
+                    !isDemoObjectMatch(state.comparison.topTwoMean)
                   }
                   onClick={() => {
                     if (
                       !state.template ||
                       !state.comparison ||
-                      !researchConsent
+                      !researchConsent ||
+                      !isDemoObjectMatch(state.comparison.topTwoMean)
                     )
                       return;
                     if (member) {
@@ -414,7 +394,7 @@ export default function ObjectRegistrationPage({
                   }}
                 >
                   {member
-                    ? "Use this research check for this payment"
+                    ? "Use matched scan for this payment"
                     : "Continue to testnet account"}
                 </Button>
               )}

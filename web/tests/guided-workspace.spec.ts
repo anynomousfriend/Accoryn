@@ -138,14 +138,13 @@ test("withdrawing research acknowledgement revokes the parent check", async ({
       exact: true,
     })
     .click();
-  const consent = page.getByLabel(
-    "I reviewed the fresh scan and accept a manual research continuation.",
-    { exact: true },
-  );
+  const consent = page.getByLabel("I reviewed this matched scan.", {
+    exact: true,
+  });
   await consent.check();
   await page
     .getByRole("button", {
-      name: "Use this research check for this payment",
+      name: "Use matched scan for this payment",
       exact: true,
     })
     .click();
@@ -154,7 +153,7 @@ test("withdrawing research acknowledgement revokes the parent check", async ({
   await expect(page.getByTestId("check-state")).toHaveText("inactive");
   await expect(
     page.getByRole("button", {
-      name: "Use this research check for this payment",
+      name: "Use matched scan for this payment",
       exact: true,
     }),
   ).toBeDisabled();
@@ -181,4 +180,42 @@ test("blocked browser storage does not crash the workspace", async ({
   await expect(page.getByRole("alert")).toContainText(
     "Protected action storage is damaged",
   );
+});
+
+test("real DINOv2 cup match can continue but a different bottle blocks continuation and revokes the prior check", async ({
+  page,
+}) => {
+  await page.goto("/tests/harness/member-object.html");
+  await page
+    .getByRole("button", {
+      name: "Load actual fixture comparison",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Match", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("I reviewed this matched scan.", { exact: true })
+    .check();
+  const continuation = page.getByRole("button", {
+    name: "Use matched scan for this payment",
+    exact: true,
+  });
+  await continuation.click();
+  await expect(page.getByTestId("check-state")).toHaveText("active");
+  await page
+    .getByRole("button", {
+      name: "Load different-object comparison",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "No match", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("I reviewed this matched scan.", { exact: true }),
+  ).toBeDisabled();
+  await expect(continuation).toBeDisabled();
+  await expect(page.getByTestId("check-state")).toHaveText("inactive");
 });

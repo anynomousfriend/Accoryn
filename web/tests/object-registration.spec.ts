@@ -117,17 +117,18 @@ test("real locally saved fixture enrollment is visible after navigation and expl
     page.getByText("Computational test cup", { exact: true }),
   ).toHaveCount(0);
 });
-test("actual fixture comparison renders signed scores and never an unlock confirmation", async ({
+test("actual fixture comparison reports its demo match and keeps raw measurements in details", async ({
   page,
 }) => {
   test.setTimeout(60000);
   await page.goto("/tests/harness/comparison.html");
   await expect(
-    page.getByRole("heading", { name: "Scan compared" }),
+    page.getByRole("heading", { name: "Match", exact: true }),
   ).toBeVisible({ timeout: 30000 });
   await expect(
-    page.getByText("Research comparison — does not unlock an account."),
+    page.getByText("Demo object comparison", { exact: true }),
   ).toBeVisible();
+  await page.getByText("View comparison details", { exact: true }).click();
   await expect(
     page.getByText("Mean of the two highest similarities"),
   ).toBeVisible();

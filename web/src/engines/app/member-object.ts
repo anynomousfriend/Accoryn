@@ -1,5 +1,6 @@
 // Local UX research policy only. This is not a proof accepted by a contract,
 // and cannot prevent a browser key holder using another signing client.
+import { isDemoObjectMatch } from "../../object-registration/demo-match.ts";
 export type ObjectCheckContext = {
   accountId: string;
   vaultId: string;
@@ -13,6 +14,7 @@ export type ObjectCheckContext = {
 export type ObjectCheck = ObjectCheckContext & {
   issuedAt: number;
   expiresAt: number;
+  similarity: number;
 };
 export function memberTemplateKey(vaultId: string, accountId: string): string {
   for (const id of [vaultId, accountId]) {
@@ -32,8 +34,13 @@ const fields = [
 ] as const;
 export function acknowledgeComparison(
   context: ObjectCheckContext,
+  similarity: number,
   now = Date.now(),
 ): ObjectCheck {
+  if (!isDemoObjectMatch(similarity))
+    throw new Error(
+      "Object did not match the demo similarity threshold. Scan again.",
+    );
   if (
     !fields.every(
       (k) => typeof context[k] === "string" && context[k].length > 0,
@@ -47,6 +54,7 @@ export function acknowledgeComparison(
     );
   return {
     ...context,
+    similarity,
     issuedAt: now,
     expiresAt: Math.min(now + 120_000, context.sessionExpiresAt),
   };
@@ -58,6 +66,7 @@ export function validObjectCheck(
 ): boolean {
   return (
     !!check &&
+    isDemoObjectMatch(check.similarity) &&
     Number.isFinite(now) &&
     now >= check.issuedAt &&
     now < check.expiresAt &&

@@ -30,7 +30,7 @@ The browser also provides a personal-object enrollment experiment, device checks
 |---|---|---|
 | Device readiness | Preview/capture from the camera, measure microphone input, play and confirm a speaker tone | Browser feature |
 | Personal-object enrollment | Capture three views, review/retake them, save a versioned local visual template | Browser research feature |
-| Fresh object comparison | Compare a new capture with the template; inspect three cosine scores, top-two mean and inference time | Measured similarity; no authentication threshold |
+| Fresh object comparison | Compare a new capture with the template; inspect three cosine scores, top-two mean and inference time | Demo Match above 0.50; uncalibrated identity score |
 | Invoice preparation | Enter recipient, treasury, purpose, date and line items; calculate exact NEAR totals; save and review local drafts | Browser feature |
 | Connected treasury | Create/select accounts, create/load/fund vaults, save/submit invoices, host/listen, approve, execute, verify receipts and export CSV | Real browser/testnet integration; writes opt-in |
 | Public board | Inspect vault policy and verified payout evidence without a local signing key | Read-only `/board/?dao=…`; latest 50 proposals |
@@ -43,7 +43,7 @@ The browser also provides a personal-object enrollment experiment, device checks
 | Transaction journal | Reconcile transaction outcomes and guard against duplicate submission | Engine + opt-in live tests |
 | Settlement verification | Verify proposal approval and an exact successful transfer receipt | Engine + recorded live evidence |
 
-An image similarity score is **not a probability, proof of identity or recovered private key**. There is no automatic match/deny threshold. After a fresh comparison, an explicit research acknowledgment opens a ten-minute app continuation; it does not cryptographically protect a signing key or recover one from an image.
+The demo reports **Match** when the mean of the two highest similarities exceeds **0.50**, and **No match** otherwise. No-match scans cannot continue to the object-check approval step. An image similarity score is not an identity probability or a private key; the demo cutoff is not calibrated authentication.
 
 ## How it is built
 
@@ -201,7 +201,7 @@ On each device open **Member object**, capture and accept three views, name the 
 
 Fund the vault, then open **Payment → New invoice**. Select the recipient, enter purpose and amount (try **0.05 testnet NEAR**), save, review and explicitly submit. The loaded vault is carried forward. Optional invoice reference/date and itemized editing remain available.
 
-In **Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Each member compares a fresh scan and explicitly acknowledges that **identity remains unproven**. The local research check lasts at most two minutes and is bound to the exact payment/session/template. It does not prove same-object identity or protect an extracted browser key.
+In **Approvals**, open the host’s five-minute session (**0.1 testnet NEAR** attachment). Each member compares a fresh scan. A **Match** above 0.50 enables **I reviewed this matched scan → Use matched scan for this payment**; **No match** blocks continuation. The local research check lasts at most two minutes and is bound to the exact payment/session/template. It does not prove same-object identity or protect an extracted browser key.
 
 Listener taps **Listen to host sound**, then the host taps **Play host sound**. Each member explicitly consents and signs their own approval. Refresh the canonical payment; once the actual threshold is met, execute once. Publish verified payout evidence, open **Activity**, load receipts and share the keyless board. Approval alone is not settlement.
 
@@ -314,7 +314,7 @@ node --test tests/near-live-testnet.test.ts
 
 | Boundary | What to understand |
 |---|---|
-| Object images | Observable and reproducible; they are not cryptographic secrets. Baseline comparison is uncalibrated and has no identity decision threshold. |
+| Object images | Observable and reproducible; they are not cryptographic secrets. The user-selected 0.50 demo cutoff is uncalibrated and does not establish identity. |
 | Key custody | The connected account engine stores extractable, unencrypted signing material in browser IndexedDB. A compromised browser/profile can bypass UI restrictions. No object-based cross-device key recovery exists. |
 | Acoustic presence | Sound demonstrates communication between devices. Live relay, collusion and one person controlling several member accounts remain possible. |
 | Approval | Challenge receipt is separate from explicit member consent. Eligibility and account-bound attestations are checked by the protocol/gate. |

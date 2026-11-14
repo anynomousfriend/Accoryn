@@ -17,7 +17,13 @@ const inference = new InferenceClient();
 const signal = new AbortController().signal;
 const model = await inference.load(() => {}, signal);
 const scans = [];
-for (const name of ["cup-a-0", "cup-a-1", "cup-a-2", "cup-a-heldout"]) {
+for (const name of [
+  "cup-a-0",
+  "cup-a-1",
+  "cup-a-2",
+  "cup-a-heldout",
+  "bottle",
+]) {
   const bitmap = await createImageBitmap(
     await (await fetch(`/tests/fixtures/vision/${name}.jpg`)).blob(),
   );
@@ -40,6 +46,11 @@ const comparison = compareEmbeddings(
   template.views,
   scans[3].vector,
   scans[3].inferenceMs,
+);
+const differentComparison = compareEmbeddings(
+  template.views,
+  scans[4].vector,
+  scans[4].inferenceMs,
 );
 function Harness() {
   const [active, setActive] = useState(false);
@@ -71,6 +82,20 @@ function Harness() {
         }}
       >
         Load actual fixture comparison
+      </button>
+      <button
+        onClick={() =>
+          (controller as unknown as { update: (value: object) => void }).update(
+            {
+              phase: "result",
+              mode: "comparison",
+              comparison: differentComparison,
+              detail: "Scan compared",
+            },
+          )
+        }
+      >
+        Load different-object comparison
       </button>
     </>
   );
